@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { UsersModule } from '~/src/domain/users/users.module';
 import { ConfigModule,ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '~/src/domain/users/auth/auth.module';
+import { AuthModule } from '~/src/domain/auth/auth.module';
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
