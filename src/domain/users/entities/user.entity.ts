@@ -10,9 +10,9 @@ export class User {
     @Column()
     password: string;
     
-    @Column()
+    @Column({ nullable: true })
     socialId: string;
-    @Column()
+    @Column({ nullable: true })
     socialType: string;
     // 여기까진 기존의 create-user.dto.ts와 동일합니다.
 
