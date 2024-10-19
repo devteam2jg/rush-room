@@ -15,8 +15,9 @@ export class UsersService {
     const user:User = await this.usersRepository.save(createUserDto);
     return this.makeUserDto(user);
   }
-  findById(findByIdDto:FindByIdDto){
-    return this.usersRepository.findOne({where: {id: findByIdDto.id}});
+  async findById(findByIdDto:FindByIdDto){
+    const user = await this.usersRepository.findOne({where: {id: findByIdDto.id}});
+    return this.makeUserDto(user);
   }
 
   async findBySocialId(findBySocialIdDto: FindBySocialIdDto) {
