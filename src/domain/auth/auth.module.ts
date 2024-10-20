@@ -22,8 +22,8 @@ import { KakaoStrategy } from '~/src/domain/auth/strategies/kakao.strategy';
   ],
   providers: [
     AuthService,
-    JwtStrategy,
     KakaoStrategy,
+    JwtStrategy,
   ],
 })
 export class AuthModule {}
