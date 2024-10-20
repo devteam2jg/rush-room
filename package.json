@@ -35,6 +35,7 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
     "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "passport-kakao": "^1.0.1",
     "pg": "^8.13.0",
     "reflect-metadata": "^0.2.0",
