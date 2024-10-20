@@ -35,8 +35,7 @@ export class AuthService {
     async validateUser(payload: JwtPayloadDto) : Promise<UserDataDto> {
         return await this.usersService.findById(payload as FindByIdDto);
     }
-      /* optional : not use */
-  async validateSocialUser(profile: SocialProfileDto) : Promise<UserDataDto> {
-    return await this.usersService.findBySocialId(profile as FindBySocialIdDto);
-  }
+    async validateSocialUser(profile: SocialProfileDto) : Promise<UserDataDto> {
+        return await this.usersService.findBySocialId(profile as FindBySocialIdDto);
+    }
 }
