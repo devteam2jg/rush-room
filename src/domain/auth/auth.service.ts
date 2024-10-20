@@ -1,8 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { UsersService } from '~/src/domain/users/users.service';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { JwtService } from '@nestjs/jwt';
+import { FindByIdDto } from '~/src/domain/users/dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +11,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private jwtService: JwtService,
     ){}
-    async login(user:UserDataDto) {
+    async login(user:UserDataDto):Promise<string> {
         const payload:JwtPayloadDto = { 
           id: user.id, 
           name: user.name, 
@@ -19,13 +20,7 @@ export class AuthService {
          };
         return this.jwtService.sign(payload);
     }
-    async validateUser(payload: JwtPayloadDto) {
-        const user:UserDataDto = await this.usersService.findById({
-          id: payload.id
-        });
-        //TODO: 이부분의 exception 처리는 filter로 빼는게 좋을듯
-        if(!user)
-          throw new UnauthorizedException();
-        return user;
+    async validateUser(payload: JwtPayloadDto) : Promise<UserDataDto> {
+        return await this.usersService.findById(payload as FindByIdDto);
     }
 }

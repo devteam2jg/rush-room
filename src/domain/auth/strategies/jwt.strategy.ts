@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 /* nest 에서 cookie를 다루기위해 express모듈을 사용중임. */
 import { Request } from 'express';
+import { promises } from 'dns';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -23,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           } as StrategyOptions);
     }
 
-    async validate(payload: any) {
+    async validate(payload: any):Promise<JwtPayloadDto> {
         return payload as JwtPayloadDto; //TODO: 이거 검증되는지 확인
     }
 }
