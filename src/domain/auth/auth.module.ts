@@ -4,6 +4,8 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from '~/src/domain/users/users.module';
+import { JwtStrategy } from '~/src/domain/auth/strategies/jwt.strategy';
+import { KakaoStrategy } from '~/src/domain/auth/strategies/kakao.strategy';
 
 @Module({
   imports: [
@@ -18,6 +20,10 @@ import { UsersModule } from '~/src/domain/users/users.module';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    KakaoStrategy,
+  ],
 })
 export class AuthModule {}
