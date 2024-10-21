@@ -24,6 +24,8 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
       name: profile.username,
       socialId: profile.id,
       socialType: SocialType.KAKAO,
+      profileUrl: profile._json.kakao_account.profile.profile_image_url,
+      thumbnailUrl: profile._json.kakao_account.profile.thumbnail_image_url,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };

@@ -33,6 +33,8 @@ export class AuthService {
       email: profile.email,
       socialId: profile.socialId,
       socialType: profile.socialType,
+      profile_url: profile.profileUrl,
+      thumbnail_url: profile.thumbnailUrl,
     } as CreateUserDto);
   }
   async validateUser(payload: JwtPayloadDto): Promise<UserDataDto> {

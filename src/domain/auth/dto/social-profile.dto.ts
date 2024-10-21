@@ -17,6 +17,11 @@ export class SocialProfileDto {
   @IsEnum(SocialType)
   socialType: SocialType;
 
+  @IsString()
+  profileUrl?: string;
+  @IsString()
+  thumbnailUrl?: string;
+
   accessToken?: string;
   refreshToken?: string;
 }
