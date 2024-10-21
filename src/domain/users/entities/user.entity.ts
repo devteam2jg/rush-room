@@ -22,9 +22,9 @@ export class User {
   socialType: string;
   // 여기까진 기존의 create-user.dto.ts와 동일합니다.
 
-  @Column()
+  @Column({ nullable: true })
   profile_url: string;
-  @Column()
+  @Column({ nullable: true })
   thumbnail_url: string;
 
   @CreateDateColumn()
