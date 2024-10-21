@@ -1,22 +1,26 @@
-import { Controller, Get, Req, Res, UseGuards, InternalServerErrorException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Request } from '@nestjs/common';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { KakaoProfileDto } from './dto/social-profile.dto';
-import { JwtAuthGuard,KakaoOAuthGuard } from './guards/auth.guard';
-
-
+import { JwtAuthGuard, KakaoOAuthGuard } from './guards/auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-  
+
   @Get('terms')
   getTermsPage() {
     /*TODO: 카카오 회원가입을 위해서는 terms 관련 페이지가 필수적임 */
     return 'terms';
   }
-  
+
   @UseGuards(JwtAuthGuard)
   @Get('test')
   getTestPage() {
@@ -26,7 +30,7 @@ export class AuthController {
 
   @UseGuards(KakaoOAuthGuard)
   @Get('kakao')
-  async kakaoLogin(@Req() req: Request) {
+  async kakaoLogin() {
     return;
   }
 
@@ -34,7 +38,7 @@ export class AuthController {
   @Get('kakao/callback')
   async kakaoLoginCallback(@Req() req, @Res() res): Promise<void> {
     // 카카오 인증 완료 후 로그인 처리
-    const kakaoProfile:KakaoProfileDto = req.user;
+    const kakaoProfile: KakaoProfileDto = req.user;
     let user: UserDataDto;
     try {
       user = await this.authService.validateSocialUser(kakaoProfile);
