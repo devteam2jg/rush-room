@@ -1,10 +1,10 @@
-import { IsNumber, IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 
 export class UserDataDto {
   @IsNotEmpty()
-  @IsNumber()
+  @IsString()
   id: string;
 
   @IsNotEmpty()
@@ -33,4 +33,8 @@ export class CreateUserDto extends UserDataDto {
   @IsNotEmpty()
   password: string;
 }
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+}

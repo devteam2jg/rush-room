@@ -34,6 +34,7 @@ export class AuthController {
     return;
   }
 
+  /* TODO: 로직 분리 */
   @UseGuards(KakaoOAuthGuard)
   @Get('kakao/callback')
   async kakaoLoginCallback(@Req() req, @Res() res): Promise<void> {

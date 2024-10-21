@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import {
   CreateUserDto,
   FindByDto,
+  UpdateUserDto,
   UserDataDto,
 } from '~/src/domain/users/dto/user.dto';
 
@@ -36,6 +37,10 @@ export class UsersService {
       return null;
     }
     return this.makeUserDto(user);
+  }
+  async update(updateUserDto: UpdateUserDto) {
+    const { id } = updateUserDto;
+    await this.usersRepository.update(id, updateUserDto);
   }
   makeUserDto(user: User) {
     const { id, name, email, socialId, socialType, profileUrl, thumbnailUrl } =
