@@ -29,7 +29,7 @@ export class AuthService {
     return this.usersService.create({
       name: profile.name,
       /*TODO: password 관련 로직 변경 필요, but 소셜로그인 단계에서는 password관련 로직이 하나도 없기에 일단 방치해도 됨. */
-      password: '!@#$!$%@#',
+      password: 'NOT_DEFINED',
       email: profile.email,
       socialId: profile.socialId,
       socialType: profile.socialType,
