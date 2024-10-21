@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
+import { UsersModule } from '~/src/domain/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
+import { AuthModule } from '~/src/domain/auth/auth.module';
+import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { AuctionModule } from '~/src/domain/auction/auction.module';
     UsersModule,
     AuthModule,
     AuctionModule,
+    GatewayModule,
   ],
   controllers: [AppController],
   providers: [AppService],
