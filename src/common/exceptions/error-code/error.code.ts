@@ -12,3 +12,4 @@ export type ErrorCode = ErrorCodeVo;
 
 /* Error Instances */
 export const ENTITY_NOT_FOUND = new ErrorCodeVo(404, 'Entity Not Found');
+export const TOO_EARLY_EVENT_TIME = new ErrorCodeVo(400, 'TooEarlyEarlyEarly');
