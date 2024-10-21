@@ -4,8 +4,7 @@ import { User } from '~/src/domain/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import {
   CreateUserDto,
-  FindByIdDto,
-  FindBySocialIdDto,
+  FindByDto,
   UserDataDto,
 } from '~/src/domain/users/dto/user.dto';
 
@@ -20,14 +19,14 @@ export class UsersService {
     const user: User = await this.usersRepository.save(createUserDto);
     return this.makeUserDto(user);
   }
-  async findById(findByIdDto: FindByIdDto) {
+  async findById(findByIdDto: FindByDto) {
     const user = await this.usersRepository.findOne({
       where: { id: findByIdDto.id },
     });
     return this.makeUserDto(user);
   }
 
-  async findBySocialId(findBySocialIdDto: FindBySocialIdDto) {
+  async findBySocialId(findBySocialIdDto: FindByDto) {
     const { socialId, socialType } = findBySocialIdDto;
     const user: User = await this.usersRepository.findOne({
       where: { socialId, socialType },
@@ -44,8 +43,8 @@ export class UsersService {
       email: user.email,
       socialId: user.socialId,
       socialType: user.socialType,
-      profile_url: user.profile_url,
-      thumbnail_url: user.thumbnail_url,
+      profileUrl: user.profileUrl,
+      thumbnailUrl: user.thumbnailUrl,
     };
     return userDataDto;
   }

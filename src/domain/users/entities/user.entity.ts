@@ -24,9 +24,9 @@ export class User {
   // 여기까진 기존의 create-user.dto.ts와 동일합니다.
 
   @Column({ nullable: true })
-  profile_url: string;
+  profileUrl: string;
   @Column({ nullable: true })
-  thumbnail_url: string;
+  thumbnailUrl: string;
 
   @CreateDateColumn()
   createdAt: Date;

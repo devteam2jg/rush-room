@@ -3,34 +3,29 @@ import { PartialType } from '@nestjs/mapped-types';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 
 export class UserDataDto {
+  @IsNotEmpty()
   @IsNumber()
   id: number;
+
+  @IsNotEmpty()
   @IsString()
   name: string;
+
+  @IsNotEmpty()
   @IsString()
   email: string;
+
   @IsString()
   socialId: string;
   @IsString()
   socialType: SocialType;
 
   @IsString()
-  profile_url: string;
+  profileUrl: string;
   @IsString()
-  thumbnail_url: string;
+  thumbnailUrl: string;
 }
 
-export class FindBySocialIdDto {
-  @IsString()
-  socialId: string;
-  @IsString()
-  socialType: SocialType;
-}
-
-export class FindByIdDto {
-  @IsNumber()
-  id: number;
-}
 export class FindByDto extends PartialType(UserDataDto) {}
 
 export class CreateUserDto extends UserDataDto {
