@@ -28,15 +28,28 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
   async createSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
+    const { id, name, email, socialId, socialType, profileUrl, thumbnailUrl } =
+      profile;
     return this.usersService.create({
+      id,
+      name,
       password: 'NOT_DEFINED',
-      ...profile,
+      email,
+      socialId,
+      socialType,
+      profileUrl,
+      thumbnailUrl,
     } as CreateUserDto);
   }
   async validateUser(payload: JwtPayloadDto): Promise<UserDataDto> {
-    return await this.usersService.findById(payload as FindByDto);
+    const { id } = payload;
+    return await this.usersService.findById({ id } as FindByDto);
   }
   async validateSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
-    return await this.usersService.findBySocialId(profile as FindByDto);
+    const { socialId, socialType } = profile;
+    return await this.usersService.findBySocialId({
+      socialId,
+      socialType,
+    } as FindByDto);
   }
 }
