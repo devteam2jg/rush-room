@@ -44,6 +44,8 @@ export class UsersService {
       email: user.email,
       socialId: user.socialId,
       socialType: user.socialType,
+      profile_url: user.profile_url,
+      thumbnail_url: user.thumbnail_url,
     };
     return userDataDto;
   }

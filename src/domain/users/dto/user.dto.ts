@@ -14,6 +14,11 @@ export class CreateUserDto {
   socialId: string;
   @IsString()
   socialType: string;
+
+  @IsString()
+  profile_url: string;
+  @IsString()
+  thumbnail_url: string;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
@@ -29,6 +34,11 @@ export class UserDataDto {
   socialId: string;
   @IsString()
   socialType: string;
+
+  @IsString()
+  profile_url: string;
+  @IsString()
+  thumbnail_url: string;
 }
 
 export class FindBySocialIdDto {
