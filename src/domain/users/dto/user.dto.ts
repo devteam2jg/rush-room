@@ -1,44 +1,40 @@
-import { IsNumber,IsString,IsNotEmpty } from "class-validator";
+import { IsString, IsNotEmpty } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 
-export class CreateUserDto {
-    @IsString()
-    name: string;
-    @IsString()
-    email: string;
-    @IsString()
-    @IsNotEmpty()
-    password: string;
+export class UserDataDto {
+  @IsNotEmpty()
+  @IsString()
+  id: string;
 
-    @IsString()
-    socialId: string;
-    @IsString()
-    socialType: string;
+  @IsNotEmpty()
+  @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsString()
+  email: string;
+
+  @IsString()
+  socialId: string;
+  @IsString()
+  socialType: SocialType;
+
+  @IsString()
+  profileUrl: string;
+  @IsString()
+  thumbnailUrl: string;
 }
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class FindByDto extends PartialType(UserDataDto) {}
 
-export class UserDataDto{
-    @IsNumber()
-    id: number;
-    @IsString()
-    name: string;
-    @IsString()
-    email: string;
-    @IsString()
-    socialId: string;
-    @IsString()
-    socialType: string;
+export class CreateUserDto extends UserDataDto {
+  @IsString()
+  @IsNotEmpty()
+  password: string;
 }
-
-export class FindBySocialIdDto{
-    @IsString()
-    socialId: string;
-    @IsString()
-    socialType: string;
-}
-
-export class FindByIdDto{
-    @IsNumber()
-    id: number;
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  @IsNotEmpty()
+  @IsString()
+  id: string;
 }

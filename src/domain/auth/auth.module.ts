@@ -13,7 +13,7 @@ import { AuthController } from './auth.controller';
     PassportModule,
     UsersModule,
     JwtModule.registerAsync({
-      imports:[ConfigModule],
+      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '60s' },
@@ -21,11 +21,8 @@ import { AuthController } from './auth.controller';
       inject: [ConfigService],
     }),
   ],
-  providers: [
-    AuthService,
-    KakaoStrategy,
-    JwtStrategy,
-  ],
+
+  providers: [AuthService, KakaoStrategy, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

@@ -1,41 +1,66 @@
-import { Injectable} from '@nestjs/common';
-import { UserDataDto,CreateUserDto } from '~/src/domain/users/dto/user.dto';
+import { Injectable } from '@nestjs/common';
+import {
+  UserDataDto,
+  CreateUserDto,
+  FindByDto,
+  UpdateUserDto,
+} from '~/src/domain/users/dto/user.dto';
 import { UsersService } from '~/src/domain/users/users.service';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { JwtService } from '@nestjs/jwt';
-import { FindByIdDto,FindBySocialIdDto } from '~/src/domain/users/dto/user.dto';
 import { SocialProfileDto } from '~/src/domain/auth/dto/social-profile.dto';
-
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly usersService: UsersService,
-        private jwtService: JwtService,
-    ){}
-    async login(user:UserDataDto):Promise<string> {
-        const payload:JwtPayloadDto = { 
-          id: user.id, 
-          name: user.name, 
-          email: user.email, 
-          socialType: user.socialType
-         };
-        return this.jwtService.sign(payload);
-    }
-    async createSocialUser(profile: SocialProfileDto) : Promise<UserDataDto> {
-        return this.usersService.create({
-          name: profile.name,
-          /*TODO: password 관련 로직 변경 필요, but 소셜로그인 단계에서는 password관련 로직이 하나도 없기에 일단 방치해도 됨. */
-          password: '!@#$!$%@#',
-          email: profile.email,
-          socialId: profile.socialId,
-          socialType: profile.socialType,
-        } as CreateUserDto);
-      }
-    async validateUser(payload: JwtPayloadDto) : Promise<UserDataDto> {
-        return await this.usersService.findById(payload as FindByIdDto);
-    }
-    async validateSocialUser(profile: SocialProfileDto) : Promise<UserDataDto> {
-        return await this.usersService.findBySocialId(profile as FindBySocialIdDto);
-    }
+  constructor(
+    private readonly usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
+
+  async login(user: UserDataDto): Promise<string> {
+    const { id, name, email, socialType } = user;
+    const payload: JwtPayloadDto = {
+      id,
+      name,
+      email,
+      socialType,
+    };
+    return this.jwtService.sign(payload);
+  }
+  async createSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
+    const { id, name, email, socialId, socialType, profileUrl, thumbnailUrl } =
+      profile;
+    return this.usersService.create({
+      id,
+      name,
+      password: 'NOT_DEFINED',
+      email,
+      socialId,
+      socialType,
+      profileUrl,
+      thumbnailUrl,
+    } as CreateUserDto);
+  }
+  async validateUser(payload: JwtPayloadDto): Promise<UserDataDto> {
+    const { id } = payload;
+    return await this.usersService.findById({ id } as FindByDto);
+  }
+  /* TODO: 로직 분리 */
+  async validateSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
+    const { socialId, socialType } = profile;
+    const user: UserDataDto = await this.usersService.findBySocialId({
+      socialId,
+      socialType,
+    } as FindByDto);
+    if (user) await this.updateSocialUser(profile);
+    return user;
+  }
+  async updateSocialUser(profile: SocialProfileDto): Promise<void> {
+    const { name, profileUrl, thumbnailUrl } = profile;
+    this.usersService.update({
+      name,
+      profileUrl,
+      thumbnailUrl,
+    } as UpdateUserDto);
+  }
 }

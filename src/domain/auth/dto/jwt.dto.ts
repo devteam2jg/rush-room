@@ -1,12 +1,4 @@
-import { IsString, IsNumber } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
-export class JwtPayloadDto{
-    @IsNumber()
-    id: number;
-    @IsString()
-    name: string;
-    @IsString()
-    email: string; 
-    @IsString()
-    socialType: string; //TODO: enum으로 변경
-}
+export class JwtPayloadDto extends PartialType(UserDataDto) {}
