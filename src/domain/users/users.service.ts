@@ -20,8 +20,9 @@ export class UsersService {
     return this.makeUserDto(user);
   }
   async findById(findByIdDto: FindByDto) {
+    const { id } = findByIdDto;
     const user = await this.usersRepository.findOne({
-      where: { id: findByIdDto.id },
+      where: { id: id },
     });
     return this.makeUserDto(user);
   }
@@ -37,14 +38,16 @@ export class UsersService {
     return this.makeUserDto(user);
   }
   makeUserDto(user: User) {
+    const { id, name, email, socialId, socialType, profileUrl, thumbnailUrl } =
+      user;
     const userDataDto: UserDataDto = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      socialId: user.socialId,
-      socialType: user.socialType,
-      profileUrl: user.profileUrl,
-      thumbnailUrl: user.thumbnailUrl,
+      id,
+      name,
+      email,
+      socialId,
+      socialType,
+      profileUrl,
+      thumbnailUrl,
     };
     return userDataDto;
   }

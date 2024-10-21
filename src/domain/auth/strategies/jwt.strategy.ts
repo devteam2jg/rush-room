@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     } as StrategyOptions);
   }
 
-  async validate(payload: any): Promise<JwtPayloadDto> {
-    return payload as JwtPayloadDto; //TODO: 이거 검증되는지 확인
+  async validate(payload: JwtPayloadDto): Promise<JwtPayloadDto> {
+    return payload;
   }
 }

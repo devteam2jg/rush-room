@@ -18,11 +18,12 @@ export class AuthService {
   ) {}
 
   async login(user: UserDataDto): Promise<string> {
+    const { id, name, email, socialType } = user;
     const payload: JwtPayloadDto = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      socialType: user.socialType,
+      id,
+      name,
+      email,
+      socialType,
     };
     return this.jwtService.sign(payload);
   }
