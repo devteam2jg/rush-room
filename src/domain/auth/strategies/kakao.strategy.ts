@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 import { ConfigService } from '@nestjs/config';
 import { KakaoProfileDto } from '../dto/social-profile.dto';
+import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 @Injectable()
 export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
   constructor(
@@ -22,7 +23,7 @@ export class KakaoStrategy extends PassportStrategy(Strategy, 'kakao') {
       email: profile._json.kakao_account.email,
       name: profile.username,
       socialId: profile.id,
-      socialType: profile.provider,
+      socialType: SocialType.KAKAO,
       accessToken: accessToken,
       refreshToken: refreshToken,
     };

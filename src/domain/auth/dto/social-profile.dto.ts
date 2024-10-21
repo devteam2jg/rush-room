@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 export class SocialProfileDto {
   @IsNotEmpty()
   @IsString()
@@ -10,11 +11,11 @@ export class SocialProfileDto {
 
   @IsNotEmpty()
   @IsString()
-  socialId: string;
+  socialId: SocialType;
 
   @IsNotEmpty()
-  @IsString()
-  socialType: string;
+  @IsEnum(SocialType)
+  socialType: SocialType;
 
   accessToken?: string;
   refreshToken?: string;

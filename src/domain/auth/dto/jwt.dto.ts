@@ -1,4 +1,5 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsEnum } from 'class-validator';
+import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 
 export class JwtPayloadDto {
   @IsNumber()
@@ -7,6 +8,6 @@ export class JwtPayloadDto {
   name: string;
   @IsString()
   email: string;
-  @IsString()
-  socialType: string; //TODO: enum으로 변경
+  @IsEnum(SocialType)
+  socialType: SocialType; //TODO: enum으로 변경
 }

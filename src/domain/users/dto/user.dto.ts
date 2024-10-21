@@ -1,5 +1,6 @@
 import { IsNumber, IsString, IsNotEmpty } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 
 export class CreateUserDto {
   @IsString()
@@ -13,7 +14,7 @@ export class CreateUserDto {
   @IsString()
   socialId: string;
   @IsString()
-  socialType: string;
+  socialType: SocialType;
 
   @IsString()
   profile_url: string;
@@ -33,7 +34,7 @@ export class UserDataDto {
   @IsString()
   socialId: string;
   @IsString()
-  socialType: string;
+  socialType: SocialType;
 
   @IsString()
   profile_url: string;
@@ -45,7 +46,7 @@ export class FindBySocialIdDto {
   @IsString()
   socialId: string;
   @IsString()
-  socialType: string;
+  socialType: SocialType;
 }
 
 export class FindByIdDto {
