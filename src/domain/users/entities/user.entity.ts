@@ -6,10 +6,11 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
+
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
   @Column()
   name: string;
   @Column()

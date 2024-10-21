@@ -1,14 +1,9 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
-export class SocialProfileDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
 
-  @IsNotEmpty()
-  @IsEmail()
-  email: string;
-
+export class SocialProfileDto extends PartialType(UserDataDto) {
   @IsNotEmpty()
   @IsString()
   socialId: SocialType;
@@ -16,11 +11,6 @@ export class SocialProfileDto {
   @IsNotEmpty()
   @IsEnum(SocialType)
   socialType: SocialType;
-
-  @IsString()
-  profileUrl?: string;
-  @IsString()
-  thumbnailUrl?: string;
 
   accessToken?: string;
   refreshToken?: string;

@@ -5,7 +5,7 @@ import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 export class UserDataDto {
   @IsNotEmpty()
   @IsNumber()
-  id: number;
+  id: string;
 
   @IsNotEmpty()
   @IsString()
