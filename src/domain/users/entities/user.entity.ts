@@ -1,11 +1,14 @@
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
   CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
+import { Auction } from '~/src/domain/auction/entities/auction.entity';
+import { IsEmail } from 'class-validator';
 
 @Entity()
 export class User {
@@ -14,6 +17,7 @@ export class User {
   @Column()
   name: string;
   @Column()
+  @IsEmail()
   email: string;
   @Column()
   password: string;
@@ -33,4 +37,9 @@ export class User {
   createdAt: Date;
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => Auction, (auction) => auction.user, {
+    eager: false,
+  })
+  auctions: Auction[];
 }
