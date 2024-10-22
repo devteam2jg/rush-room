@@ -7,7 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ namespace: '/auction' }) // 특정 namespace를 경매용으로 사용
+@WebSocketGateway({ namespace: '/auction-execute' }) // 특정 namespace를 경매용으로 사용
 export class AuctionGateway {
   @WebSocketServer()
   server: Server;
