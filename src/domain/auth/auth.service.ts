@@ -41,11 +41,12 @@ export class AuthService {
       thumbnailUrl,
     } as CreateUserDto);
   }
+
   async validateUser(payload: JwtPayloadDto): Promise<UserDataDto> {
     const { id } = payload;
     return await this.usersService.findById({ id } as FindByDto);
   }
-  /* TODO: 로직 분리 */
+
   async validateSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
     const { socialId, socialType } = profile;
     const user: UserDataDto = await this.usersService.findBySocialId({
@@ -59,6 +60,7 @@ export class AuthService {
     console.log(user);
     return user;
   }
+
   async updateSocialUser(id: string, profile: SocialProfileDto): Promise<void> {
     const { name, profileUrl, thumbnailUrl } = profile;
     this.usersService.update({
