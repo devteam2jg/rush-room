@@ -9,6 +9,7 @@ import {
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { IsEmail } from 'class-validator';
+import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 
 @Entity()
 export class User {
@@ -42,4 +43,9 @@ export class User {
     eager: false,
   })
   auctions: Auction[];
+
+  @OneToMany(() => AuctionItem, (auctionItem) => auctionItem.user, {
+    eager: false,
+  })
+  auctionItems: AuctionItem[];
 }

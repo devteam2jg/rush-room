@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { CommonEntity } from '~/src/common/entities/common.entity';
 import { User } from '~/src/domain/users/entities/user.entity';
+import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 
 export enum Status {
   WAIT = 'WAIT',
@@ -37,4 +38,9 @@ export class Auction extends CommonEntity {
     createForeignKeyConstraints: false,
   })
   user: User;
+
+  @OneToMany(() => AuctionItem, (auctionItem) => auctionItem.user, {
+    eager: true,
+  })
+  auctionItems: AuctionItem[];
 }
