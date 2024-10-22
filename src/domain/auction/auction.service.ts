@@ -8,11 +8,14 @@ import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
+import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 
 @Injectable()
 export class AuctionService {
   constructor(
     private readonly auctionRepository: AuctionRepository,
+    private readonly auctionItemRepository: AuctionItemRepository,
     private readonly auctionManager: AuctionManager,
   ) {}
 
@@ -58,5 +61,18 @@ export class AuctionService {
     const auction = await this.auctionRepository.findOneBy({ id });
     this.auctionManager.validateId(id, auction);
     return auction;
+  }
+
+  async createAuctionItem(
+    auctionId: string,
+    createAuctionItemDto: CreateAuctionItemDto,
+    clientUser: JwtPayloadDto,
+  ) {
+    await this.getAuctionById(auctionId);
+    return await this.auctionItemRepository.createAuctionItem(
+      auctionId,
+      createAuctionItemDto,
+      clientUser,
+    );
   }
 }

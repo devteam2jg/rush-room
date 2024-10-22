@@ -16,6 +16,8 @@ import { GetJwtPayload } from '~/src/domain/users/get-user.decorator';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
 import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/create.auction.item.result.dto';
 
 @Controller('auction')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +30,19 @@ export class AuctionController {
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ): Promise<CreateAuctionResultDto> {
     return this.auctionService.create(createAuctionDto, jwtPayload);
+  }
+
+  @Post(':id/auction-item')
+  createAuctionItem(
+    @Param('id') auctionId: string,
+    @Body() createAuctionItemDto: CreateAuctionItemDto,
+    @GetJwtPayload() jwtPayLoad: JwtPayloadDto,
+  ): Promise<CreateAuctionItemResultDto> {
+    return this.auctionService.createAuctionItem(
+      auctionId,
+      createAuctionItemDto,
+      jwtPayLoad,
+    );
   }
 
   @Get()
