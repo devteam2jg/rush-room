@@ -28,14 +28,14 @@ export class AuctionItem extends CommonEntity {
 
   @ManyToOne(() => User, {
     onDelete: 'CASCADE',
-    eager: true,
+    eager: false,
     createForeignKeyConstraints: false,
   })
   user: User;
 
   @ManyToOne(() => Auction, {
     onDelete: 'CASCADE',
-    eager: true,
+    eager: false,
     createForeignKeyConstraints: false,
   })
   auction: Auction;
