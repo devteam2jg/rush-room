@@ -4,55 +4,88 @@ import {
   Req,
   Res,
   UseGuards,
-  InternalServerErrorException,
+  UseFilters,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { KakaoProfileDto } from './dto/social-profile.dto';
 import { JwtAuthGuard, KakaoOAuthGuard } from './guards/auth.guard';
+import { ConfigService } from '@nestjs/config';
+import { LoginFilter } from '~/src/domain/auth/filters/login.filter';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
+  /*
+    @Get('terms')
+    - 이용약관 페이지를 렌더링합니다.
+    TODO: 이 페이지는 프론트엔드에서 렌더링되어야 합니다.
+  */
   @Get('terms')
   getTermsPage() {
-    /*TODO: 카카오 회원가입을 위해서는 terms 관련 페이지가 필수적임 */
     return 'terms';
   }
 
+  /* 
+    jwtAuth를 테스트하기 위한 endpoint입니다. 
+  */
   @UseGuards(JwtAuthGuard)
   @Get('test')
   getTestPage() {
-    /* jwtAuth를 테스트하기 위한 endpoint */
     return 'test';
   }
 
+  /*
+    @UseGuards(KakaoOAuthGuard) 
+    - KakaoOAuthGuard를 사용하여 카카오 로그인을 처리합니다.
+    @Get('kakao')
+    - 카카오 로그인 URL을 설정합니다. 사용자가 카카오 로그인을 하기 위해 접근하는 URL입니다.
+  */
   @UseGuards(KakaoOAuthGuard)
   @Get('kakao')
   async kakaoLogin() {
     return;
   }
 
-  /* TODO: 로직 분리 */
+  /*
+    @UseGuards(KakaoOAuthGuard) 
+    - KakaoOAuthGuard를 사용하여 카카오 로그인을 처리합니다.
+    @Get('kakao/callback')
+    - 카카오 로그인 콜백 URL을 설정합니다. 사용자가 카카오 로그인을 완료한 후 카카오 인증서버는 이 URL로 사용자를 리다이렉트합니다.
+    @UseFilters(LoginFilter)
+    - LoginFilter를 사용하여 예외처리를 합니다.
+    accessToken
+    - 사용자가 로그인에 성공하면 발급받은 accessToken을 쿠키에 저장합니다.
+  */
   @UseGuards(KakaoOAuthGuard)
   @Get('kakao/callback')
+  @UseFilters(LoginFilter)
   async kakaoLoginCallback(@Req() req, @Res() res): Promise<void> {
-    // 카카오 인증 완료 후 로그인 처리
     const kakaoProfile: KakaoProfileDto = req.user;
-    let user: UserDataDto;
-    try {
-      user = await this.authService.validateSocialUser(kakaoProfile);
-      if (!user) {
-        user = await this.authService.createSocialUser(kakaoProfile);
-      }
-      const accessToken = await this.authService.login(user);
-      /* cookie에 httpOnly로 access token을 담는다. */
-      res.cookie('accessToken', accessToken, { httpOnly: true });
-      /* 로그인 성공시 루트로 돌려보냄 */
-      res.redirect('/');
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
-    }
+    const accessToken = await this.authService.loginSocialUser(kakaoProfile);
+    res.cookie('accessToken', accessToken, { httpOnly: true });
+    res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
+  }
+
+  /*
+    @UseGuards(JwtAuthGuard)
+    - JwtAuthGuard를 사용하여 로그인 상태를 확인합니다.
+    @Get('logout')
+    - 로그아웃을 처리합니다. 사용자가 로그아웃을 요청하면 쿠키에 저장된 accessToken을 삭제하고 홈페이지로 리다이렉트합니다
+  */
+  @UseGuards(JwtAuthGuard)
+  @Get('logout')
+  async logout(@Res() res) {
+    res.clearCookie('accessToken');
+    res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req) {
+    return req.user;
   }
 }
