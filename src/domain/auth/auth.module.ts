@@ -20,6 +20,7 @@ import { AuthController } from './auth.controller';
       }),
       inject: [ConfigService],
     }),
+    ConfigModule,
   ],
 
   providers: [AuthService, KakaoStrategy, JwtStrategy],

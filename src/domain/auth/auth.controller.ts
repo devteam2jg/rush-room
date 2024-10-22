@@ -10,10 +10,13 @@ import { AuthService } from './auth.service';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { KakaoProfileDto } from './dto/social-profile.dto';
 import { JwtAuthGuard, KakaoOAuthGuard } from './guards/auth.guard';
-
+import { ConfigService } from '@nestjs/config';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('terms')
   getTermsPage() {
@@ -47,12 +50,17 @@ export class AuthController {
         user = await this.authService.createSocialUser(kakaoProfile);
       }
       const accessToken = await this.authService.login(user);
-      /* cookie에 httpOnly로 access token을 담는다. */
       res.cookie('accessToken', accessToken, { httpOnly: true });
-      /* 로그인 성공시 루트로 돌려보냄 */
-      res.redirect('/');
+      res.redirect(this.configService.get<string>('REACT_APP_HOME'));
     } catch (e) {
       throw new InternalServerErrorException(e.message);
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('logout')
+  async logout(@Res() res) {
+    res.clearCookie('accessToken');
+    res.redirect(this.configService.get<string>('REACT_APP_HOME'));
   }
 }
