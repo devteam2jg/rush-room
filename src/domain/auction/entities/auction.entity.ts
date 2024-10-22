@@ -1,5 +1,6 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 import { CommonEntity } from '~/src/common/entities/common.entity';
+import { User } from '~/src/domain/users/entities/user.entity';
 
 export enum Status {
   WAIT = 'WAIT',
@@ -29,4 +30,11 @@ export class Auction extends CommonEntity {
 
   @Column({ type: 'varchar', length: 25, nullable: true })
   privateCode: string;
+
+  @ManyToOne(() => User, {
+    onDelete: 'CASCADE',
+    eager: true,
+    createForeignKeyConstraints: false,
+  })
+  user: User;
 }
