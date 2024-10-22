@@ -67,7 +67,7 @@ export class AuthController {
     const kakaoProfile: KakaoProfileDto = req.user;
     const accessToken = await this.authService.loginSocialUser(kakaoProfile);
     res.cookie('accessToken', accessToken, { httpOnly: true });
-    res.redirect(this.configService.get<string>('REACT_APP_HOME'));
+    res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
   }
 
   /*
@@ -80,6 +80,12 @@ export class AuthController {
   @Get('logout')
   async logout(@Res() res) {
     res.clearCookie('accessToken');
-    res.redirect(this.configService.get<string>('REACT_APP_HOME'));
+    res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req) {
+    return req.user;
   }
 }
