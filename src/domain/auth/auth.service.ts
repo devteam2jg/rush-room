@@ -14,7 +14,7 @@ import { SocialProfileDto } from '~/src/domain/auth/dto/social-profile.dto';
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async login(user: UserDataDto): Promise<string> {
@@ -52,12 +52,17 @@ export class AuthService {
       socialId,
       socialType,
     } as FindByDto);
-    if (user) await this.updateSocialUser(profile);
+    if (user) {
+      const { id } = user;
+      await this.updateSocialUser(id, profile);
+    }
+    console.log(user);
     return user;
   }
-  async updateSocialUser(profile: SocialProfileDto): Promise<void> {
+  async updateSocialUser(id: string, profile: SocialProfileDto): Promise<void> {
     const { name, profileUrl, thumbnailUrl } = profile;
     this.usersService.update({
+      id,
       name,
       profileUrl,
       thumbnailUrl,
