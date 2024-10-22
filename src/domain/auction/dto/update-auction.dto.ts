@@ -1,6 +1,6 @@
 import { CreateAuctionDto } from './create-auction.dto';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
-import { PartialType } from '@nestjs/mapped-types';
+import { PartialType } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
 import { Transform } from 'class-transformer';
 

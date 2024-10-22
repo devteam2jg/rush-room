@@ -1,17 +1,29 @@
-import { PartialType } from '@nestjs/mapped-types';
+import { PickType } from '@nestjs/swagger';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { User } from '~/src/domain/users/entities/user.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
+import { UserProfileDto } from '~/src/domain/users/dto/user.dto';
 
-export class ReadAuctionDto extends PartialType(Auction) {
-  ownerId: string;
-  ownerEmail: string;
-  ownerProfileImg: string;
-  ownerThumbnailImg: string;
-  ownerNickname: string;
+export class ReadAuctionDto extends PickType(Auction, [
+  'id',
+  'title',
+  'description',
+  'eventDate',
+  'sellingLimitTime',
+  'status',
+  'isPrivate',
+] as const) {
+  ownerProfile: UserProfileDto;
+  items: ReadAuctionItemDto[];
   isOwner: boolean;
 
-  constructor(auction: Auction, owner: User, clientUser: JwtPayloadDto) {
+  constructor(
+    auction: Auction,
+    owner: User,
+    clientUser: JwtPayloadDto,
+    auctionItems: ReadAuctionItemDto[],
+  ) {
     super();
     // mapping
     this.id = auction.id;
@@ -21,12 +33,8 @@ export class ReadAuctionDto extends PartialType(Auction) {
     this.sellingLimitTime = auction.sellingLimitTime;
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
-    // 주최자 정보
-    this.ownerId = owner.id;
-    this.ownerEmail = owner.email;
-    this.ownerNickname = owner.name;
-    this.ownerProfileImg = owner.profileUrl;
-    this.ownerThumbnailImg = owner.thumbnailUrl;
+    this.ownerProfile = new UserProfileDto(owner);
     this.isOwner = owner.id === clientUser.id;
+    this.items = auctionItems;
   }
 }
