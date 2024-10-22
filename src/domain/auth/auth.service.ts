@@ -70,4 +70,12 @@ export class AuthService {
       thumbnailUrl,
     } as UpdateUserDto);
   }
+  async loginSocialUser(profile: SocialProfileDto): Promise<string> {
+    let user: UserDataDto;
+    user = await this.validateSocialUser(profile);
+    if (!user) {
+      user = await this.createSocialUser(profile);
+    }
+    return this.login(user);
+  }
 }
