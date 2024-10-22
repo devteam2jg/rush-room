@@ -3,7 +3,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsString,
-  IsUUID,
+  Length,
   Max,
   Min,
 } from 'class-validator';
@@ -11,11 +11,8 @@ import { Transform } from 'class-transformer';
 
 export class CreateAuctionDto {
   @IsNotEmpty()
-  @IsUUID()
-  userId: string;
-
-  @IsNotEmpty()
   @IsString()
+  @Length(1, 100)
   title: string;
 
   @IsNotEmpty()
@@ -29,7 +26,7 @@ export class CreateAuctionDto {
 
   @IsNotEmpty()
   @IsInt()
-  @Min(0)
-  @Max(100)
+  @Min(1)
+  @Max(60)
   sellingLimitTime: number;
 }
