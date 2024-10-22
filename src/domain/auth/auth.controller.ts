@@ -4,13 +4,15 @@ import {
   Req,
   Res,
   UseGuards,
-  InternalServerErrorException,
+  UseFilters,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { KakaoProfileDto } from './dto/social-profile.dto';
 import { JwtAuthGuard, KakaoOAuthGuard } from './guards/auth.guard';
 import { ConfigService } from '@nestjs/config';
+import { LoginFilter } from '~/src/domain/auth/filters/login.filter';
+
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -40,21 +42,18 @@ export class AuthController {
   /* TODO: 로직 분리 */
   @UseGuards(KakaoOAuthGuard)
   @Get('kakao/callback')
+  @UseFilters(LoginFilter)
   async kakaoLoginCallback(@Req() req, @Res() res): Promise<void> {
     // 카카오 인증 완료 후 로그인 처리
     const kakaoProfile: KakaoProfileDto = req.user;
     let user: UserDataDto;
-    try {
-      user = await this.authService.validateSocialUser(kakaoProfile);
-      if (!user) {
-        user = await this.authService.createSocialUser(kakaoProfile);
-      }
-      const accessToken = await this.authService.login(user);
-      res.cookie('accessToken', accessToken, { httpOnly: true });
-      res.redirect(this.configService.get<string>('REACT_APP_HOME'));
-    } catch (e) {
-      throw new InternalServerErrorException(e.message);
+    user = await this.authService.validateSocialUser(kakaoProfile);
+    if (!user) {
+      user = await this.authService.createSocialUser(kakaoProfile);
     }
+    const accessToken = await this.authService.login(user);
+    res.cookie('accessToken', accessToken, { httpOnly: true });
+    res.redirect(this.configService.get<string>('REACT_APP_HOME'));
   }
 
   @UseGuards(JwtAuthGuard)
