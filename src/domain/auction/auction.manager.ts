@@ -9,6 +9,7 @@ import { MINUTE, SECOND } from '~/src/common/constants/time.constants';
 import { UserErrorMessage } from '~/src/common/messages/user.error.message';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { UpdateResult } from 'typeorm';
+import { User } from '~/src/domain/users/entities/user.entity';
 
 @Injectable()
 export class AuctionManager {
@@ -16,6 +17,10 @@ export class AuctionManager {
     if (this.isEventTimeTooEarly(createAuctionDto.eventDate)) {
       throw TooEarlyEventTimeException(UserErrorMessage.TOO_EARLY_EVENT_TIME);
     }
+  }
+
+  public validateUser(user: User) {
+    if (!user) throw EntityNotFoundException(`user not found in auction`);
   }
 
   public validateId(id: string, auction: Auction) {
