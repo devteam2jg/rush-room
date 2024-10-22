@@ -10,6 +10,7 @@ import { UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
 
 @Injectable()
 export class AuctionService {
@@ -37,7 +38,14 @@ export class AuctionService {
   ): Promise<ReadAuctionDto> {
     const auction: Auction = await this.getAuctionById(id);
     this.auctionManager.validateUser(auction.user);
-    return new ReadAuctionDto(auction, auction.user, clientUser);
+    const readAuctionItems: ReadAuctionItemDto[] =
+      await this.auctionItemRepository.getAuctionItemsByAuctionId(id);
+    return new ReadAuctionDto(
+      auction,
+      auction.user,
+      clientUser,
+      readAuctionItems,
+    );
   }
 
   async update(
