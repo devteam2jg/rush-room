@@ -28,6 +28,7 @@ export class AuthController {
   getTermsPage() {
     return 'terms';
   }
+
   /* 
     jwtAuth를 테스트하기 위한 endpoint입니다. 
   */
@@ -69,6 +70,12 @@ export class AuthController {
     res.redirect(this.configService.get<string>('REACT_APP_HOME'));
   }
 
+  /*
+    @UseGuards(JwtAuthGuard)
+    - JwtAuthGuard를 사용하여 로그인 상태를 확인합니다.
+    @Get('logout')
+    - 로그아웃을 처리합니다. 사용자가 로그아웃을 요청하면 쿠키에 저장된 accessToken을 삭제하고 홈페이지로 리다이렉트합니다
+  */
   @UseGuards(JwtAuthGuard)
   @Get('logout')
   async logout(@Res() res) {

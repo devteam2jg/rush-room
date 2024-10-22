@@ -17,6 +17,12 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  /**
+   *
+   * @param user
+   *
+   * @returns
+   */
   async login(user: UserDataDto): Promise<string> {
     const { id, name, email, socialType } = user;
     const payload: JwtPayloadDto = {
@@ -27,6 +33,12 @@ export class AuthService {
     };
     return this.jwtService.sign(payload);
   }
+
+  /**
+   *
+   * @param profile
+   * @returns
+   */
   async createSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
     const { id, name, email, socialId, socialType, profileUrl, thumbnailUrl } =
       profile;
@@ -42,25 +54,30 @@ export class AuthService {
     } as CreateUserDto);
   }
 
+  /*
+   * 이 함수는 JwtPayloadDto를 받아서 해당 유저가 존재하는지 확인합니다.
+   * 존재한다면 해당 유저의 정보를 반환하고, 존재하지 않는다면 null을 반환합니다.
+   */
   async validateUser(payload: JwtPayloadDto): Promise<UserDataDto> {
     const { id } = payload;
     return await this.usersService.findById({ id } as FindByDto);
   }
 
+  /*
+   * 이 함수는 SocialProfileDto를 받아서 해당 유저가 존재하는지 확인합니다.
+   * 존재한다면 해당 유저의 정보를 반환하고, 존재하지 않는다면 null을 반환합니다.
+   */
   async validateSocialUser(profile: SocialProfileDto): Promise<UserDataDto> {
     const { socialId, socialType } = profile;
-    const user: UserDataDto = await this.usersService.findBySocialId({
+    return await this.usersService.findBySocialId({
       socialId,
       socialType,
     } as FindByDto);
-    if (user) {
-      const { id } = user;
-      await this.updateSocialUser(id, profile);
-    }
-    console.log(user);
-    return user;
   }
 
+  /*
+   * 이 함수는 SocialProfileDto를 받아서 해당 유저의 정보를 업데이트합니다.
+   */
   async updateSocialUser(id: string, profile: SocialProfileDto): Promise<void> {
     const { name, profileUrl, thumbnailUrl } = profile;
     this.usersService.update({
@@ -70,12 +87,17 @@ export class AuthService {
       thumbnailUrl,
     } as UpdateUserDto);
   }
+
+  /*
+   * 이 함수는 SocialProfileDto를 받아서 해당 유저가 존재하면 로그인하고, 존재하지 않으면 유저를 생성한 후 로그인합니다.
+   */
   async loginSocialUser(profile: SocialProfileDto): Promise<string> {
     let user: UserDataDto;
     user = await this.validateSocialUser(profile);
-    if (!user) {
-      user = await this.createSocialUser(profile);
-    }
+    if (user) {
+      const { id } = user;
+      await this.updateSocialUser(id, profile);
+    } else user = await this.createSocialUser(profile);
     return this.login(user);
   }
 }
