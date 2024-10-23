@@ -5,7 +5,24 @@ import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UserProfileDto } from '~/src/domain/users/dto/user.dto';
 
-export class ReadAuctionDto extends PickType(Auction, [
+export class ReadAuctionDto {
+  ownerProfile: UserProfileDto;
+  items: ReadAuctionItemDto[];
+  auctionDto: AuctionDto;
+
+  constructor(
+    auction: Auction,
+    owner: User,
+    clientUser: JwtPayloadDto,
+    auctionItems: ReadAuctionItemDto[],
+  ) {
+    this.ownerProfile = new UserProfileDto(owner);
+    this.auctionDto = new AuctionDto(auction, owner, clientUser);
+    this.items = auctionItems;
+  }
+}
+
+export class AuctionDto extends PickType(Auction, [
   'id',
   'title',
   'description',
@@ -14,18 +31,10 @@ export class ReadAuctionDto extends PickType(Auction, [
   'status',
   'isPrivate',
 ] as const) {
-  ownerProfile: UserProfileDto;
-  items: ReadAuctionItemDto[];
   isOwner: boolean;
 
-  constructor(
-    auction: Auction,
-    owner: User,
-    clientUser: JwtPayloadDto,
-    auctionItems: ReadAuctionItemDto[],
-  ) {
+  constructor(auction: Auction, owner: User, clientUser: JwtPayloadDto) {
     super();
-    // mapping
     this.id = auction.id;
     this.title = auction.title;
     this.description = auction.description;
@@ -33,8 +42,6 @@ export class ReadAuctionDto extends PickType(Auction, [
     this.sellingLimitTime = auction.sellingLimitTime;
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
-    this.ownerProfile = new UserProfileDto(owner);
     this.isOwner = owner.id === clientUser.id;
-    this.items = auctionItems;
   }
 }
