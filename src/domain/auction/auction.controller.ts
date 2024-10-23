@@ -89,9 +89,12 @@ export class AuctionController {
     type: ReadAuctionItemDetailDto,
   })
   @ApiResponse({ status: 404, description: 'Auction item not found.' })
-  @Get(':id')
-  findAuctionItemById(@Param('id') auctionItemId: string) {
-    return this.auctionService.findAuctionItemById(auctionItemId);
+  @Get(':id/item/:itemId')
+  findAuctionItemById(
+    @Param('id') auctionId: string,
+    @Param('itemId') auctionItemId: string,
+  ) {
+    return this.auctionService.findAuctionItemById(auctionId, auctionItemId);
   }
 
   @Patch(':id')
