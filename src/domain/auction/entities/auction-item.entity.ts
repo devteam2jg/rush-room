@@ -23,7 +23,7 @@ export class AuctionItem extends CommonEntity {
   @Column({ type: 'boolean', default: false })
   isSold: boolean;
 
-  @Column()
+  @Column({ nullable: true })
   buyerId: string;
 
   @ManyToOne(() => User, {
