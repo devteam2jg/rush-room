@@ -43,7 +43,10 @@ export class AuctionService {
     this.auctionManager.validateUser(auction.user);
 
     const auctionItems =
-      await this.auctionItemRepository.getAuctionItemsByAuctionId(id);
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        id,
+        null,
+      );
     const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
       (item) => new ReadAuctionItemDto(item, item.user),
     );
@@ -94,10 +97,15 @@ export class AuctionService {
   }
 
   async findAuctionItemById(
+    auctionId: string,
     auctionItemId: string,
   ): Promise<ReadAuctionItemDetailDto> {
-    const auctionItem =
-      await this.auctionItemRepository.getAuctionItemById(auctionItemId);
+    const auctionItems =
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        auctionId,
+        auctionItemId,
+      );
+    const auctionItem = auctionItems[0];
     this.auctionManager.validateAuctionItem(auctionItem);
     return new ReadAuctionItemDetailDto(auctionItem, auctionItem.user);
   }

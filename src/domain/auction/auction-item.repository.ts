@@ -24,33 +24,27 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
     return await this.save(auctionItem);
   }
 
-  async getAuctionItemById(id: string): Promise<AuctionItem> {
-    return await this.createQueryBuilder('auction_item')
+  async getAuctionItemsByAuctionIdAndItemId(
+    auctionId: string,
+    auctionItemId?: string,
+  ): Promise<AuctionItem[]> {
+    const query = this.createQueryBuilder('auction_item')
       .leftJoinAndSelect('auction_item.user', 'user')
-      .where('auction_item.id = :id', { id })
-      .select([
-        'auction_item',
-        'user.id',
-        'user.name',
-        'user.email',
-        'user.profileUrl',
-        'user.thumbnailUrl',
-      ])
-      .getOne();
-  }
+      .where('auction_item.auction.id = :auctionId', { auctionId });
 
-  async getAuctionItemsByAuctionId(auctionId: string): Promise<AuctionItem[]> {
-    return await this.createQueryBuilder('auction_item')
-      .leftJoinAndSelect('auction_item.user', 'user')
-      .where('auction_item.auction.id = :auctionId', { auctionId })
-      .select([
-        'auction_item',
-        'user.id',
-        'user.name',
-        'user.email',
-        'user.profileUrl',
-        'user.thumbnailUrl',
-      ])
-      .getMany();
+    if (auctionItemId) {
+      query.andWhere('auction_item.id = :auctionItemId', { auctionItemId });
+    }
+
+    query.select([
+      'auction_item',
+      'user.id',
+      'user.name',
+      'user.email',
+      'user.profileUrl',
+      'user.thumbnailUrl',
+    ]);
+
+    return await query.getMany();
   }
 }
