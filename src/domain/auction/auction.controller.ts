@@ -16,8 +16,8 @@ import { GetJwtPayload } from '~/src/domain/users/get-user.decorator';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
 import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
-import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/create.auction.item.result.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Auction apis')

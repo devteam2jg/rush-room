@@ -8,9 +8,9 @@ import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
-import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 
 @Injectable()
 export class AuctionService {

@@ -2,7 +2,7 @@ import { PickType } from '@nestjs/swagger';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { User } from '~/src/domain/users/entities/user.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
-import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UserProfileDto } from '~/src/domain/users/dto/user.dto';
 
 export class ReadAuctionDto extends PickType(Auction, [

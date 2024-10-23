@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
-import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/create.auction.item.result.dto';
-import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 
 @Injectable()
 export class AuctionItemRepository extends Repository<AuctionItem> {
