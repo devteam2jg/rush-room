@@ -12,7 +12,7 @@ import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/crea
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
-import { CreateAuctionItemResultDto } from '~/dist/src/domain/auction/dto/create.auction.item.result.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
 
 @Injectable()
 export class AuctionService {
