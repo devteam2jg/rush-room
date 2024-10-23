@@ -19,6 +19,7 @@ import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 
 @ApiTags('Auction apis')
 @UseGuards(JwtAuthGuard)
@@ -79,6 +80,18 @@ export class AuctionController {
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
     return this.auctionService.findOne(id, jwtPayload);
+  }
+
+  @ApiOperation({ summary: 'Get auction item by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return auction item by ID. served with enlisted user',
+    type: ReadAuctionItemDetailDto,
+  })
+  @ApiResponse({ status: 404, description: 'Auction item not found.' })
+  @Get(':id')
+  findAuctionItemById(@Param('id') auctionItemId: string) {
+    return this.auctionService.findAuctionItemById(auctionItemId);
   }
 
   @Patch(':id')

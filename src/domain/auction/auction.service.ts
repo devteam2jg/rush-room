@@ -11,6 +11,7 @@ import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
+import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 
 @Injectable()
 export class AuctionService {
@@ -82,5 +83,14 @@ export class AuctionService {
       createAuctionItemDto,
       clientUser,
     );
+  }
+
+  async findAuctionItemById(
+    auctionItemId: string,
+  ): Promise<ReadAuctionItemDetailDto> {
+    const auctionItem =
+      await this.auctionItemRepository.getAuctionItemById(auctionItemId);
+    this.auctionManager.validateAuctionItem(auctionItem);
+    return new ReadAuctionItemDetailDto(auctionItem, auctionItem.user);
   }
 }

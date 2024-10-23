@@ -26,6 +26,21 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
     return new CreateAuctionItemResultDto(createdAuctionItem);
   }
 
+  async getAuctionItemById(id: string): Promise<AuctionItem> {
+    return await this.createQueryBuilder('auction_item')
+      .leftJoinAndSelect('auction_item.user', 'user')
+      .where('auction_item.id = :id', { id })
+      .select([
+        'auction_item',
+        'user.id',
+        'user.name',
+        'user.email',
+        'user.profileUrl',
+        'user.thumbnailUrl',
+      ])
+      .getOne();
+  }
+
   async getAuctionItemsByAuctionId(
     auctionId: string,
   ): Promise<ReadAuctionItemDto[]> {

@@ -10,6 +10,7 @@ import { UserErrorMessage } from '~/src/common/messages/user.error.message';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { UpdateResult } from 'typeorm';
 import { User } from '~/src/domain/users/entities/user.entity';
+import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 
 @Injectable()
 export class AuctionManager {
@@ -21,6 +22,11 @@ export class AuctionManager {
 
   public validateUser(user: User) {
     if (!user) throw EntityNotFoundException(`user not found in auction`);
+  }
+
+  public validateAuctionItem(auctionItem: AuctionItem) {
+    if (!auctionItem)
+      throw EntityNotFoundException(`auctionItem not found in auction`);
   }
 
   public validateId(id: string, auction: Auction) {
