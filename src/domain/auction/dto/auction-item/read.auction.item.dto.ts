@@ -27,12 +27,8 @@ export class ReadAuctionItemDto extends PickType(AuctionItem, [
     super();
     this.id = auctionItem.id;
     this.title = auctionItem.title;
-    this.description = auctionItem.description;
     this.itemImages = auctionItem.itemImages;
     this.startPrice = auctionItem.startPrice;
-    this.lastPrice = auctionItem.lastPrice;
-    this.isSold = auctionItem.isSold;
-    this.buyerId = auctionItem.buyerId;
     this.postedUser = new UserProfileDto(postedUser);
   }
 }
