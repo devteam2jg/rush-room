@@ -8,9 +8,11 @@ import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
-import { ReadAuctionItemDto } from '~/src/domain/auction/dto/read.auction.item.dto';
+import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
+import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
 
 @Injectable()
 export class AuctionService {
@@ -37,9 +39,18 @@ export class AuctionService {
     clientUser: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
     const auction: Auction = await this.getAuctionById(id);
+
     this.auctionManager.validateUser(auction.user);
-    const readAuctionItems: ReadAuctionItemDto[] =
-      await this.auctionItemRepository.getAuctionItemsByAuctionId(id);
+
+    const auctionItems =
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        id,
+        null,
+      );
+    const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
+      (item) => new ReadAuctionItemDto(item, item.user),
+    );
+
     return new ReadAuctionDto(
       auction,
       auction.user,
@@ -75,12 +86,27 @@ export class AuctionService {
     auctionId: string,
     createAuctionItemDto: CreateAuctionItemDto,
     clientUser: JwtPayloadDto,
-  ) {
+  ): Promise<CreateAuctionItemResultDto> {
     await this.getAuctionById(auctionId);
-    return await this.auctionItemRepository.createAuctionItem(
+    const result = await this.auctionItemRepository.createAuctionItem(
       auctionId,
       createAuctionItemDto,
       clientUser,
     );
+    return new CreateAuctionItemResultDto(result);
+  }
+
+  async findAuctionItemById(
+    auctionId: string,
+    auctionItemId: string,
+  ): Promise<ReadAuctionItemDetailDto> {
+    const auctionItems =
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        auctionId,
+        auctionItemId,
+      );
+    const auctionItem = auctionItems[0];
+    this.auctionManager.validateAuctionItem(auctionItem);
+    return new ReadAuctionItemDetailDto(auctionItem, auctionItem.user);
   }
 }

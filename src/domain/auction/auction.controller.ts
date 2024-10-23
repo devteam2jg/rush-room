@@ -16,9 +16,10 @@ import { GetJwtPayload } from '~/src/domain/users/get-user.decorator';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
 import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/create.auction.item.dto';
-import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/create.auction.item.result.dto';
+import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
+import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 
 @ApiTags('Auction apis')
 @UseGuards(JwtAuthGuard)
@@ -79,6 +80,21 @@ export class AuctionController {
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
     return this.auctionService.findOne(id, jwtPayload);
+  }
+
+  @ApiOperation({ summary: 'Get auction item by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return auction item by ID. served with enlisted user',
+    type: ReadAuctionItemDetailDto,
+  })
+  @ApiResponse({ status: 404, description: 'Auction item not found.' })
+  @Get(':id/item/:itemId')
+  findAuctionItemById(
+    @Param('id') auctionId: string,
+    @Param('itemId') auctionItemId: string,
+  ) {
+    return this.auctionService.findAuctionItemById(auctionId, auctionItemId);
   }
 
   @Patch(':id')
