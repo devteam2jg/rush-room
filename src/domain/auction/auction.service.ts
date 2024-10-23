@@ -12,6 +12,7 @@ import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/crea
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
+import { CreateAuctionItemResultDto } from '~/dist/src/domain/auction/dto/create.auction.item.result.dto';
 
 @Injectable()
 export class AuctionService {
@@ -38,9 +39,15 @@ export class AuctionService {
     clientUser: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
     const auction: Auction = await this.getAuctionById(id);
+
     this.auctionManager.validateUser(auction.user);
-    const readAuctionItems: ReadAuctionItemDto[] =
+
+    const auctionItems =
       await this.auctionItemRepository.getAuctionItemsByAuctionId(id);
+    const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
+      (item) => new ReadAuctionItemDto(item, item.user),
+    );
+
     return new ReadAuctionDto(
       auction,
       auction.user,
@@ -76,13 +83,14 @@ export class AuctionService {
     auctionId: string,
     createAuctionItemDto: CreateAuctionItemDto,
     clientUser: JwtPayloadDto,
-  ) {
+  ): Promise<CreateAuctionItemResultDto> {
     await this.getAuctionById(auctionId);
-    return await this.auctionItemRepository.createAuctionItem(
+    const result = await this.auctionItemRepository.createAuctionItem(
       auctionId,
       createAuctionItemDto,
       clientUser,
     );
+    return new CreateAuctionItemResultDto(result);
   }
 
   async findAuctionItemById(

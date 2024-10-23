@@ -3,8 +3,6 @@ import { DataSource, Repository } from 'typeorm';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
-import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
-import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 
 @Injectable()
 export class AuctionItemRepository extends Repository<AuctionItem> {
@@ -22,8 +20,8 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
       auction: { id: auctionId },
       user: { id: clientUser.id },
     });
-    const createdAuctionItem = await this.save(auctionItem);
-    return new CreateAuctionItemResultDto(createdAuctionItem);
+
+    return await this.save(auctionItem);
   }
 
   async getAuctionItemById(id: string): Promise<AuctionItem> {
@@ -41,10 +39,8 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
       .getOne();
   }
 
-  async getAuctionItemsByAuctionId(
-    auctionId: string,
-  ): Promise<ReadAuctionItemDto[]> {
-    const result = await this.createQueryBuilder('auction_item')
+  async getAuctionItemsByAuctionId(auctionId: string): Promise<AuctionItem[]> {
+    return await this.createQueryBuilder('auction_item')
       .leftJoinAndSelect('auction_item.user', 'user')
       .where('auction_item.auction.id = :auctionId', { auctionId })
       .select([
@@ -56,6 +52,5 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
         'user.thumbnailUrl',
       ])
       .getMany();
-    return result.map((item) => new ReadAuctionItemDto(item, item.user));
   }
 }
