@@ -32,7 +32,14 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
     const result = await this.createQueryBuilder('auction_item')
       .leftJoinAndSelect('auction_item.user', 'user')
       .where('auction_item.auction.id = :auctionId', { auctionId })
-      .select(['auction_item', 'user.id'])
+      .select([
+        'auction_item',
+        'user.id',
+        'user.name',
+        'user.email',
+        'user.profileUrl',
+        'user.thumbnailUrl',
+      ])
       .getMany();
     return result.map((item) => new ReadAuctionItemDto(item, item.user));
   }
