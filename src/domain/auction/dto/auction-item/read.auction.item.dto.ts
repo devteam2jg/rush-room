@@ -21,14 +21,14 @@ export class ReadAuctionItemDto extends PickType(AuctionItem, [
   lastPrice: number;
   isSold: boolean;
   buyerId: string;
-  postedUser: UserProfileDto;
+  postedUser?: UserProfileDto;
 
-  constructor(auctionItem: AuctionItem, postedUser: User) {
+  constructor(auctionItem: AuctionItem, postedUser?: User) {
     super();
     this.id = auctionItem.id;
     this.title = auctionItem.title;
     this.itemImages = auctionItem.itemImages;
     this.startPrice = auctionItem.startPrice;
-    this.postedUser = new UserProfileDto(postedUser);
+    if (postedUser) this.postedUser = new UserProfileDto(postedUser);
   }
 }
