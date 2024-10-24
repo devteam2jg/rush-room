@@ -10,6 +10,9 @@ export class ImageService {
   create(createImageDto: CreateImageDto) {
     return 'This action adds a new image';
   }
+  upload(file: Express.Multer.File) {
+    console.log(file);
+  }
 
   findOne(id: number) {
     return `This action returns a #${id} image`;
