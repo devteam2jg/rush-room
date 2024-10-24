@@ -6,13 +6,17 @@ import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
 import { AuctionManager } from '~/src/domain/auction/auction.manager';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
-import { UpdateResult } from 'typeorm';
+import { FindOptionsWhere, Repository, UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
+import { PaginationRequest } from '~/src/common/pagination/pagination.request';
+import { PaginationResponseBuilder } from '~/src/common/pagination/pagination.response.builder';
+import { PaginationResponse } from '~/src/common/pagination/pagination.response';
+import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 
 @Injectable()
 export class AuctionService {
@@ -30,8 +34,53 @@ export class AuctionService {
     return this.auctionRepository.createAuction(createAuctionDto, owner);
   }
 
-  findAll() {
-    return `This action returns all auction`;
+  async fetchPaginatedData<T, R>(
+    repository: Repository<any>,
+    paginationReq: PaginationRequest,
+    options: FindOptionsWhere<any>,
+    DtoClass: new (entity: T) => R,
+  ): Promise<PaginationResponse<R>> {
+    const [entities, total] = await repository.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: paginationReq.skip(),
+      take: paginationReq.take(),
+      where: options,
+    });
+    const readEntities = entities.map((entity: T) => new DtoClass(entity));
+    return new PaginationResponseBuilder<R>()
+      .setData(readEntities)
+      .setPage(paginationReq.page())
+      .setTake(paginationReq.take())
+      .setTotalCount(total)
+      .build();
+  }
+
+  async getPaginatedAuctions(
+    paginationReq: PaginationRequest,
+    userId?: string,
+  ): Promise<PaginationResponse<ReadAuctionDto>> {
+    const options: FindOptionsWhere<Auction> = userId
+      ? { user: { id: userId } }
+      : {};
+    return this.fetchPaginatedData<Auction, ReadAuctionDto>(
+      this.auctionRepository,
+      paginationReq,
+      options,
+      ReadAuctionDto,
+    );
+  }
+
+  async getPaginatedAuctionItems(
+    paginationReq: PaginationRequest,
+    buyerId: string,
+  ): Promise<PaginationResponse<ReadAuctionItemDto>> {
+    const options: FindOptionsWhere<AuctionItem> = { isSold: true, buyerId };
+    return this.fetchPaginatedData<AuctionItem, ReadAuctionItemDto>(
+      this.auctionItemRepository,
+      paginationReq,
+      options,
+      ReadAuctionItemDto,
+    );
   }
 
   async findOne(
