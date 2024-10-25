@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { S3Client } from '@aws-sdk/client-s3';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { MissingConfigurationsException } from '~/src/common/exceptions/service.exception';
+
 @Injectable()
 export class FileService {
   private readonly client: S3Client;
@@ -23,6 +24,7 @@ export class FileService {
       },
     });
   }
+
   private checkConfigurations() {
     if (
       !this.image_bucket ||
@@ -31,5 +33,27 @@ export class FileService {
       !this.image_region
     )
       throw MissingConfigurationsException('Missing S3 Configurations');
+  }
+
+  private async uploadFileToS3(file: Express.Multer.File) {
+    const key = `${Date.now().toString()}-${file.originalname}`;
+    const params = {
+      Key: key,
+      Body: file.buffer,
+      Bucket: this.image_bucket,
+      ContentType: file.mimetype,
+    };
+    const command = new PutObjectCommand(params);
+    const uploadFileS3 = await this.client.send(command);
+    if (uploadFileS3.$metadata.httpStatusCode !== 200)
+      throw new InternalServerErrorException('Failed to upload file to S3');
+    return this.makeS3Url(key);
+  }
+  private makeS3Url(key: string) {
+    return `https://${this.image_bucket}.s3.${this.image_region}.amazonaws.com/${key}`;
+  }
+
+  uploadImage(file: Express.Multer.File) {
+    return this.uploadFileToS3(file);
   }
 }
