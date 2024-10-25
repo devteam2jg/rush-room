@@ -2,6 +2,7 @@ import {
   ENTITY_NOT_FOUND,
   ErrorCode,
   TOO_EARLY_EVENT_TIME,
+  MISSING_CONFIGURATIONS,
 } from '~/src/common/exceptions/error-code';
 
 export class ServiceException extends Error {
@@ -22,4 +23,9 @@ export const TooEarlyEventTimeException = (
   message?: string,
 ): ServiceException => {
   return new ServiceException(TOO_EARLY_EVENT_TIME, message);
+};
+export const MissingConfigurationsException = (
+  message?: string,
+): ServiceException => {
+  return new ServiceException(MISSING_CONFIGURATIONS, message);
 };
