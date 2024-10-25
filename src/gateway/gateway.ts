@@ -47,6 +47,22 @@ export class AuctionGateway {
   }
 
   /**
+   * 'message' 이벤트를 처리.
+   * 지정된 경매 방의 모든 클라이언트에게 메시지를 전송.
+   *
+   * @param socket - 클라이언트 소켓.
+   * @param data - auctionId, userId, message를 포함한 메시지 데이터.
+   */
+  @SubscribeMessage('message')
+  handleMessage(
+    socket: Socket,
+    data: { auctionId: string; userId: string; message: string },
+  ): void {
+    const { auctionId, userId, message } = data;
+    this.server.to(auctionId).emit('message', `${userId}: ${message}`);
+  }
+
+  /**
    * `new_bid` 이벤트를 처리.
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    *
