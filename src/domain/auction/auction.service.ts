@@ -17,6 +17,7 @@ import { PaginationRequest } from '~/src/common/pagination/pagination.request';
 import { PaginationResponseBuilder } from '~/src/common/pagination/pagination.response.builder';
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
+import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
 
 @Injectable()
 export class AuctionService {
@@ -34,25 +35,29 @@ export class AuctionService {
     return this.auctionRepository.createAuction(createAuctionDto, owner);
   }
 
-  async fetchPaginatedData<T, R>(
-    repository: Repository<any>,
-    paginationReq: PaginationRequest,
-    options: FindOptionsWhere<any>,
-    DtoClass: new (entity: T) => R,
-  ): Promise<PaginationResponse<R>> {
-    const [entities, total] = await repository.findAndCount({
-      order: { createdAt: 'DESC' },
-      skip: paginationReq.skip(),
-      take: paginationReq.take(),
-      where: options,
-    });
-    const readEntities = entities.map((entity: T) => new DtoClass(entity));
-    return new PaginationResponseBuilder<R>()
-      .setData(readEntities)
-      .setPage(paginationReq.page())
-      .setTake(paginationReq.take())
-      .setTotalCount(total)
-      .build();
+  async findOne(
+    auctionId: string,
+    clientUser: JwtPayloadDto,
+  ): Promise<ReadAuctionDto> {
+    const auction: Auction = await this.getAuctionById(auctionId);
+
+    this.auctionManager.validateUser(auction.user);
+
+    const auctionItems =
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        auctionId,
+        null,
+      );
+    const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
+      (item) => new ReadAuctionItemDto(item, item.user),
+    );
+
+    return new ReadAuctionDto(
+      auction,
+      auction.user,
+      clientUser,
+      readAuctionItems,
+    );
   }
 
   async getPaginatedAuctions(
@@ -83,29 +88,21 @@ export class AuctionService {
     );
   }
 
-  async findOne(
-    id: string,
+  async updateAuctionItem(
+    auctionItemId: string,
+    updateAuctionItemDto: UpdateAuctionItemDto,
     clientUser: JwtPayloadDto,
-  ): Promise<ReadAuctionDto> {
-    const auction: Auction = await this.getAuctionById(id);
+  ) {
+    const auctionItem = await this.getAuctionItemById(auctionItemId);
+    this.auctionManager.authorityCheck(auctionItem, clientUser);
 
-    this.auctionManager.validateUser(auction.user);
-
-    const auctionItems =
-      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
-        id,
-        null,
-      );
-    const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
-      (item) => new ReadAuctionItemDto(item, item.user),
+    const result = await this.auctionItemRepository.update(
+      { id: auctionItemId },
+      updateAuctionItemDto,
     );
 
-    return new ReadAuctionDto(
-      auction,
-      auction.user,
-      clientUser,
-      readAuctionItems,
-    );
+    this.auctionManager.checkAffected(result);
+    return result;
   }
 
   async update(
@@ -121,14 +118,25 @@ export class AuctionService {
     return result;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} auction`;
+  async remove(auctionId: string, clientUser: JwtPayloadDto) {
+    const auction: Auction = await this.getAuctionById(auctionId);
+    this.auctionManager.authorityCheck(auction, clientUser);
+    await this.auctionRepository.remove(auction);
+    return true;
   }
 
-  async getAuctionById(id: string) {
-    const auction = await this.auctionRepository.findOneBy({ id });
-    this.auctionManager.validateId(id, auction);
-    return auction;
+  async findAuctionItemById(
+    auctionId: string,
+    auctionItemId: string,
+  ): Promise<ReadAuctionItemDetailDto> {
+    const auctionItems =
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        auctionId,
+        auctionItemId,
+      );
+    const auctionItem = auctionItems[0];
+    this.auctionManager.validateId(auctionItem);
+    return new ReadAuctionItemDetailDto(auctionItem, auctionItem.user);
   }
 
   async createAuctionItem(
@@ -145,17 +153,36 @@ export class AuctionService {
     return new CreateAuctionItemResultDto(result);
   }
 
-  async findAuctionItemById(
-    auctionId: string,
-    auctionItemId: string,
-  ): Promise<ReadAuctionItemDetailDto> {
-    const auctionItems =
-      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
-        auctionId,
-        auctionItemId,
-      );
-    const auctionItem = auctionItems[0];
-    this.auctionManager.validateAuctionItem(auctionItem);
-    return new ReadAuctionItemDetailDto(auctionItem, auctionItem.user);
+  private async fetchPaginatedData<T, R>(
+    repository: Repository<any>,
+    paginationReq: PaginationRequest,
+    options: FindOptionsWhere<any>,
+    DtoClass: new (entity: T) => R,
+  ): Promise<PaginationResponse<R>> {
+    const [entities, total] = await repository.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: paginationReq.skip(),
+      take: paginationReq.take(),
+      where: options,
+    });
+    const readEntities = entities.map((entity: T) => new DtoClass(entity));
+    return new PaginationResponseBuilder<R>()
+      .setData(readEntities)
+      .setPage(paginationReq.page())
+      .setTake(paginationReq.take())
+      .setTotalCount(total)
+      .build();
+  }
+
+  private async getAuctionById(id: string) {
+    const auction = await this.auctionRepository.findOneBy({ id });
+    this.auctionManager.validateId(auction);
+    return auction;
+  }
+
+  private async getAuctionItemById(id: string) {
+    const auctionItem = await this.auctionItemRepository.findOneBy({ id });
+    this.auctionManager.validateId(auctionItem);
+    return auctionItem;
   }
 }
