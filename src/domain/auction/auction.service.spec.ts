@@ -120,19 +120,24 @@ describe('AuctionService', () => {
   it('SUCCESS(read): should return a specific auction', async () => {
     const auction = { user } as Auction;
     const readAuctionDto: ReadAuctionDto = {
-      id: 'valid id',
-      title: '',
-      description: '',
-      eventDate: new Date(),
-      sellingLimitTime: 10,
-      status: Status.WAIT,
-      isPrivate: false,
-      ownerId: user.id,
-      ownerNickname: user.name,
-      ownerEmail: user.email,
-      ownerProfileImg: user.profileUrl,
-      ownerThumbnailImg: user.thumbnailUrl,
-      isOwner: true,
+      auctionDto: {
+        id: 'valid id',
+        title: '',
+        description: '',
+        eventDate: new Date(),
+        sellingLimitTime: 10,
+        status: Status.WAIT,
+        isPrivate: false,
+        isOwner: true,
+      },
+      ownerProfile: {
+        id: user.id,
+        nickname: user.name,
+        email: user.email,
+        profileUrl: user.profileUrl,
+        thumbnailUrl: user.thumbnailUrl,
+      },
+      items: [],
     };
     Object.assign(auction, readAuctionDto);
     Object.assign(auction, user);

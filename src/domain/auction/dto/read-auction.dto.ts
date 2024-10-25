@@ -6,19 +6,20 @@ import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.a
 import { UserProfileDto } from '~/src/domain/users/dto/user.dto';
 
 export class ReadAuctionDto {
-  ownerProfile: UserProfileDto;
-  items: ReadAuctionItemDto[];
   auctionDto: AuctionDto;
+  ownerProfile?: UserProfileDto;
+  items?: ReadAuctionItemDto[];
 
   constructor(
     auction: Auction,
-    owner: User,
-    clientUser: JwtPayloadDto,
-    auctionItems: ReadAuctionItemDto[],
+    owner?: User,
+    clientUser?: JwtPayloadDto,
+    auctionItems?: ReadAuctionItemDto[],
   ) {
-    this.ownerProfile = new UserProfileDto(owner);
     this.auctionDto = new AuctionDto(auction, owner, clientUser);
-    this.items = auctionItems;
+    if (!auction.isPrivate && owner)
+      this.ownerProfile = new UserProfileDto(owner);
+    if (auctionItems && auctionItems.length > 0) this.items = auctionItems;
   }
 }
 
@@ -31,9 +32,9 @@ export class AuctionDto extends PickType(Auction, [
   'status',
   'isPrivate',
 ] as const) {
-  isOwner: boolean;
+  isOwner?: boolean;
 
-  constructor(auction: Auction, owner: User, clientUser: JwtPayloadDto) {
+  constructor(auction: Auction, owner?: User, clientUser?: JwtPayloadDto) {
     super();
     this.id = auction.id;
     this.title = auction.title;
@@ -42,6 +43,6 @@ export class AuctionDto extends PickType(Auction, [
     this.sellingLimitTime = auction.sellingLimitTime;
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
-    this.isOwner = owner.id === clientUser.id;
+    if (clientUser && owner) this.isOwner = owner.id === clientUser.id;
   }
 }
