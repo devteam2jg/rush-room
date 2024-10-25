@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '~/src/domain/auth/auth.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
+import { FileModule } from './domain/file/file.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AuctionModule } from '~/src/domain/auction/auction.module';
     AuthModule,
     AuctionModule,
     GatewayModule,
+    FileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
