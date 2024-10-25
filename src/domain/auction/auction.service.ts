@@ -18,6 +18,7 @@ import { PaginationResponseBuilder } from '~/src/common/pagination/pagination.re
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
+import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
 
 @Injectable()
 export class AuctionService {
@@ -184,5 +185,16 @@ export class AuctionService {
     const auctionItem = await this.auctionItemRepository.findOneBy({ id });
     this.auctionManager.validateId(auctionItem);
     return auctionItem;
+  }
+
+  async removeItem(removeItemServiceDto: IdWithUserInfoDto) {
+    const auctionId = removeItemServiceDto.targetId;
+    const auctionItem = await this.getAuctionItemById(auctionId);
+    this.auctionManager.authorityCheck(
+      auctionItem,
+      removeItemServiceDto.clientUser,
+    );
+    await this.auctionItemRepository.remove(auctionItem);
+    return true;
   }
 }
