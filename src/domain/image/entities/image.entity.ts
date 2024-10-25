@@ -8,6 +8,6 @@ export class Image {
   @Column({ nullable: false })
   bid_id: string;
 
-  @Column({ nullable: true })
-  serialized_image_list: string;
+  @Column('text', { array: true, nullable: true })
+  serialized_image_list: string[];
 }
