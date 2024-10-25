@@ -47,8 +47,8 @@ export class AuctionGateway {
   }
 
   /**
-   * `new_bid` 이벤트를 처리합니다.
-   * 클라이언트가 새로운 입찰을 할 수 있게 합니다.
+   * `new_bid` 이벤트를 처리.
+   * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    *
    * @param bidData - 경매 ID와 새로운 입찰 금액을 포함한 데이터.
    * @param socket - 연결된 클라이언트 소켓.
@@ -73,5 +73,21 @@ export class AuctionGateway {
         'Bid must be higher than the current highest bid.',
       );
     }
+  }
+
+  /**
+   * 새로운 클라이언트 연결을 확인
+   * @param socket - 클라이언트 소켓.
+   */
+  handleConnection(socket: Socket) {
+    console.log(`Client connected: ${socket.id}`);
+  }
+
+  /**
+   * 클라이언트 연결 해제를 확인
+   * @param socket - 클라이언트 소켓.
+   */
+  handleDisconnect(socket: Socket) {
+    console.log(`Client disconnected: ${socket.id}`);
   }
 }
