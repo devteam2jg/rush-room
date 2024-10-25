@@ -2,7 +2,10 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { MissingConfigurationsException } from '~/src/common/exceptions/service.exception';
-import { ActionImageListDto } from '~/src/domain/image/dto/image.dto';
+import {
+  ActionImageListDto,
+  CreateImageDto,
+} from '~/src/domain/image/dto/image.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Image } from '~/src/domain/image/entities/image.entity';
@@ -34,19 +37,19 @@ export class ImageService {
     });
   }
 
-  async upload(file: Express.Multer.File) {
-    const key = `${Date.now().toString()}-${file.originalname}`;
-    const params = {
-      Key: key,
-      Body: file.buffer,
-      Bucket: this.image_bucket,
-      ContentType: file.mimetype,
-    };
-    const command = new PutObjectCommand(params);
-    const uploadFileS3 = await this.client.send(command);
-
-    if (uploadFileS3.$metadata.httpStatusCode !== 200)
-      throw new BadRequestException('Failed upload File');
+  async upload(createImageDto: CreateImageDto) {
+    const { id, file } = createImageDto;
+    const imageUrl: string = await this.uploadImageToS3(file);
+    const image: Image = await this.imageRepository.findOneBy({ bid_id: id });
+    if (image) {
+      image.serialized_image_list.push(imageUrl);
+      await this.imageRepository.update(image.id, image);
+    } else {
+      await this.imageRepository.save({
+        bid_id: id,
+        serialized_image_list: [imageUrl],
+      });
+    }
   }
 
   async getImageListByActionId(
@@ -57,7 +60,7 @@ export class ImageService {
       bid_id: id,
     });
     const { serialized_image_list } = image;
-    return serialized_image_list.split(',');
+    return serialized_image_list;
   }
 
   private checkConfigurations() {
@@ -68,5 +71,19 @@ export class ImageService {
       !this.image_region
     )
       throw MissingConfigurationsException('Missing S3 Configurations');
+  }
+  async uploadImageToS3(file: Express.Multer.File) {
+    const key = `${Date.now().toString()}-${file.originalname}`;
+    const params = {
+      Key: key,
+      Body: file.buffer,
+      Bucket: this.image_bucket,
+      ContentType: file.mimetype,
+    };
+    const command = new PutObjectCommand(params);
+    const uploadFileS3 = await this.client.send(command);
+    if (uploadFileS3.$metadata.httpStatusCode !== 200)
+      throw new BadRequestException('Failed upload File');
+    return `https://${this.image_bucket}.s3.${this.image_region}.amazonaws.com/${key}`;
   }
 }

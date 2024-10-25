@@ -19,9 +19,9 @@ export class ImageController {
     return this.imageService.getImageListByActionId({ id });
   }
 
-  @Post('upload')
+  @Post(':id')
   @UseInterceptors(FileInterceptor('file'))
-  upload(@UploadedFile() file: Express.Multer.File) {
-    return this.imageService.upload(file);
+  upload(@UploadedFile() file: Express.Multer.File, @Param('id') id: string) {
+    return this.imageService.upload({ id, file });
   }
 }
