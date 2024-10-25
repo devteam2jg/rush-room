@@ -15,8 +15,8 @@ export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.imageService.findOne(+id);
+  async getImageListByActionId(@Param('id') id: string): Promise<string[]> {
+    return this.imageService.getImageListByActionId({ id });
   }
 
   @Post('upload')

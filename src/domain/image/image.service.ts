@@ -2,6 +2,10 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { MissingConfigurationsException } from '~/src/common/exceptions/service.exception';
+import { ActionImageListDto } from '~/src/domain/image/dto/image.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Image } from '~/src/domain/image/entities/image.entity';
 
 @Injectable()
 export class ImageService {
@@ -11,7 +15,11 @@ export class ImageService {
   private readonly image_bucket: string;
   private readonly image_region: string;
 
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
+  ) {
     this.image_bucket = configService.get<string>('S3_IMAGE_BUCKET_NAME');
     this.image_key = configService.get<string>('S3_IMAGE_ACCESS_KEY');
     this.image_secret = configService.get<string>('S3_IMAGE_ACCESS_SECRET');
@@ -41,8 +49,15 @@ export class ImageService {
       throw new BadRequestException('Failed upload File');
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} image`;
+  async getImageListByActionId(
+    actionImageListDto: ActionImageListDto,
+  ): Promise<string[]> {
+    const { id } = actionImageListDto;
+    const image: Image = await this.imageRepository.findOneBy({
+      bid_id: id,
+    });
+    const { serialized_image_list } = image;
+    return serialized_image_list.split(',');
   }
 
   private checkConfigurations() {
