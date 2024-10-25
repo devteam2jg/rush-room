@@ -30,6 +30,7 @@ import {
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
+import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
 
 @ApiTags('Auction apis')
 @UseGuards(JwtAuthGuard)
@@ -189,5 +190,28 @@ export class AuctionController {
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
     return this.auctionService.remove(auctionId, jwtPayload);
+  }
+
+  @ApiOperation({ summary: 'Delete auction item' })
+  @ApiResponse({
+    status: 200,
+    description: 'Auction item successfully deleted.',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'Occurs when auction item owner id and client id is different.',
+  })
+  @ApiResponse({ status: 404, description: 'Auction not found.' })
+  @Delete('item/:itemId')
+  removeItem(
+    @Param('itemId') auctionItemId: string,
+    @GetJwtPayload() jwtPayload: JwtPayloadDto,
+  ) {
+    const removeItemServiceDto = new IdWithUserInfoDto(
+      auctionItemId,
+      jwtPayload,
+    );
+    return this.auctionService.removeItem(removeItemServiceDto);
   }
 }
