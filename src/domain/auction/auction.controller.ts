@@ -1,13 +1,17 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuctionService } from './auction.service';
 import { CreateAuctionDto } from './dto/create-auction.dto';
@@ -19,7 +23,14 @@ import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-
 import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 import { PaginationRequest } from '~/src/common/pagination/pagination.request';
 import { GetPagination } from '~/src/common/pagination/get.pagination.decorator';
@@ -31,12 +42,19 @@ import { PaginationResponse } from '~/src/common/pagination/pagination.response'
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
 import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileService } from '~/src/domain/file/file.service';
+import { imageFileFilter } from '~/src/common/filters/file-filter/image.file.filter';
+import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
 
 @ApiTags('Auction apis')
 @UseGuards(JwtAuthGuard)
 @Controller('auction')
 export class AuctionController {
-  constructor(private readonly auctionService: AuctionService) {}
+  constructor(
+    private readonly auctionService: AuctionService,
+    private readonly fileService: FileService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create auction' })
@@ -52,23 +70,71 @@ export class AuctionController {
     return this.auctionService.create(createAuctionDto, jwtPayload);
   }
 
-  @Post(':id/auction-item')
-  @ApiOperation({ summary: 'Create auction item' })
+  @ApiOperation({
+    summary: 'Create auction item',
+    description:
+      "'Content-Type': 'multipart/form-data' client 측에서 설정해야 함. 최대 사진 수는 5개. 최대 총 파일 크기는 5mb",
+  })
   @ApiResponse({
     status: 201,
     description: 'Auction item successfully created.',
     type: CreateAuctionItemResultDto,
   })
-  createAuctionItem(
-    @Param('id') auctionId: string,
+  @ApiResponse({
+    status: 400,
+    description:
+      'All fields must be filled. At least one image must be uploaded.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        description: { type: 'string' },
+        startingPrice: { type: 'number' },
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+          minItems: 1,
+          maxItems: 5,
+        },
+      },
+      required: ['name', 'description', 'startingPrice', 'images'],
+    },
+  })
+  @Post(':id/auction-item')
+  @UseInterceptors(
+    FilesInterceptor('images', 5, {
+      // 'images'는 필드 이름, 10은 최대 파일 수
+      fileFilter: imageFileFilter,
+      limits: {
+        fileSize: 1024 * 1024 * 5,
+      },
+    }),
+  )
+  async createAuctionItem(
+    @Param('id', new ParseUUIDPipe()) auctionId: string,
     @Body() createAuctionItemDto: CreateAuctionItemDto,
+    @UploadedFile() images: Express.Multer.File[],
     @GetJwtPayload() jwtPayLoad: JwtPayloadDto,
   ): Promise<CreateAuctionItemResultDto> {
-    return this.auctionService.createAuctionItem(
-      auctionId,
-      createAuctionItemDto,
-      jwtPayLoad,
+    if (!images || images.length === 0)
+      throw new BadRequestException('images is required');
+    const uploadPromises = images.map((image) =>
+      this.fileService.uploadImage(image),
     );
+    const imageUrls = await Promise.all(uploadPromises);
+    const createAuctionServiceDto = new CreateAuctionServiceDto(
+      auctionId,
+      jwtPayLoad,
+      createAuctionItemDto,
+      imageUrls,
+    );
+    return this.auctionService.createAuctionItem(createAuctionServiceDto);
   }
 
   @Get()
@@ -85,7 +151,7 @@ export class AuctionController {
   })
   findPaginatedAuctions(
     @GetPagination() pagination: PaginationRequest,
-    @Query('userId') userId?: string,
+    @Query('userId', new ParseUUIDPipe()) userId?: string,
   ): Promise<PaginationResponse<ReadAuctionDto>> {
     return this.auctionService.getPaginatedAuctions(pagination, userId);
   }
@@ -103,7 +169,7 @@ export class AuctionController {
   })
   findPaginatedAuctionItems(
     @GetPagination() pagination: PaginationRequest,
-    @Query('buyerId') buyerId: string,
+    @Query('buyerId', new ParseUUIDPipe()) buyerId: string,
   ): Promise<PaginationResponse<ReadAuctionItemDto>> {
     return this.auctionService.getPaginatedAuctionItems(pagination, buyerId);
   }
@@ -117,7 +183,7 @@ export class AuctionController {
   })
   @ApiResponse({ status: 404, description: 'Auction not found.' })
   findOne(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
     return this.auctionService.findOne(id, jwtPayload);
@@ -132,8 +198,8 @@ export class AuctionController {
   @ApiResponse({ status: 404, description: 'Auction item not found.' })
   @Get(':id/item/:itemId')
   findAuctionItemById(
-    @Param('id') auctionId: string,
-    @Param('itemId') auctionItemId: string,
+    @Param('id', new ParseUUIDPipe()) auctionId: string,
+    @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
   ) {
     return this.auctionService.findAuctionItemById(auctionId, auctionItemId);
   }
@@ -151,7 +217,7 @@ export class AuctionController {
   @ApiResponse({ status: 404, description: 'Auction item not found.' })
   @Patch('item/:itemId')
   updateAuctionItem(
-    @Param('itemId') auctionItemId: string,
+    @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
     @Body() updateAuctionItemDto: UpdateAuctionItemDto,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
@@ -170,7 +236,7 @@ export class AuctionController {
   @ApiResponse({ status: 200, description: 'Auction successfully updated.' })
   @ApiResponse({ status: 404, description: 'Auction not found.' })
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateAuctionDto: UpdateAuctionDto,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
@@ -186,7 +252,7 @@ export class AuctionController {
   @ApiResponse({ status: 404, description: 'Auction not found.' })
   @Delete(':id')
   remove(
-    @Param('id') auctionId: string,
+    @Param('id', new ParseUUIDPipe()) auctionId: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
     return this.auctionService.remove(auctionId, jwtPayload);
@@ -205,7 +271,7 @@ export class AuctionController {
   @ApiResponse({ status: 404, description: 'Auction not found.' })
   @Delete('item/:itemId')
   removeItem(
-    @Param('itemId') auctionItemId: string,
+    @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
     const removeItemServiceDto = new IdWithUserInfoDto(

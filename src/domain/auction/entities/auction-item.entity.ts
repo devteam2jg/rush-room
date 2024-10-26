@@ -11,8 +11,8 @@ export class AuctionItem extends CommonEntity {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'text', nullable: true })
-  itemImages: string;
+  @Column({ type: 'simple-array', nullable: true })
+  imageUrls: string[];
 
   @Column({ type: 'int' })
   startPrice: number;

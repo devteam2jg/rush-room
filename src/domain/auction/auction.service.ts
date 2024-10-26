@@ -8,7 +8,6 @@ import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { FindOptionsWhere, Repository, UpdateResult } from 'typeorm';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
@@ -19,6 +18,7 @@ import { PaginationResponse } from '~/src/common/pagination/pagination.response'
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
 import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
 
 @Injectable()
 export class AuctionService {
@@ -141,15 +141,12 @@ export class AuctionService {
   }
 
   async createAuctionItem(
-    auctionId: string,
-    createAuctionItemDto: CreateAuctionItemDto,
-    clientUser: JwtPayloadDto,
+    createAuctionServiceDto: CreateAuctionServiceDto,
   ): Promise<CreateAuctionItemResultDto> {
+    const auctionId = createAuctionServiceDto.targetId;
     await this.getAuctionById(auctionId);
     const result = await this.auctionItemRepository.createAuctionItem(
-      auctionId,
-      createAuctionItemDto,
-      clientUser,
+      createAuctionServiceDto,
     );
     return new CreateAuctionItemResultDto(result);
   }
