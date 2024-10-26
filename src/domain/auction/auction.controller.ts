@@ -9,7 +9,7 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -106,7 +106,7 @@ export class AuctionController {
       required: ['name', 'description', 'startingPrice', 'images'],
     },
   })
-  @Post(':id/auction-item')
+  @Post(':id/item')
   @UseInterceptors(
     FilesInterceptor('images', 5, {
       // 'images'는 필드 이름, 10은 최대 파일 수
@@ -119,7 +119,7 @@ export class AuctionController {
   async createAuctionItem(
     @Param('id', new ParseUUIDPipe()) auctionId: string,
     @Body() createAuctionItemDto: CreateAuctionItemDto,
-    @UploadedFile() images: Express.Multer.File[],
+    @UploadedFiles() images: Express.Multer.File[],
     @GetJwtPayload() jwtPayLoad: JwtPayloadDto,
   ): Promise<CreateAuctionItemResultDto> {
     if (!images || images.length === 0)
