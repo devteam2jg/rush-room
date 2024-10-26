@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { MissingConfigurationsException } from '~/src/common/exceptions/service.exception';
 
@@ -10,7 +10,8 @@ export class FileService {
   private readonly image_secret: string;
   private readonly image_bucket: string;
   private readonly image_region: string;
-  constructor(private configService: ConfigService) {
+
+  constructor(private readonly configService: ConfigService) {
     this.image_bucket = configService.get<string>('S3_IMAGE_BUCKET_NAME');
     this.image_key = configService.get<string>('S3_IMAGE_ACCESS_KEY');
     this.image_secret = configService.get<string>('S3_IMAGE_ACCESS_SECRET');
