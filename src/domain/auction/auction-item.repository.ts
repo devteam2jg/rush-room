@@ -11,8 +11,10 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
 
   async createAuctionItem(createAuctionServiceDto: CreateAuctionServiceDto) {
     const auctionId = createAuctionServiceDto.targetId;
-    const { createAuctionItemDto, clientUser } = createAuctionServiceDto;
+    const { createAuctionItemDto, clientUser, imageUrls } =
+      createAuctionServiceDto;
     const auctionItem = this.create({
+      imageUrls,
       ...createAuctionItemDto,
       auction: { id: auctionId },
       user: { id: clientUser.id },
