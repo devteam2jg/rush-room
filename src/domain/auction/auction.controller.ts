@@ -186,7 +186,7 @@ export class AuctionController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
-    return this.auctionService.findOne(id, jwtPayload);
+    return this.auctionService.getAuctionDetail(id, jwtPayload);
   }
 
   @ApiOperation({ summary: 'Get auction item by ID' })
@@ -201,7 +201,7 @@ export class AuctionController {
     @Param('id', new ParseUUIDPipe()) auctionId: string,
     @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
   ) {
-    return this.auctionService.findAuctionItemById(auctionId, auctionItemId);
+    return this.auctionService.getAuctionItem(auctionId, auctionItemId);
   }
 
   @ApiOperation({ summary: 'Update auction item' })

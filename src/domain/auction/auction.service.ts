@@ -36,7 +36,7 @@ export class AuctionService {
     return this.auctionRepository.createAuction(createAuctionDto, owner);
   }
 
-  async findOne(
+  async getAuctionDetail(
     auctionId: string,
     clientUser: JwtPayloadDto,
   ): Promise<ReadAuctionDto> {
@@ -126,7 +126,7 @@ export class AuctionService {
     return true;
   }
 
-  async findAuctionItemById(
+  async getAuctionItem(
     auctionId: string,
     auctionItemId: string,
   ): Promise<ReadAuctionItemDetailDto> {
