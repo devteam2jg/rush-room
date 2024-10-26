@@ -90,9 +90,9 @@ export class AuctionController {
     schema: {
       type: 'object',
       properties: {
-        name: { type: 'string' },
+        title: { type: 'string' },
         description: { type: 'string' },
-        startingPrice: { type: 'number' },
+        startPrice: { type: 'number' },
         images: {
           type: 'array',
           items: {
@@ -103,7 +103,7 @@ export class AuctionController {
           maxItems: 5,
         },
       },
-      required: ['name', 'description', 'startingPrice', 'images'],
+      required: ['title', 'description', 'startPrice', 'images'],
     },
   })
   @Post(':id/item')
@@ -151,7 +151,7 @@ export class AuctionController {
   })
   findPaginatedAuctions(
     @GetPagination() pagination: PaginationRequest,
-    @Query('userId', new ParseUUIDPipe()) userId?: string,
+    @Query('userId', new ParseUUIDPipe({ optional: true })) userId?: string,
   ): Promise<PaginationResponse<ReadAuctionDto>> {
     return this.auctionService.getPaginatedAuctions(pagination, userId);
   }
