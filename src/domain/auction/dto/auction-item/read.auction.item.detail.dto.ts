@@ -11,16 +11,8 @@ export class ReadAuctionItemDetailDto extends PickType(AuctionItem, [
   'lastPrice',
   'isSold',
   'buyerId',
-  'itemImages',
+  'imageUrls',
 ] as const) {
-  id: string;
-  title: string;
-  description: string;
-  itemImages: string;
-  startPrice: number;
-  lastPrice: number;
-  isSold: boolean;
-  buyerId: string;
   postedUser: UserProfileDto;
 
   constructor(auctionItem: AuctionItem, postedUser: User) {
@@ -28,7 +20,7 @@ export class ReadAuctionItemDetailDto extends PickType(AuctionItem, [
     this.id = auctionItem.id;
     this.title = auctionItem.title;
     this.description = auctionItem.description;
-    this.itemImages = auctionItem.itemImages;
+    this.imageUrls = auctionItem.imageUrls;
     this.startPrice = auctionItem.startPrice;
     this.lastPrice = auctionItem.lastPrice;
     this.isSold = auctionItem.isSold;
