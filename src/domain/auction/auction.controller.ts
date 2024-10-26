@@ -23,11 +23,21 @@ import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-
 import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 import { CreateAuctionItemResultDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.result.dto';
-import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ReadAuctionItemDetailDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.detail.dto';
 import { PaginationRequest } from '~/src/common/pagination/pagination.request';
 import { GetPagination } from '~/src/common/pagination/get.pagination.decorator';
-import { ApiPaginationRequest, ApiPaginationResponse } from '~/src/common/pagination/pagination.swagger';
+import {
+  ApiPaginationRequest,
+  ApiPaginationResponse,
+} from '~/src/common/pagination/pagination.swagger';
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
@@ -63,7 +73,8 @@ export class AuctionController {
   @ApiOperation({
     summary: 'Create auction item',
     description:
-      "'C'\'Content-Type\': \'multipart/form-data\' client 측에서 설정해야 함. 최대 사진 수는 5개. 최대 총 파일 크기는 5mb' })
+      "'Content-Type': 'multipart/form-data' client 측에서 설정해야 함. 최대 사진 수는 5개. 최대 총 파일 크기는 5mb",
+  })
   @ApiResponse({
     status: 201,
     description: 'Auction item successfully created.',
