@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, Length } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateAuctionItemDto {
   @ApiProperty({
@@ -26,5 +27,6 @@ export class CreateAuctionItemDto {
   })
   @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   startPrice: number;
 }
