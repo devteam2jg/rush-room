@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
-import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
-import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
+import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
 
 @Injectable()
 export class AuctionItemRepository extends Repository<AuctionItem> {
@@ -10,11 +9,9 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
     super(AuctionItem, dataSource.createEntityManager());
   }
 
-  async createAuctionItem(
-    auctionId: string,
-    createAuctionItemDto: CreateAuctionItemDto,
-    clientUser: JwtPayloadDto,
-  ) {
+  async createAuctionItem(createAuctionServiceDto: CreateAuctionServiceDto) {
+    const auctionId = createAuctionServiceDto.targetId;
+    const { createAuctionItemDto, clientUser } = createAuctionServiceDto;
     const auctionItem = this.create({
       ...createAuctionItemDto,
       auction: { id: auctionId },
