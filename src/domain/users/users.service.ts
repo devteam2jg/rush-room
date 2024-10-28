@@ -8,6 +8,7 @@ import {
   UpdateUserDto,
   UserDataDto,
 } from '~/src/domain/users/dto/user.dto';
+import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
 
 @Injectable()
 export class UsersService {
@@ -55,5 +56,35 @@ export class UsersService {
       thumbnailUrl,
     };
     return userDataDto;
+  }
+
+  async checkUserEndorsedInAuction(userId: string, auctionId: string) {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+    });
+
+    return user?.endorsedAuctions?.includes(auctionId);
+  }
+
+  async updateEndorsedAuction(
+    getAuctionPasswordDto: EnterPrivateAuctionServiceDto,
+  ) {
+    const user = await this.usersRepository.findOne({
+      where: { id: getAuctionPasswordDto.clientId },
+    });
+    const endorsedAuctions = user?.endorsedAuctions
+      ? user.endorsedAuctions
+      : [];
+    const newEndorsedAuctions = [
+      ...endorsedAuctions,
+      getAuctionPasswordDto.auctionId,
+    ];
+    const updateUserDto: UpdateUserDto = {
+      id: user.id,
+      endorsedAuctions: newEndorsedAuctions,
+    };
+    await this.update(updateUserDto);
+    // TODO: 경매 삭제, 또는 종료될 때마다 private한 경매였다면 endorsedAuctions 삭제 해야함
+    return true;
   }
 }
