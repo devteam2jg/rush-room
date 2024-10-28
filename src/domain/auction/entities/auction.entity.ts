@@ -26,6 +26,9 @@ export class Auction extends CommonEntity {
   @Column({ type: 'enum', enum: Status, default: Status.WAIT })
   status: Status;
 
+  @Column({ type: 'int', nullable: true })
+  budget: number;
+
   @Column({ type: 'boolean', default: false })
   isPrivate: boolean;
 
