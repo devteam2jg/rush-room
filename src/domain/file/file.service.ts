@@ -1,7 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 import { ConfigService } from '@nestjs/config';
 import { MissingConfigurationsException } from '~/src/common/exceptions/service.exception';
+import { UploadStrategy } from '~/src/domain/file/strategies/upload-strategy.interface';
+import { ImageUploadStrategy } from '~/src/domain/file/strategies/image-upload.strategy';
+import { AudioUploadStrategy } from '~/src/domain/file/strategies/audio-upload.strategy';
 
 @Injectable()
 export class FileService {
@@ -31,25 +34,27 @@ export class FileService {
       throw MissingConfigurationsException('Missing S3 Configurations');
   }
 
-  private async uploadFileToS3(file: Express.Multer.File) {
-    const key = `${Date.now().toString()}-${file.originalname}`;
-    const params = {
-      Key: key,
-      Body: file.buffer,
-      Bucket: this.s3_bucket,
-      ContentType: file.mimetype,
-    };
-    const command = new PutObjectCommand(params);
-    const uploadFileS3 = await this.client.send(command);
-    if (uploadFileS3.$metadata.httpStatusCode !== 200)
-      throw new InternalServerErrorException('Failed to upload file to S3');
-    return this.makeS3Url(key);
+  /*
+   * @deprecated User uploadFile instead
+   */
+  uploadImage(file: Express.Multer.File) {
+    return this.uploadFile(file);
   }
-  private makeS3Url(key: string) {
-    return `https://${this.s3_bucket}.s3.${this.s3_region}.amazonaws.com/${key}`;
+  async uploadFile(file: Express.Multer.File): Promise<string> {
+    const strategy = this.getStrategy(file);
+    return strategy.uploadFile(file);
   }
 
-  uploadImage(file: Express.Multer.File) {
-    return this.uploadFileToS3(file);
+  private getStrategy(file: Express.Multer.File): UploadStrategy {
+    const mimeType = file.mimetype;
+    const [type] = mimeType.split('/');
+    switch (type) {
+      case 'image':
+        return new ImageUploadStrategy(this.client, this.s3_bucket);
+      case 'audio':
+        return new AudioUploadStrategy(this.client, this.s3_bucket);
+      default:
+        throw new InternalServerErrorException('Unsupported file type');
+    }
   }
 }
