@@ -5,6 +5,7 @@ import { MissingConfigurationsException } from '~/src/common/exceptions/service.
 import { UploadStrategy } from '~/src/domain/file/strategies/upload-strategy.interface';
 import { ImageUploadStrategy } from '~/src/domain/file/strategies/image-upload.strategy';
 import { AudioUploadStrategy } from '~/src/domain/file/strategies/audio-upload.strategy';
+import { VideoUploadStrategy } from '~/src/domain/file/strategies/video-upload.strategy';
 
 @Injectable()
 export class FileService {
@@ -53,6 +54,8 @@ export class FileService {
         return new ImageUploadStrategy(this.client, this.s3_bucket);
       case 'audio':
         return new AudioUploadStrategy(this.client, this.s3_bucket);
+      case 'video':
+        return new VideoUploadStrategy(this.client, this.s3_bucket);
       default:
         throw new InternalServerErrorException('Unsupported file type');
     }
