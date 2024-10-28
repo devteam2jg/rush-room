@@ -142,7 +142,7 @@ describe('AuctionService', () => {
     Object.assign(auction, readAuctionDto);
     Object.assign(auction, user);
     jest.spyOn(auctionRepository, 'findOneBy').mockResolvedValue(auction);
-    const result = await auctionService.findOne('1', user);
+    const result = await auctionService.getAuctionDetail('1', user);
     expect(result).toEqual(readAuctionDto);
   });
 

@@ -13,6 +13,7 @@ import { UpdateResult } from 'typeorm';
 import { User } from '~/src/domain/users/entities/user.entity';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
+import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
 
 @Injectable()
 export class AuctionManager {
@@ -27,7 +28,7 @@ export class AuctionManager {
   }
 
   public validateId(entity: Auction | AuctionItem) {
-    if (!entity) throw EntityNotFoundException(`id ${entity.id} not found`);
+    if (!entity?.id) throw EntityNotFoundException(`id ${entity.id} not found`);
   }
 
   public checkAffected(result: UpdateResult) {
@@ -42,6 +43,15 @@ export class AuctionManager {
       throw ForbiddenBehaviorException(
         'user can only remove or update their auction',
       );
+    }
+  }
+
+  public validatePrivateCode(
+    getAuctionPasswordDto: EnterPrivateAuctionServiceDto,
+    auction: Auction,
+  ) {
+    if (getAuctionPasswordDto.userPrivateCode !== auction.privateCode) {
+      throw ForbiddenBehaviorException('private code is wrong');
     }
   }
 

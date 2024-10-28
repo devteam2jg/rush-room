@@ -48,4 +48,7 @@ export class User {
     eager: false,
   })
   auctionItems: AuctionItem[];
+
+  @Column({ type: 'simple-array', nullable: true })
+  endorsedAuctions: string[];
 }

@@ -8,9 +8,11 @@ import { AuctionManager } from '~/src/domain/auction/auction.manager';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { FileService } from '~/src/domain/file/file.service';
+import { UsersService } from '~/src/domain/users/users.service';
+import { User } from '~/src/domain/users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Auction, AuctionItem])],
+  imports: [TypeOrmModule.forFeature([Auction, AuctionItem, User])],
   controllers: [AuctionController],
   providers: [
     AuctionService,
@@ -18,6 +20,7 @@ import { FileService } from '~/src/domain/file/file.service';
     AuctionManager,
     AuctionItemRepository,
     FileService,
+    UsersService,
   ],
 })
 export class AuctionModule {}
