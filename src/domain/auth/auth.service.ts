@@ -24,12 +24,14 @@ export class AuthService {
    * @returns
    */
   async login(user: UserDataDto): Promise<string> {
-    const { id, name, email, socialType } = user;
+    const { id, name, email, socialType, profileUrl, thumbnailUrl } = user;
     const payload: JwtPayloadDto = {
       id,
       name,
       email,
       socialType,
+      profileUrl,
+      thumbnailUrl,
     };
     return this.jwtService.sign(payload);
   }
