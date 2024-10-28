@@ -46,6 +46,8 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileService } from '~/src/domain/file/file.service';
 import { imageFileFilter } from '~/src/common/filters/file-filter/image.file.filter';
 import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
+import { EnterPrivateAuctionDto } from '~/src/domain/auction/dto/auction/enter.private.auction.dto';
+import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
 
 @ApiTags('Auction apis')
 @UseGuards(JwtAuthGuard)
@@ -279,5 +281,19 @@ export class AuctionController {
       jwtPayload,
     );
     return this.auctionService.removeItem(removeItemServiceDto);
+  }
+
+  @Post(':auctionId/private/enter')
+  enterPrivateAuction(
+    @Param('auctionId', new ParseUUIDPipe()) auctionId: string,
+    @Body() enterPrivateAuctionDto: EnterPrivateAuctionDto,
+    @GetJwtPayload() jwtPayload: JwtPayloadDto,
+  ) {
+    const enterPrivateAuctionServiceDto = new EnterPrivateAuctionServiceDto(
+      auctionId,
+      jwtPayload,
+      enterPrivateAuctionDto,
+    );
+    return this.auctionService.enterPrivate(enterPrivateAuctionServiceDto);
   }
 }
