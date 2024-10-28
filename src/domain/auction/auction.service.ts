@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { CreateAuctionDto } from './dto/create-auction.dto';
 import { UpdateAuctionDto } from './dto/update-auction.dto';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
-import { ReadAuctionDto } from '~/src/domain/auction/dto/read-auction.dto';
+import {
+  AuctionDto,
+  ReadAuctionDto,
+  ReadAuctionDtoBuilder,
+} from '~/src/domain/auction/dto/read-auction.dto';
 import { AuctionManager } from '~/src/domain/auction/auction.manager';
 import { Auction } from '~/src/domain/auction/entities/auction.entity';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
@@ -19,6 +23,8 @@ import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
 import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
 import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
+import { UsersService } from '~/src/domain/users/users.service';
+import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
 
 @Injectable()
 export class AuctionService {
@@ -26,6 +32,7 @@ export class AuctionService {
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly auctionManager: AuctionManager,
+    private readonly usersService: UsersService,
   ) {}
 
   create(
@@ -42,23 +49,46 @@ export class AuctionService {
   ): Promise<ReadAuctionDto> {
     const auction: Auction = await this.getAuctionById(auctionId);
 
-    this.auctionManager.validateUser(auction.user);
+    if (await this.isUnEndorsed(auction, clientUser)) {
+      return new ReadAuctionDtoBuilder()
+        .setPrivateAuctionDto(auction)
+        .setOwnerProfile(auction.user)
+        .setReadUser(auction.user, clientUser, false)
+        .build();
+    }
 
     const auctionItems =
       await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
         auctionId,
-        null,
       );
+
     const readAuctionItems: ReadAuctionItemDto[] = auctionItems.map(
       (item) => new ReadAuctionItemDto(item, item.user),
     );
 
-    return new ReadAuctionDto(
-      auction,
-      auction.user,
-      clientUser,
-      readAuctionItems,
+    return new ReadAuctionDtoBuilder()
+      .setAuctionDto(auction)
+      .setOwnerProfile(auction.user)
+      .setReadUser(auction.user, clientUser, true)
+      .setItems(readAuctionItems)
+      .build();
+  }
+
+  async enterPrivate(
+    enterPrivateAuctionServiceDto: EnterPrivateAuctionServiceDto,
+  ) {
+    const auction = await this.getAuctionById(
+      enterPrivateAuctionServiceDto.auctionId,
     );
+    this.auctionManager.validatePrivateCode(
+      enterPrivateAuctionServiceDto,
+      auction,
+    );
+    await this.usersService.updateEndorsedAuction(
+      enterPrivateAuctionServiceDto,
+    );
+
+    return true;
   }
 
   async getPaginatedAuctions(
@@ -68,12 +98,30 @@ export class AuctionService {
     const options: FindOptionsWhere<Auction> = userId
       ? { user: { id: userId } }
       : {};
-    return this.fetchPaginatedData<Auction, ReadAuctionDto>(
+    const paginatedResult = await this.fetchPaginatedData<Auction, AuctionDto>(
       this.auctionRepository,
       paginationReq,
       options,
-      ReadAuctionDto,
+      AuctionDto,
     );
+    const readAuctionDtos = paginatedResult.data.map((auctionDto) => {
+      return new ReadAuctionDtoBuilder()
+        .setAuctionDto(auctionDto as Auction)
+        .build();
+    });
+    return {
+      ...paginatedResult,
+      data: readAuctionDtos,
+    } as PaginationResponse<ReadAuctionDto>;
+  }
+
+  private async isUnEndorsed(auction: Auction, clientUser: JwtPayloadDto) {
+    const isNotOwner = auction.user.id !== clientUser.id;
+    const isEndorsed = await this.usersService.checkUserEndorsedInAuction(
+      clientUser.id,
+      auction.id,
+    );
+    return auction.isPrivate && isNotOwner && !isEndorsed;
   }
 
   async getPaginatedAuctionItems(
