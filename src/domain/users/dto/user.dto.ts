@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 import { PickType } from '@nestjs/swagger';
@@ -57,4 +57,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsNotEmpty()
   @IsString()
   id: string;
+
+  @IsOptional()
+  endorsedAuctions?: string[];
 }
