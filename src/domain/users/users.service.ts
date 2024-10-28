@@ -75,15 +75,21 @@ export class UsersService {
     const endorsedAuctions = user?.endorsedAuctions
       ? user.endorsedAuctions
       : [];
-    const newEndorsedAuctions = [
-      ...endorsedAuctions,
+    const notBeenEndorsed = !endorsedAuctions.includes(
       getAuctionPasswordDto.auctionId,
-    ];
-    const updateUserDto: UpdateUserDto = {
-      id: user.id,
-      endorsedAuctions: newEndorsedAuctions,
-    };
-    await this.update(updateUserDto);
+    );
+    if (notBeenEndorsed) {
+      const newEndorsedAuctions = [
+        ...endorsedAuctions,
+        getAuctionPasswordDto.auctionId,
+      ];
+      const updateUserDto: UpdateUserDto = {
+        id: user.id,
+        endorsedAuctions: newEndorsedAuctions,
+      };
+      await this.update(updateUserDto);
+    }
+
     // TODO: 경매 삭제, 또는 종료될 때마다 private한 경매였다면 endorsedAuctions 삭제 해야함
     return true;
   }
