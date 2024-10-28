@@ -28,7 +28,7 @@ export class AuctionManager {
   }
 
   public validateId(entity: Auction | AuctionItem) {
-    if (entity?.id) throw EntityNotFoundException(`id ${entity.id} not found`);
+    if (!entity?.id) throw EntityNotFoundException(`id ${entity.id} not found`);
   }
 
   public checkAffected(result: UpdateResult) {

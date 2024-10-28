@@ -121,7 +121,7 @@ export class AuctionService {
       clientUser.id,
       auction.id,
     );
-    return auction.isPrivate && isNotOwner && !isEndorsed;
+    return (auction.isPrivate && isNotOwner) || !isEndorsed;
   }
 
   async getPaginatedAuctionItems(
@@ -222,6 +222,7 @@ export class AuctionService {
 
   private async getAuctionById(id: string) {
     const auction = await this.auctionRepository.findOneBy({ id });
+    console.log('found auction: ', auction);
     this.auctionManager.validateId(auction);
     return auction;
   }
