@@ -92,6 +92,22 @@ export class AuctionGateway {
   }
 
   /**
+   * 음성 데이터 처리
+   * 같은 room 사용자 모두에게 전송
+   * @param voiceData
+   */
+  @SubscribeMessage('audio')
+  handleAudio(
+    @MessageBody() voiceData: { data: Blob; auctionId: string; userId: string },
+  ) {
+    const { data, auctionId, userId } = voiceData;
+    this.server.to(auctionId).emit('audioPlay', data);
+    this.server
+      .to(auctionId)
+      .emit('message', `${userId}님이 음성메세지를 보냈습니다.`);
+  }
+
+  /**
    * 새로운 클라이언트 연결을 확인
    * @param socket - 클라이언트 소켓.
    */
