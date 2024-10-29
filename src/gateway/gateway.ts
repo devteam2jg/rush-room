@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -6,6 +7,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { JwtAuthGuard } from '~/src/domain/auth/guards/auth.guard';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -15,6 +17,7 @@ import { Server, Socket } from 'socket.io';
   namespace: '/auction-execute',
   cors: { origin: true, credentials: true },
 })
+@UseGuards(JwtAuthGuard)
 export class AuctionGateway {
   @WebSocketServer()
   server: Server;
