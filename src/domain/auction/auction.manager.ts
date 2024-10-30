@@ -39,7 +39,7 @@ export class AuctionManager {
     auctionEntity: Auction | AuctionItem,
     clientUser: JwtPayloadDto,
   ) {
-    if (auctionEntity.user.id !== clientUser.id) {
+    if (auctionEntity.user?.id !== clientUser.id) {
       throw ForbiddenBehaviorException(
         'user can only remove or update their auction',
       );

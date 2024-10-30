@@ -139,11 +139,14 @@ export class AuctionService {
   }
 
   async updateAuctionItem(
+    auctionId: string,
     auctionItemId: string,
     updateAuctionItemDto: UpdateAuctionItemDto,
     clientUser: JwtPayloadDto,
   ) {
-    const auctionItem = await this.getAuctionItemById(auctionItemId);
+    const auctionItem = await this.auctionItemRepository
+      .getAuctionItemsByAuctionIdAndItemId(auctionId, auctionItemId)
+      .then((auctionItems) => auctionItems[0]);
     this.auctionManager.authorityCheck(auctionItem, clientUser);
 
     const result = await this.auctionItemRepository.update(
