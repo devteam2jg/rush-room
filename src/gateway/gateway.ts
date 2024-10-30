@@ -168,14 +168,17 @@ export class AuctionGateway {
    * @param voiceData
    */
   @SubscribeMessage('audio')
-  handleAudio(
-    @MessageBody() voiceData: { data: Blob; auctionId: string; userId: string },
-  ) {
-    const { data, auctionId, userId } = voiceData;
+  handleAudio(voiceData: {
+    data: Blob;
+    userId: string;
+    auctionId: string;
+    nickname: string;
+  }) {
+    const { data, auctionId, userId, nickname } = voiceData;
+    const message = `New voice message from ${nickname}`;
+    const messageData = { auctionId, userId, nickname, message };
     this.server.to(auctionId).emit('audioPlay', data);
-    this.server
-      .to(auctionId)
-      .emit('message', `${userId}님이 음성메세지를 보냈습니다.`);
+    this.server.to(auctionId).emit('message', messageData);
   }
 
   /**
