@@ -8,6 +8,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JwtAuthGuard } from '~/src/domain/auth/guards/auth.guard';
+import { AuctionService } from '../domain/auction/auction.service';
+import { AuctionGatewayService } from '~/src/gateway/gateway.service';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -22,6 +24,11 @@ export class AuctionGateway {
   @WebSocketServer()
   server: Server;
 
+  constructor(
+    private readonly auctionService: AuctionService,
+    private readonly auctionGatewayService: AuctionGatewayService,
+  ) {}
+
   private currentBids: { [auctionId: string]: number } = {}; // 각 경매의 현재 최고가 저장
 
   /**
@@ -29,24 +36,70 @@ export class AuctionGateway {
    * 클라이언트를 지정된 경매 방에 추가하고 현재 최고 입찰가를 전송.
    *
    * @param socket - 클라이언트 소켓.
-   * @param auctionId - 참여할 경매 방의 ID.
+   * @param joinData - auctionId, auction
    */
   @SubscribeMessage('join_auction')
-  handleJoinAuction(socket: Socket, auctionId: string): void {
+  async handleJoinAuction(
+    socket: Socket,
+    joinData: { auctionId: string; auctionItemId: string },
+  ): Promise<void> {
+    const { auctionId, auctionItemId } = joinData;
     socket.join(auctionId);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
 
-    // TODO: 각 물품 startPrice 조회 lastPrice 저장 기능 추가
     // 1. auctionId와 aucionItemId를 이용해 물품의 startPrice를 가져외서 currentBids에 저장
+    const auctionItem = await this.auctionService.getAuctionItem(
+      auctionId,
+      auctionItemId,
+    );
+    this.currentBids[auctionId] = auctionItem.startPrice;
     // 2. 경매시간이 지난 후 currentBids[auctionId]를 lastPrice로 업데이트
-    // 3. 다음 등록된 물품을 조회해서 위의과정을 반복하는 로직 완성
 
     if (this.currentBids[auctionId] == null) {
-      this.currentBids[auctionId] = 50000;
+      this.currentBids[auctionId] = 9999999999;
     }
 
     const currentBid = this.currentBids[auctionId];
     socket.emit('current_bid', currentBid);
+    socket.emit('item_info', auctionItem); //
+  }
+
+  @SubscribeMessage('finish_item')
+  async handleFinishItem(
+    socket: Socket,
+    finishData: { auctionId: string; auctionItemId: string },
+  ): Promise<void> {
+    const { auctionId, auctionItemId } = finishData;
+    const lastPrice = this.currentBids[auctionId];
+
+    const updateAuctionItemDto = { lastPrice }; // Assuming lastPrice is part of the DTO
+    await this.auctionGatewayService.updateItemBidResult(
+      auctionItemId,
+      updateAuctionItemDto,
+    );
+  }
+
+  /**
+   * 'next_Item' 이벤트를 처리.
+   *
+   * @param socket
+   * @param nextItemData - auctionId, auctionItemId
+   */
+  @SubscribeMessage('next_item')
+  async handleNextItem(
+    socket: Socket,
+    nextItemData: { auctionId: string; auctionItemId: string },
+  ): Promise<void> {
+    const { auctionId, auctionItemId } = nextItemData;
+    const auctionItem = await this.auctionService.getAuctionItem(
+      auctionId,
+      auctionItemId,
+    );
+    this.currentBids[auctionId] = auctionItem.startPrice;
+    const currentBid = this.currentBids[auctionId];
+
+    socket.emit('current_bid', currentBid);
+    socket.emit('item_info', auctionItem);
   }
 
   /**
