@@ -50,12 +50,19 @@ export class AuctionGateway {
       auctionId,
       auctionItemId,
     );
-    this.currentBids[auctionId] = auctionItem.startPrice;
-    // 2. 경매시간이 지난 후 currentBids[auctionId]를 lastPrice로 업데이트
 
-    if (this.currentBids[auctionId] == null) {
-      this.currentBids[auctionId] = 9999;
+    const currentPrice = this.currentBids[auctionId];
+    const itemStartPrice = auctionItem.startPrice;
+
+    if (currentPrice == null) {
+      this.currentBids[auctionId] = itemStartPrice;
     }
+
+    // todo 경매시간이 지난 후 currentBids[auctionId]를 lastPrice로 업데이트
+
+    // if (this.currentBids[auctionId] == null) {
+    //   this.currentBids[auctionId] = 9999;
+    // }
 
     const currentBid = this.currentBids[auctionId];
     socket.emit('current_bid', currentBid);
