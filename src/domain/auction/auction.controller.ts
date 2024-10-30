@@ -41,7 +41,10 @@ import {
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
-import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import {
+  AuctionIds,
+  AuctionIdsWithJwtPayload,
+} from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileService } from '~/src/domain/file/file.service';
 import { imageFileFilter } from '~/src/common/filters/file-filter/image.file.filter';
@@ -113,9 +116,9 @@ export class AuctionController {
     FilesInterceptor('images', 5, {
       // 'images'는 필드 이름, 10은 최대 파일 수
       fileFilter: imageFileFilter,
-      limits: {
-        fileSize: 1024 * 1024 * 5,
-      },
+      // limits: {
+      //   fileSize: 1024 * 1024 * 5,
+      // },
     }),
   )
   async createAuctionItem(
@@ -131,7 +134,7 @@ export class AuctionController {
     );
     const imageUrls = await Promise.all(uploadPromises);
     const createAuctionServiceDto = new CreateAuctionServiceDto(
-      auctionId,
+      new AuctionIds(auctionId, null),
       jwtPayLoad,
       createAuctionItemDto,
       imageUrls,
@@ -217,13 +220,46 @@ export class AuctionController {
       'Occurs when auction item owner id and client id is different.',
   })
   @ApiResponse({ status: 404, description: 'Auction item not found.' })
-  @Patch('item/:itemId')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        startPrice: { type: 'number' },
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+          minItems: 1,
+          maxItems: 5,
+        },
+      },
+      required: ['title', 'description', 'startPrice', 'images'],
+    },
+  })
+  @UseInterceptors(
+    FilesInterceptor('images', 5, {
+      // 'images'는 필드 이름, 10은 최대 파일 수
+      fileFilter: imageFileFilter,
+      // limits: {
+      //   fileSize: 1024 * 1024 * 5,
+      // },
+    }),
+  )
+  @Patch(':auctionId/item/:itemId')
   updateAuctionItem(
+    @Param('auctionId', new ParseUUIDPipe()) auctionId: string,
     @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
     @Body() updateAuctionItemDto: UpdateAuctionItemDto,
+    @UploadedFiles() images: Express.Multer.File[],
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
     return this.auctionService.updateAuctionItem(
+      auctionId,
       auctionItemId,
       updateAuctionItemDto,
       jwtPayload,
@@ -271,13 +307,14 @@ export class AuctionController {
       'Occurs when auction item owner id and client id is different.',
   })
   @ApiResponse({ status: 404, description: 'Auction not found.' })
-  @Delete('item/:itemId')
+  @Delete(':auctionId/item/:itemId')
   removeItem(
+    @Param('auctionId', new ParseUUIDPipe()) auctionId: string,
     @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
-    const removeItemServiceDto = new IdWithUserInfoDto(
-      auctionItemId,
+    const removeItemServiceDto = new AuctionIdsWithJwtPayload(
+      new AuctionIds(auctionId, auctionItemId),
       jwtPayload,
     );
     return this.auctionService.removeItem(removeItemServiceDto);

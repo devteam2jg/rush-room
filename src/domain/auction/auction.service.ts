@@ -21,7 +21,7 @@ import { PaginationResponseBuilder } from '~/src/common/pagination/pagination.re
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
-import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import { AuctionIdsWithJwtPayload } from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
 import { UsersService } from '~/src/domain/users/users.service';
 import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
@@ -139,11 +139,14 @@ export class AuctionService {
   }
 
   async updateAuctionItem(
+    auctionId: string,
     auctionItemId: string,
     updateAuctionItemDto: UpdateAuctionItemDto,
     clientUser: JwtPayloadDto,
   ) {
-    const auctionItem = await this.getAuctionItemById(auctionItemId);
+    const auctionItem = await this.auctionItemRepository
+      .getAuctionItemsByAuctionIdAndItemId(auctionId, auctionItemId)
+      .then((auctionItems) => auctionItems[0]);
     this.auctionManager.authorityCheck(auctionItem, clientUser);
 
     const result = await this.auctionItemRepository.update(
@@ -192,7 +195,7 @@ export class AuctionService {
   async createAuctionItem(
     createAuctionServiceDto: CreateAuctionServiceDto,
   ): Promise<CreateAuctionItemResultDto> {
-    const auctionId = createAuctionServiceDto.targetId;
+    const auctionId = createAuctionServiceDto.auctionIds.auctionId;
     await this.getAuctionById(auctionId);
     const result = await this.auctionItemRepository.createAuctionItem(
       createAuctionServiceDto,
@@ -227,15 +230,12 @@ export class AuctionService {
     return auction;
   }
 
-  private async getAuctionItemById(id: string) {
-    const auctionItem = await this.auctionItemRepository.findOneBy({ id });
-    this.auctionManager.validateId(auctionItem);
-    return auctionItem;
-  }
-
-  async removeItem(removeItemServiceDto: IdWithUserInfoDto) {
-    const auctionId = removeItemServiceDto.targetId;
-    const auctionItem = await this.getAuctionItemById(auctionId);
+  async removeItem(removeItemServiceDto: AuctionIdsWithJwtPayload) {
+    const auctionId = removeItemServiceDto.auctionIds.auctionId;
+    const auctionItemId = removeItemServiceDto.auctionIds.auctionItemId;
+    const auctionItem = await this.auctionItemRepository
+      .getAuctionItemsByAuctionIdAndItemId(auctionId, auctionItemId)
+      .then((auctionItems) => auctionItems[0]);
     this.auctionManager.authorityCheck(
       auctionItem,
       removeItemServiceDto.clientUser,
