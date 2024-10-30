@@ -20,7 +20,7 @@ import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
   namespace: '/auction-execute',
   cors: { origin: true, credentials: true },
 })
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class AuctionGateway {
   @WebSocketServer()
   server: Server;
