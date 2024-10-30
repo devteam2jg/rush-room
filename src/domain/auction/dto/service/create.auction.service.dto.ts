@@ -1,18 +1,21 @@
-import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import {
+  AuctionIds,
+  AuctionIdsWithJwtPayload,
+} from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { CreateAuctionItemDto } from '~/src/domain/auction/dto/auction-item/create.auction.item.dto';
 
-export class CreateAuctionServiceDto extends IdWithUserInfoDto {
+export class CreateAuctionServiceDto extends AuctionIdsWithJwtPayload {
   createAuctionItemDto: CreateAuctionItemDto;
   imageUrls: string[];
 
   constructor(
-    targetId: string,
+    auctionIds: AuctionIds,
     clientUser: JwtPayloadDto,
     createAuctionItemDto: CreateAuctionItemDto,
     imageUrls: string[],
   ) {
-    super(targetId, clientUser);
+    super(auctionIds, clientUser);
     this.createAuctionItemDto = createAuctionItemDto;
     this.imageUrls = imageUrls;
   }
