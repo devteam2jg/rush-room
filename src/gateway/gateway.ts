@@ -168,12 +168,15 @@ export class AuctionGateway {
    * @param voiceData
    */
   @SubscribeMessage('audio')
-  handleAudio(voiceData: {
-    data: Blob;
-    userId: string;
-    auctionId: string;
-    nickname: string;
-  }) {
+  handleAudio(
+    @MessageBody()
+    voiceData: {
+      data: Blob;
+      userId: string;
+      auctionId: string;
+      nickname: string;
+    },
+  ) {
     const { data, auctionId, userId, nickname } = voiceData;
     const message = `New voice message from ${nickname}`;
     const messageData = { auctionId, userId, nickname, message };
