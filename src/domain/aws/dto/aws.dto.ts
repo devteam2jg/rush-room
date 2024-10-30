@@ -27,6 +27,12 @@ export class AwsMediaConvertConfigDto {
   @IsNotEmpty()
   @IsString()
   endpoint: string;
+  @IsNotEmpty()
+  @IsString()
+  destination: string;
+  @IsNotEmpty()
+  @IsString()
+  sourcePrefix: string;
 }
 
 export class AwsConfigDto {

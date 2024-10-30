@@ -13,7 +13,7 @@ import { plainToClass } from 'class-transformer';
 export const awsConfigProvider = {
   imports: [ConfigModule],
   provide: 'AWS_CONFIG',
-  useFactory: (configService: ConfigService): AwsConfigDto => {
+  useFactory: async (configService: ConfigService): Promise<AwsConfigDto> => {
     const awsConfig: AwsConfigDto = {
       user: plainToClass(AwsUserConfigDto, {
         accountId: configService.get<string>('AWS_ACCOUNT_ID'),
@@ -27,6 +27,12 @@ export const awsConfigProvider = {
       mediaConvert: plainToClass(AwsMediaConvertConfigDto, {
         bucket: configService.get<string>('AWS_MEDIACONVERT_BUCKET_NAME'),
         endpoint: configService.get<string>('AWS_MEDIACONVERT_ENDPOINT'),
+        destination: configService.get<string>(
+          'AWS_MEDIACONVERT_S3_DESTINATION',
+        ),
+        sourcePrefix: configService.get<string>(
+          'AWS_MEDIACONVERT_S3_SOURCE_PREFIX',
+        ),
       }),
     };
     validateEnv(
@@ -49,6 +55,7 @@ export const awsConfigProvider = {
       AwsConfigDto,
       '이 에러를 만난다면 백엔드에게 연락하십시오',
     );
+
     return awsConfig;
   },
   inject: [ConfigService],
@@ -70,7 +77,7 @@ export const s3ClientProvider = {
 export const mediaConvertClientProvider = {
   provide: 'MediaConvertClient',
   useFactory: (awsConfig: AwsConfigDto): MediaConvertClient => {
-    return new MediaConvertClient({
+    const client = new MediaConvertClient({
       region: awsConfig.user.region,
       endpoint: awsConfig.mediaConvert.endpoint,
       credentials: {
@@ -78,6 +85,7 @@ export const mediaConvertClientProvider = {
         secretAccessKey: awsConfig.user.secretAccessKey,
       },
     });
+    return client;
   },
   inject: ['AWS_CONFIG'],
 };
