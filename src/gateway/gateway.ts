@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtAuthGuard } from '~/src/domain/auth/guards/auth.guard';
 import { AuctionService } from '../domain/auction/auction.service';
 import { AuctionGatewayService } from '~/src/gateway/gateway.service';
+import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -39,10 +40,7 @@ export class AuctionGateway {
    * @param joinData - auctionId, auction
    */
   @SubscribeMessage('join_auction')
-  async handleJoinAuction(
-    socket: Socket,
-    joinData: { auctionId: string; auctionItemId: string },
-  ): Promise<void> {
+  async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
     const { auctionId, auctionItemId } = joinData;
     socket.join(auctionId);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
@@ -64,10 +62,15 @@ export class AuctionGateway {
     socket.emit('item_info', auctionItem); //
   }
 
+  /**
+   * 'finish_item' 이벤트를 처리.
+   * @param socket
+   * @param finishData - auctionId, auctionItemId
+   */
   @SubscribeMessage('finish_item')
   async handleFinishItem(
     socket: Socket,
-    finishData: { auctionId: string; auctionItemId: string },
+    finishData: AuctionIds,
   ): Promise<void> {
     const { auctionId, auctionItemId } = finishData;
     const lastPrice = this.currentBids[auctionId];
@@ -88,7 +91,7 @@ export class AuctionGateway {
   @SubscribeMessage('next_item')
   async handleNextItem(
     socket: Socket,
-    nextItemData: { auctionId: string; auctionItemId: string },
+    nextItemData: AuctionIds,
   ): Promise<void> {
     const { auctionId, auctionItemId } = nextItemData;
     const auctionItem = await this.auctionService.getAuctionItem(
@@ -112,10 +115,10 @@ export class AuctionGateway {
   @SubscribeMessage('message')
   handleMessage(
     socket: Socket,
-    data: { auctionId: string; userId: string; message: string },
+    messageData: { auctionId: string; userId: string; message: string, nickname: string },
   ): void {
-    const { auctionId, userId, message } = data;
-    this.server.to(auctionId).emit('message', `${userId}: ${message}`);
+    const { auctionId } = messageData;
+    this.server.to(auctionId).emit('message', messageData);
   }
 
   /**
