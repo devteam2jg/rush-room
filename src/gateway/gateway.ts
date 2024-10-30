@@ -45,13 +45,13 @@ export class AuctionGateway {
     socket.join(auctionId);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
 
-    // // 1. auctionId와 aucionItemId를 이용해 물품의 startPrice를 가져외서 currentBids에 저장
-    // const auctionItem = await this.auctionService.getAuctionItem(
-    //   auctionId,
-    //   auctionItemId,
-    // );
-    // this.currentBids[auctionId] = auctionItem.startPrice;
-    // // 2. 경매시간이 지난 후 currentBids[auctionId]를 lastPrice로 업데이트
+    // 1. auctionId와 aucionItemId를 이용해 물품의 startPrice를 가져외서 currentBids에 저장
+    const auctionItem = await this.auctionService.getAuctionItem(
+      auctionId,
+      auctionItemId,
+    );
+    this.currentBids[auctionId] = auctionItem.startPrice;
+    // 2. 경매시간이 지난 후 currentBids[auctionId]를 lastPrice로 업데이트
 
     if (this.currentBids[auctionId] == null) {
       this.currentBids[auctionId] = 9999;
