@@ -41,7 +41,10 @@ import {
 import { PaginationResponse } from '~/src/common/pagination/pagination.response';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UpdateAuctionItemDto } from '~/src/domain/auction/dto/update.auction.item.dto';
-import { IdWithUserInfoDto } from '~/src/common/dto/id.with.user.info.dto';
+import {
+  AuctionIds,
+  AuctionIdsWithJwtPayload,
+} from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileService } from '~/src/domain/file/file.service';
 import { imageFileFilter } from '~/src/common/filters/file-filter/image.file.filter';
@@ -131,7 +134,7 @@ export class AuctionController {
     );
     const imageUrls = await Promise.all(uploadPromises);
     const createAuctionServiceDto = new CreateAuctionServiceDto(
-      auctionId,
+      new AuctionIds(auctionId, null),
       jwtPayLoad,
       createAuctionItemDto,
       imageUrls,
@@ -304,13 +307,14 @@ export class AuctionController {
       'Occurs when auction item owner id and client id is different.',
   })
   @ApiResponse({ status: 404, description: 'Auction not found.' })
-  @Delete('item/:itemId')
+  @Delete(':auctionId/item/:itemId')
   removeItem(
+    @Param('auctionId', new ParseUUIDPipe()) auctionId: string,
     @Param('itemId', new ParseUUIDPipe()) auctionItemId: string,
     @GetJwtPayload() jwtPayload: JwtPayloadDto,
   ) {
-    const removeItemServiceDto = new IdWithUserInfoDto(
-      auctionItemId,
+    const removeItemServiceDto = new AuctionIdsWithJwtPayload(
+      new AuctionIds(auctionId, auctionItemId),
       jwtPayload,
     );
     return this.auctionService.removeItem(removeItemServiceDto);
