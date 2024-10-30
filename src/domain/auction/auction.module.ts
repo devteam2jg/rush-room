@@ -22,5 +22,6 @@ import { User } from '~/src/domain/users/entities/user.entity';
     FileService,
     UsersService,
   ],
+  exports: [AuctionRepository],
 })
 export class AuctionModule {}
