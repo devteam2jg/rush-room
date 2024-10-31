@@ -37,6 +37,6 @@ export class VideoUploadStrategy implements UploadStrategy {
   }
 
   private makeS3Url(uuid: string): string {
-    return `http://media.rushroom.kr.s3-website.ap-northeast-2.amazonaws.com/hls/${uuid}.m3u8`;
+    return `https://dhptnfoyrm8zr.cloudfront.net/hls/${uuid}.m3u8`;
   }
 }
