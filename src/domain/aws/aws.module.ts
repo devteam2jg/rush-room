@@ -5,6 +5,6 @@ import { MediaConvertService } from '~/src/domain/aws/mediaconvert.service';
 
 @Module({
   providers: [MediaConvertService, ...awsProviders],
-  exports: [MediaConvertService],
+  exports: [MediaConvertService, ...awsProviders],
 })
 export class AwsModule {}

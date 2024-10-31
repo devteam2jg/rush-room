@@ -10,9 +10,10 @@ import { AuctionItemRepository } from '~/src/domain/auction/auction-item.reposit
 import { FileService } from '~/src/domain/file/file.service';
 import { UsersService } from '~/src/domain/users/users.service';
 import { User } from '~/src/domain/users/entities/user.entity';
+import { FileModule } from '~/src/domain/file/file.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Auction, AuctionItem, User])],
+  imports: [TypeOrmModule.forFeature([Auction, AuctionItem, User]), FileModule],
   controllers: [AuctionController],
   providers: [
     AuctionService,
