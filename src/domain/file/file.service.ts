@@ -9,7 +9,7 @@ import { ImageUploadStrategy } from '~/src/domain/file/strategies/image-upload.s
 import { AudioUploadStrategy } from '~/src/domain/file/strategies/audio-upload.strategy';
 import { VideoUploadStrategy } from '~/src/domain/file/strategies/video-upload.strategy';
 import { AwsConfigDto } from '~/src/domain/aws/dto/aws.dto';
-
+import { MediaConvertService } from '~/src/domain/aws/mediaconvert.service';
 @Injectable()
 export class FileService {
   private readonly s3_bucket: string;
@@ -19,6 +19,7 @@ export class FileService {
     private readonly client: S3Client,
     @Inject('AWS_CONFIG')
     private readonly awsConfig: AwsConfigDto,
+    private readonly mediaConvertService: MediaConvertService,
   ) {
     this.s3_bucket = awsConfig.file.bucket;
   }
@@ -43,7 +44,11 @@ export class FileService {
       case 'audio':
         return new AudioUploadStrategy(this.client, this.s3_bucket);
       case 'video':
-        return new VideoUploadStrategy(this.client, this.s3_bucket);
+        return new VideoUploadStrategy(
+          this.client,
+          this.s3_bucket,
+          this.mediaConvertService,
+        );
       default:
         throw new InternalServerErrorException('Unsupported file type');
     }

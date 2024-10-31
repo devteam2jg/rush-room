@@ -6,6 +6,6 @@ import { awsProviders } from '~/src/domain/aws/aws.provider';
 @Module({
   imports: [AwsModule],
   providers: [FileService, ...awsProviders],
-  exports: [FileService, ...awsProviders],
+  exports: [FileService, ...awsProviders, AwsModule],
 })
 export class FileModule {}

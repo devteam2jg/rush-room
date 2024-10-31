@@ -2,13 +2,14 @@
 import { UploadStrategy } from './upload-strategy.interface';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-
+import { MediaConvertService } from '~/src/domain/aws/mediaconvert.service';
 @Injectable()
 export class VideoUploadStrategy implements UploadStrategy {
   private readonly uploadDirectory: string;
   constructor(
     private readonly client: S3Client,
     private readonly s3_bucket: string,
+    private readonly mediaConvertService: MediaConvertService,
   ) {
     this.uploadDirectory = 'videos';
   }
