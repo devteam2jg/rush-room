@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-mediaconvert": "^3.682.0",
     "@aws-sdk/client-s3": "^3.679.0",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.12.0",
@@ -45,7 +46,8 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.0",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "uuid": "^11.0.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

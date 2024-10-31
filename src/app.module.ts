@@ -8,6 +8,7 @@ import { AuthModule } from '~/src/domain/auth/auth.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
+import { AwsModule } from './domain/aws/aws.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { FileModule } from './domain/file/file.module';
     AuctionModule,
     GatewayModule,
     FileModule,
+    AwsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
