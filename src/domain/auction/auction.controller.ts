@@ -47,7 +47,7 @@ import {
 } from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FileService } from '~/src/domain/file/file.service';
-import { imageFileFilter } from '~/src/common/filters/file-filter/image.file.filter';
+import { imageVideoFileFilter } from '~/src/common/filters/file-filter/file.filters';
 import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
 import { EnterPrivateAuctionDto } from '~/src/domain/auction/dto/auction/enter.private.auction.dto';
 import { EnterPrivateAuctionServiceDto } from '~/src/domain/auction/dto/auction/enter.private.auction.service.dto';
@@ -114,11 +114,7 @@ export class AuctionController {
   @Post(':id/item')
   @UseInterceptors(
     FilesInterceptor('images', 5, {
-      // 'images'는 필드 이름, 10은 최대 파일 수
-      fileFilter: imageFileFilter,
-      // limits: {
-      //   fileSize: 1024 * 1024 * 5,
-      // },
+      fileFilter: imageVideoFileFilter,
     }),
   )
   async createAuctionItem(
@@ -129,10 +125,10 @@ export class AuctionController {
   ): Promise<CreateAuctionItemResultDto> {
     if (!images || images.length === 0)
       throw new BadRequestException('images is required');
-    const uploadPromises = images.map((image) =>
-      this.fileService.uploadImage(image),
+    const imageUploadPromises = images.map((image) =>
+      this.fileService.uploadFile(image),
     );
-    const imageUrls = await Promise.all(uploadPromises);
+    const imageUrls = await Promise.all(imageUploadPromises);
     const createAuctionServiceDto = new CreateAuctionServiceDto(
       new AuctionIds(auctionId, null),
       jwtPayLoad,
@@ -243,11 +239,7 @@ export class AuctionController {
   })
   @UseInterceptors(
     FilesInterceptor('images', 5, {
-      // 'images'는 필드 이름, 10은 최대 파일 수
-      fileFilter: imageFileFilter,
-      // limits: {
-      //   fileSize: 1024 * 1024 * 5,
-      // },
+      fileFilter: imageVideoFileFilter,
     }),
   )
   @Patch(':auctionId/item/:itemId')
