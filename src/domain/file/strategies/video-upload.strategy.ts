@@ -3,6 +3,7 @@ import { UploadStrategy } from './upload-strategy.interface';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { MediaConvertService } from '~/src/domain/aws/mediaconvert.service';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class VideoUploadStrategy implements UploadStrategy {
   private readonly uploadDirectory: string;
@@ -15,7 +16,7 @@ export class VideoUploadStrategy implements UploadStrategy {
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const key = `${this.uploadDirectory}/${Date.now().toString()}-${file.originalname}`;
+    const key = `${this.uploadDirectory}/${uuidv4()}`;
     const params = {
       Key: key,
       Body: file.buffer,
@@ -26,10 +27,12 @@ export class VideoUploadStrategy implements UploadStrategy {
     const uploadFileS3 = await this.client.send(command);
     if (uploadFileS3.$metadata.httpStatusCode !== 200)
       throw new InternalServerErrorException('Failed to upload file to S3');
+
+    await this.mediaConvertService.makeHlsFileByS3Key(key);
     return this.makeS3Url(key);
   }
 
   private makeS3Url(key: string): string {
-    return `https://${this.s3_bucket}.s3.amazonaws.com/${key}`;
+    return `http://media.rushroom.kr.s3-website.ap-northeast-2.amazonaws.com/hls/${key}`;
   }
 }
