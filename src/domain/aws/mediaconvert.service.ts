@@ -23,7 +23,7 @@ export class MediaConvertService {
     this.destinationUrl = this.awsConfig.mediaConvert.destination;
   }
   async makeHlsFileByS3Key(s3Key: string): Promise<CreateJobCommandOutput> {
-    const sourceUrl = `s3://${this.awsConfig.file.bucket}/hls/${s3Key}`;
+    const sourceUrl = `s3://${this.awsConfig.file.bucket}/${s3Key}`;
     return await this.makeHlsFile(sourceUrl);
   }
   async makeHlsFile(sourceUrl: string): Promise<CreateJobCommandOutput> {
