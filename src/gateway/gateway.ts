@@ -143,14 +143,16 @@ export class AuctionGateway {
    */
   @SubscribeMessage('new_bid')
   handleNewBid(
-    @MessageBody() bidData: { auctionId: string; newCurrentBid: number },
+    @MessageBody()
+    bidData: { nickname: string; auctionId: string; newCurrentBid: number },
     @ConnectedSocket() socket: Socket,
   ) {
-    const { auctionId, newCurrentBid } = bidData;
+    const { nickname, auctionId, newCurrentBid } = bidData;
+    const newBidData = { nickname, newCurrentBid };
 
     if (newCurrentBid > this.currentBids[auctionId]) {
       this.currentBids[auctionId] = newCurrentBid;
-      this.server.to(auctionId).emit('bid_updated', newCurrentBid);
+      this.server.to(auctionId).emit('bid_updated', newBidData);
       console.log(
         `Auction ${auctionId} has a new highest bid: ${newCurrentBid}`,
       );
@@ -178,7 +180,7 @@ export class AuctionGateway {
     },
   ) {
     const { data, auctionId, userId, nickname } = voiceData;
-    const message = `New voice message from ${nickname}`;
+    const message = `${nickname}님이 음성메세지를 보냈습니다.`;
     const messageData = { auctionId, userId, nickname, message };
     this.server.to(auctionId).emit('audioPlay', data);
     this.server.to(auctionId).emit('message', messageData);
