@@ -33,6 +33,18 @@ export class AuctionGateway {
   private currentBids: { [auctionId: string]: number } = {}; // 각 경매의 현재 최고가 저장
 
   /**
+   * 'server_time' 이벤트를 처리.
+   * 현재 서버 시간을 클라이언트에 전송.
+   *
+   * @param socket - 클라이언트 소켓.
+   */
+  @SubscribeMessage('server_time')
+  handleServerTime(@ConnectedSocket() socket: Socket): void {
+    const serverTime = new Date();
+    socket.emit('server_time', serverTime);
+  }
+
+  /**
    * 'join_auction' 이벤트를 처리.
    * 클라이언트를 지정된 경매 방에 추가하고 현재 최고 입찰가를 전송.
    *
@@ -117,7 +129,7 @@ export class AuctionGateway {
    * 지정된 경매 방의 모든 클라이언트에게 메시지를 전송.
    *
    * @param socket - 클라이언트 소켓.
-   * @param data - auctionId, userId, message를 포함한 메시지 데이터.
+   * @param messageData - auctionId, userId, message를 포함한 메시지 데이터.
    */
   @SubscribeMessage('message')
   handleMessage(
