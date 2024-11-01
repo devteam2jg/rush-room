@@ -12,8 +12,8 @@ import { UsersModule } from '~/src/domain/users/users.module';
 import { AuctionChatGateway } from '~/src/gateway/chat/auctionChat.gateway';
 import { AuctionChatService } from '~/src/gateway/chat/auctionChat.service';
 import { AuctionItemBidGateway } from '~/src/gateway/item/auctionItemBid.gateway';
-import { AuctionJoinGateway } from '~/src/gateway/join/auctionJoin.gateway';
-import { AuctionJoinService } from '~/src/gateway/join/auctionJoin.service';
+import { AuctionConnectionGateway } from '~/src/gateway/join/auctionConnection.gateway';
+import { AuctionConnectionService } from '~/src/gateway/join/auctionConnection.service';
 import { AuctionNotificationService } from '~/src/gateway/notification/auctionNotification.service';
 import { AuctionNotificationGateway } from '~/src/gateway/notification/auctionNotification.gateway';
 import { Server } from 'socket.io';
@@ -29,8 +29,8 @@ import { Server } from 'socket.io';
     AuctionChatService,
     AuctionItemBidGateway,
     AuctionItemBidService,
-    AuctionJoinGateway,
-    AuctionJoinService,
+    AuctionConnectionGateway,
+    AuctionConnectionService,
     AuctionNotificationGateway,
     AuctionNotificationService,
     AuctionItemRepository,

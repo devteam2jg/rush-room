@@ -6,6 +6,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AuctionService } from '../../domain/auction/auction.service';
 import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
+import { GatewayCommonService } from '~/src/gateway/gatewayCommon.service';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -15,13 +16,14 @@ import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
   namespace: '/auction-execute',
   cors: { origin: true, credentials: true },
 })
-export class AuctionJoinGateway {
+export class AuctionConnectionGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly auctionService: AuctionService) {}
-
-  private currentBids: { [auctionId: string]: number } = {};
+  constructor(
+    private readonly auctionService: AuctionService,
+    private readonly gatewayCommonService: GatewayCommonService,
+  ) {}
 
   /**
    * 'join_auction' 이벤트를 처리.
@@ -42,15 +44,15 @@ export class AuctionJoinGateway {
       auctionItemId,
     );
 
-    const currentPrice = this.currentBids[auctionId];
+    const currentPrice =
+      await this.gatewayCommonService.getCurrentBid(auctionId);
     const itemStartPrice = auctionItem.startPrice;
 
     if (currentPrice == null) {
-      this.currentBids[auctionId] = itemStartPrice;
+      await this.gatewayCommonService.setCurrentBid(auctionId, itemStartPrice);
     }
 
-    const currentBid = this.currentBids[auctionId];
-    socket.emit('current_bid', currentBid);
+    socket.emit('current_bid', currentPrice);
   }
 
   /**
