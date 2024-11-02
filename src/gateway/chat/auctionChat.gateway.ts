@@ -5,6 +5,7 @@ import {
   MessageBody,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { AuctionChatService } from '~/src/gateway/chat/auctionChat.service';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -18,7 +19,7 @@ export class AuctionChatGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor() {}
+  constructor(private readonly auctionChatService: AuctionChatService) {}
 
   /**
    * 'message' 이벤트를 처리.
