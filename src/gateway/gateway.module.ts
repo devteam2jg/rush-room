@@ -16,6 +16,7 @@ import { AuctionConnectionGateway } from '~/src/gateway/join/auctionConnection.g
 import { AuctionConnectionService } from '~/src/gateway/join/auctionConnection.service';
 import { AuctionNotificationService } from '~/src/gateway/notification/auctionNotification.service';
 import { AuctionNotificationGateway } from '~/src/gateway/notification/auctionNotification.gateway';
+import { AuctionCommonService } from '~/src/gateway/auctionCommon.service';
 import { Server } from 'socket.io';
 
 @Module({
@@ -33,6 +34,7 @@ import { Server } from 'socket.io';
     AuctionConnectionService,
     AuctionNotificationGateway,
     AuctionNotificationService,
+    AuctionCommonService,
     AuctionItemRepository,
     AuctionService,
     AuctionManager,
