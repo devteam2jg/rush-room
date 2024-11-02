@@ -38,14 +38,19 @@ export class AuctionItemBidGateway {
   @SubscribeMessage('new_bid')
   handleNewBid(
     @MessageBody()
-    bidData: { auctionId: string; newCurrentBid: number; userId: string },
+    bidData: { nickname: string; auctionId: string; newCurrentBid: number },
     @ConnectedSocket() socket: Socket,
   ) {
-    const { auctionId, newCurrentBid, userId } = bidData;
+    const { nickname, auctionId, newCurrentBid } = bidData;
+    const newBidData = { nickname, newCurrentBid };
 
     if (newCurrentBid > this.auctionCommonService.getCurrentBid(auctionId)) {
-      this.auctionCommonService.setCurrentBid(auctionId, newCurrentBid, userId);
-      this.server.to(auctionId).emit('bid_updated', newCurrentBid);
+      this.auctionCommonService.setCurrentBid(
+        auctionId,
+        newCurrentBid,
+        nickname,
+      );
+      this.server.to(auctionId).emit('bid_updated', newBidData);
       console.log(
         `Auction ${auctionId} has a new highest bid: ${newCurrentBid}`,
       );
