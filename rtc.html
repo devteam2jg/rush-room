@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebRTC SFU Streaming</title>
+  <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+  <script type="module">
+    import { Device } from 'https://cdn.jsdelivr.net/npm/mediasoup-client@3.6.30/lib/index.esm.js';
+
+    const socket = io('http://localhost:3001/sfu'); // 소켓 서버에 연결
+    let device;
+    let producerTransport;
+    let consumerTransport;
+    let producer;
+    let consumer;
+
+    async function start() {
+      // RTP Capabilities 요청
+      socket.emit('getRtpCapabilities');
+
+      // RTP Capabilities 응답 처리
+      socket.on('rtpCapabilities', async (rtpCapabilities) => {
+        device = new Device({ rtpCapabilities });
+
+        // Transport 생성 요청
+        socket.emit('createTransport');
+      });
+
+      // Transport 생성 응답 처리
+      socket.on('transportCreated', async (transportInfo) => {
+        producerTransport = device.createSendTransport(transportInfo);
+        producerTransport.on('connect', ({ dtlsParameters }, callback) => {
+          // Transport 연결 요청
+          socket.emit('connectTransport', { transportId: producerTransport.id, dtlsParameters }, callback);
+        });
+
+        producerTransport.on('produce', async ({ kind, rtpParameters }, callback) => {
+          // Producer 생성 요청
+          socket.emit('produce', { transportId: producerTransport.id, kind, rtpParameters }, callback);
+        });
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 }
+          },
+          audio: true
+        });
+        document.getElementById('localVideo').srcObject = stream;
+        const track = stream.getVideoTracks()[0];
+        producer = await producerTransport.produce({ track });
+      });
+
+      // Transport 연결 응답 처리
+      socket.on('transportConnected', async ({ transportId }) => {
+        console.log(`Transport ${transportId} connected`);
+      });
+
+      // Producer 생성 응답 처리
+      socket.on('produced', async ({ id }) => {
+        console.log(`Producer ${id} created`);
+      });
+
+      // Consumer 생성 요청
+      socket.emit('createTransport');
+      socket.on('transportCreated', async (transportInfo) => {
+        consumerTransport = device.createRecvTransport(transportInfo);
+        consumerTransport.on('connect', ({ dtlsParameters }, callback) => {
+          // Transport 연결 요청
+          socket.emit('connectTransport', { transportId: consumerTransport.id, dtlsParameters }, callback);
+        });
+
+        // Consumer 생성 요청
+        socket.emit('consume', { transportId: consumerTransport.id, producerId: producer.id, rtpCapabilities: device.rtpCapabilities });
+      });
+
+      // Consumer 생성 응답 처리
+      socket.on('consumed', async (consumerInfo) => {
+        consumer = await consumerTransport.consume(consumerInfo);
+        const { track } = consumer;
+        document.getElementById('remoteVideo').srcObject = new MediaStream([track]);
+      });
+    }
+
+    start();
+  </script>
+</head>
+<body>
+  <h1>WebRTC SFU Streaming</h1>
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
+</body>
+</html>
