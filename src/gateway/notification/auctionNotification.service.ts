@@ -26,7 +26,7 @@ export class AuctionNotificationService {
   }
 
   notifyAuctionTimeExtended(auctionId: string) {
-    const message = `경매 종료 시간dl 연장되었습니다.`;
+    const message = `경매 종료 시간이 연장되었습니다.`;
     this.sendNotificationToAuctionRoom(auctionId, message);
   }
 
