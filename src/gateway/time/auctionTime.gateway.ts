@@ -2,11 +2,17 @@ import {
   ConnectedSocket,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+@WebSocketGateway({
+  namespace: '/auction-execute',
+  cors: { origin: true, credentials: true },
+})
 export class AuctionTimeGateway {
+  @WebSocketServer() server: Server;
+
   /**
    * 'server_time' 이벤트를 처리.
    * 현재 서버 시간을 클라이언트에 전송.
