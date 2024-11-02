@@ -29,33 +29,23 @@ export class AuctionItemBidGateway {
   ) {}
 
   /**
-   * `new_bid` 이벤트를 처리.
+   * 'new_bid' 이벤트를 처리.
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    *
-   * @param bidData - 경매 ID와 새로운 입찰 금액을 포함한 데이터.
-   * userId는 현재 사용자의 ID. 꼭 같아 보내줘야함
-   * @param socket - 연결된 클라이언트 소켓.
-   * 중간 콘솔 로그는 데이터 확인용으로 사용
+   * @param bidData - auctionId와 newCurrentBid를 포함한 입찰 데이터.
+   * @param socket - 클라이언트 소켓.
    */
   @SubscribeMessage('new_bid')
   handleNewBid(
     @MessageBody()
-    bidData: {
-      nickname: string;
-      auctionId: string;
-      newCurrentBid: number;
-      userId: string;
-    },
+    bidData: { auctionId: string; newCurrentBid: number; userId: string },
     @ConnectedSocket() socket: Socket,
   ) {
-    const { nickname, auctionId, newCurrentBid, userId } = bidData;
-    const newBidData = { nickname, newCurrentBid };
+    const { auctionId, newCurrentBid, userId } = bidData;
 
-    const currentBid = this.auctionCommonService.getCurrentBid(auctionId);
-
-    if (newCurrentBid > currentBid) {
+    if (newCurrentBid > this.auctionCommonService.getCurrentBid(auctionId)) {
       this.auctionCommonService.setCurrentBid(auctionId, newCurrentBid, userId);
-      this.server.to(auctionId).emit('bid_updated', newBidData);
+      this.server.to(auctionId).emit('bid_updated', newCurrentBid);
       console.log(
         `Auction ${auctionId} has a new highest bid: ${newCurrentBid}`,
       );

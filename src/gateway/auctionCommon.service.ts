@@ -1,43 +1,28 @@
 import { Injectable } from '@nestjs/common';
 
-interface AuctionInfo {
-  currentBid: number;
-  auctionTime?: Date;
-  sellingLimitTime?: number;
-  bidUserId?: string;
-}
-
 @Injectable()
 export class AuctionCommonService {
-  private auctionInfo: { [auctionId: string]: AuctionInfo } = {};
+  private currentBids: {
+    [auctionId: string]: { currentBid: number; userId: string };
+  } = {};
 
-  setAuctionInfo(auctionId: string, auctionInfo: AuctionInfo): void {
-    this.auctionInfo[auctionId] = auctionInfo;
-  }
-
-  getAuctionInfo(auctionId: string): AuctionInfo {
-    return this.auctionInfo[auctionId];
-  }
-
+  /**
+   * 경매의 현재 입찰가를 반환.
+   *
+   * @param auctionId - 경매 ID.
+   */
   getCurrentBid(auctionId: string): number {
-    if (!this.auctionInfo[auctionId]) {
-      return null;
-    }
-    return this.auctionInfo[auctionId].currentBid;
+    return this.currentBids[auctionId]?.currentBid;
   }
 
-  setCurrentBid(auctionId: string, bid: number, userId: string): void {
-    const auctionInfo = this.auctionInfo[auctionId];
-    if (!auctionInfo) {
-      this.auctionInfo[auctionId] = {
-        currentBid: bid,
-        bidUserId: userId,
-        // 시간이 구현되면 저장
-        //auctionTime: new Date(),
-        //sellingLimitTime: 3,
-      };
-    } else {
-      this.auctionInfo[auctionId].currentBid = bid;
-    }
+  /**
+   * 경매의 현재 입찰가를 설정.
+   *
+   * @param auctionId - 경매 ID.
+   * @param currentBid - 입찰가.
+   * @param userId - 입찰자 ID.
+   */ ㅎ;
+  setCurrentBid(auctionId: string, currentBid: number, userId: string): void {
+    this.currentBids[auctionId] = { currentBid, userId };
   }
 }

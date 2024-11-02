@@ -15,7 +15,7 @@ export class AuctionConnectionService {
    * 클라이언트를 지정된 경매 방에 추가하고 현재 최고 입찰가를 전송.
    *
    * @param socket - 클라이언트 소켓.
-   * @param joinData - auctionId, auction
+   * @param joinData - auctionId, auctionㅜ
    */
   async handleJoinInfo(socket: Socket, joinData: AuctionIds): Promise<number> {
     const { auctionId, auctionItemId } = joinData;
