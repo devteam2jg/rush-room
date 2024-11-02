@@ -74,6 +74,24 @@ export class AppGateway {
       dtlsParameters: transport.dtlsParameters,
     });
   }
+  @SubscribeMessage('createConsumerTransport')
+  async handleConsumerCreateTransport(@ConnectedSocket() client: Socket) {
+    const transport = await this.router.createWebRtcTransport({
+      listenIps: [{ ip: '0.0.0.0', announcedIp: '192.168.1.21' }],
+      enableUdp: true,
+      enableTcp: true,
+      preferUdp: true,
+    });
+
+    this.transports.push(transport);
+
+    client.emit('transportCreated', {
+      id: transport.id,
+      iceParameters: transport.iceParameters,
+      iceCandidates: transport.iceCandidates,
+      dtlsParameters: transport.dtlsParameters,
+    });
+  }
 
   @SubscribeMessage('connectProducerTransport')
   async handleConnectTransport(
@@ -88,7 +106,25 @@ export class AppGateway {
     await transport.connect({ dtlsParameters });
     client.emit('transportConnected', { transportId });
   }
+  @SubscribeMessage('connectConsumerTransport')
+  async handleConsumerConnectTransport(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() { transportId, dtlsParameters },
+  ) {
+    const transport = this.transports.find((t) => t.id === transportId);
+    if (!transport) {
+      return client.emit('error', 'Transport not found');
+    }
 
+    await transport.connect({ dtlsParameters });
+    client.emit('transportConnected', { transportId });
+  }
+
+  @SubscribeMessage('getProducers')
+  handleGetProducers(@ConnectedSocket() client: Socket) {
+    const producerIds = this.producers.map((producer) => producer.id);
+    client.emit('producers', producerIds);
+  }
   @SubscribeMessage('produce')
   async handleProduce(
     @ConnectedSocket() client: Socket,
