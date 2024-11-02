@@ -9,7 +9,10 @@ import { Server, Socket } from 'socket.io';
 import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
 import { AuctionItemBidService } from '~/src/gateway/item/auctionItemBid.service';
 import { AuctionService } from '~/src/domain/auction/auction.service';
+import { AuctionCommonService } from '~/src/gateway/auctionCommon.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 @WebSocketGateway({
   namespace: '/auction-execute',
   cors: { origin: true, credentials: true },
@@ -20,31 +23,38 @@ export class AuctionItemBidGateway {
   server: Server;
 
   constructor(
+    private readonly auctionCommonService: AuctionCommonService,
     private readonly auctionItemBidService: AuctionItemBidService,
     private readonly auctionService: AuctionService,
   ) {}
-
-  private currentBids: { [auctionId: string]: number } = {}; // 각 경매의 현재 최고가 저장
 
   /**
    * `new_bid` 이벤트를 처리.
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    *
    * @param bidData - 경매 ID와 새로운 입찰 금액을 포함한 데이터.
+   * userId는 현재 사용자의 ID. 꼭 같아 보내줘야함
    * @param socket - 연결된 클라이언트 소켓.
    * 중간 콘솔 로그는 데이터 확인용으로 사용
    */
   @SubscribeMessage('new_bid')
   handleNewBid(
     @MessageBody()
-    bidData: { nickname: string; auctionId: string; newCurrentBid: number },
+    bidData: {
+      nickname: string;
+      auctionId: string;
+      newCurrentBid: number;
+      userId: string;
+    },
     @ConnectedSocket() socket: Socket,
   ) {
-    const { nickname, auctionId, newCurrentBid } = bidData;
+    const { nickname, auctionId, newCurrentBid, userId } = bidData;
     const newBidData = { nickname, newCurrentBid };
 
-    if (newCurrentBid > this.currentBids[auctionId]) {
-      this.currentBids[auctionId] = newCurrentBid;
+    const currentBid = this.auctionCommonService.getCurrentBid(auctionId);
+
+    if (newCurrentBid > currentBid) {
+      this.auctionCommonService.setCurrentBid(auctionId, newCurrentBid, userId);
       this.server.to(auctionId).emit('bid_updated', newBidData);
       console.log(
         `Auction ${auctionId} has a new highest bid: ${newCurrentBid}`,
@@ -65,38 +75,15 @@ export class AuctionItemBidGateway {
   @SubscribeMessage('finish_item')
   async handleFinishItem(
     socket: Socket,
-    finishData: AuctionIds,
+    finishData: { auctionId: string; auctionItemId: string; userId: string },
   ): Promise<void> {
     const { auctionId, auctionItemId } = finishData;
-    const lastPrice = this.currentBids[auctionId];
+    const lastPrice = this.auctionCommonService.getCurrentBid(auctionId);
 
     const updateAuctionItemDto = { lastPrice }; // Assuming lastPrice is part of the DTO
     await this.auctionItemBidService.updateItemBidResult(
       auctionItemId,
       updateAuctionItemDto,
     );
-  }
-
-  /**
-   * 'next_Item' 이벤트를 처리.
-   *
-   * @param socket
-   * @param nextItemData - auctionId, auctionItemId
-   */
-  @SubscribeMessage('next_item')
-  async handleNextItem(
-    socket: Socket,
-    nextItemData: AuctionIds,
-  ): Promise<void> {
-    const { auctionId, auctionItemId } = nextItemData;
-    const auctionItem = await this.auctionService.getAuctionItem(
-      auctionId,
-      auctionItemId,
-    );
-    this.currentBids[auctionId] = auctionItem.startPrice;
-    const currentBid = this.currentBids[auctionId];
-
-    socket.emit('current_bid', currentBid);
-    socket.emit('item_info', auctionItem);
   }
 }
