@@ -6,7 +6,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AuctionService } from '../../domain/auction/auction.service';
 import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
-import { GatewayCommonService } from '~/src/gateway/gatewayCommon.service';
+import { AuctionCommonService } from '~/src/gateway/auctionCommon.service';
+import { AuctionConnectionService } from '~/src/gateway/join/auctionConnection.service';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -22,7 +23,8 @@ export class AuctionConnectionGateway {
 
   constructor(
     private readonly auctionService: AuctionService,
-    private readonly gatewayCommonService: GatewayCommonService,
+    private readonly gatewayCommonService: AuctionCommonService,
+    private readonly auctionConnectionService: AuctionConnectionService,
   ) {}
 
   /**
@@ -34,40 +36,23 @@ export class AuctionConnectionGateway {
    */
   @SubscribeMessage('join_auction')
   async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
-    const { auctionId, auctionItemId } = joinData;
-    socket.join(auctionId);
-    console.log(`Client ${socket.id} joined auction ${auctionId}`);
-
-    //servcie
-    const auctionItem = await this.auctionService.getAuctionItem(
-      auctionId,
-      auctionItemId,
+    const currentBid = this.auctionConnectionService.handleJoinInfo(
+      socket,
+      joinData,
     );
-
-    const currentPrice =
-      await this.gatewayCommonService.getCurrentBid(auctionId);
-    const itemStartPrice = auctionItem.startPrice;
-
-    if (currentPrice == null) {
-      await this.gatewayCommonService.setCurrentBid(auctionId, itemStartPrice);
-    }
-
-    socket.emit('current_bid', currentPrice);
+    socket.emit('current_bid', currentBid);
   }
 
   /**
-   * 새로운 클라이언트 연결을 확인
+   * 'leave_auction' 이벤트를 처리.
+   * 클라이언트를 지정된 경매 방에서 제거.
+   *
    * @param socket - 클라이언트 소켓.
+   * @param auctionId - 경매 방 ID.
    */
-  handleConnection(socket: Socket) {
-    console.log(`Client connected: ${socket.id}`);
-  }
-
-  /**
-   * 클라이언트 연결 해제를 확인
-   * @param socket - 클라이언트 소켓.
-   */
-  handleDisconnect(socket: Socket) {
-    console.log(`Client disconnected: ${socket.id}`);
+  @SubscribeMessage('leave_auction')
+  handleLeaveAuction(socket: Socket, auctionId: string): void {
+    socket.leave(auctionId);
+    console.log(`Client ${socket.id} left auction ${auctionId}`);
   }
 }
