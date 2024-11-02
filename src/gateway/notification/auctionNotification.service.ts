@@ -15,17 +15,18 @@ export class AuctionNotificationService {
     this.sendNotificationToAuctionRoom(auctionId, message);
   }
 
-  notifyHighestBidUpdate(
-    auctionId: string,
-    newBidAmount: number,
-    username: string,
-  ) {
+  notifyHighestBidUpdate(bidData: {
+    auctionId: string;
+    username: string;
+    newBidAmount: number;
+  }) {
+    const { auctionId, username, newBidAmount } = bidData;
     const message = `${username}님이 새로운 최고가 ${newBidAmount}원을 제시했습니다.`;
     this.sendNotificationToAuctionRoom(auctionId, message);
   }
 
-  notifyAuctionTimeExtended(auctionId: string, additionalTime: number) {
-    const message = `경매 종료 시간이 ${additionalTime}초 연장되었습니다.`;
+  notifyAuctionTimeExtended(auctionId: string) {
+    const message = `경매 종료 시간dl 연장되었습니다.`;
     this.sendNotificationToAuctionRoom(auctionId, message);
   }
 

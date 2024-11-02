@@ -7,6 +7,9 @@ import {
 import { Server } from 'socket.io';
 import { AuctionNotificationService } from './auctionNotification.service';
 
+/**
+ * 경매 관련 공지 메세지 이벤트 처리 기능
+ */
 @WebSocketGateway({
   namespace: '/auction-execute',
   cors: { origin: true, credentials: true },
@@ -18,6 +21,30 @@ export class AuctionNotificationGateway {
     private readonly auctionNotificationService: AuctionNotificationService,
   ) {}
 
-  @SubscribeMessage('sendNotification')
-  handleNotification(@MessageBody() message: string) {}
+  @SubscribeMessage('auctionStart')
+  handleStartNotification(@MessageBody() message: string) {
+    this.auctionNotificationService.notifyAuctionStart(message);
+  }
+
+  @SubscribeMessage('auctionEnd')
+  handleEndNotification(@MessageBody() message: string) {
+    this.auctionNotificationService.notifyAuctionEnd(message);
+  }
+
+  @SubscribeMessage('highestBid')
+  handleHighestBidNotification(
+    @MessageBody()
+    bidData: {
+      auctionId: string;
+      username: string;
+      newBidAmount: number;
+    },
+  ) {
+    this.auctionNotificationService.notifyHighestBidUpdate(bidData);
+  }
+
+  @SubscribeMessage('auctionTimeExtended')
+  handleTimeExtendedNotification(@MessageBody() message: string) {
+    this.auctionNotificationService.notifyAuctionTimeExtended(message);
+  }
 }
