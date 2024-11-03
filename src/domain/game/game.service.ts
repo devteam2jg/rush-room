@@ -56,14 +56,21 @@ export class GameService {
   }
 
   // 경매 가격 제안
-  updateBidPrice(auctionId, bidPrice, bidderId): boolean {
-    const auction = this.auctionsMap.get(auctionId);
-    if (!auction) {
+  updateBidPrice(updateBidPriceDto: {
+    auctionId: string;
+    bidPrice: number;
+    bidderId: string;
+  }): boolean {
+    const { auctionId, bidPrice, bidderId } = updateBidPriceDto;
+    const auctionContext = this.auctionsMap.get(auctionId);
+    if (!auctionContext) {
       throw new Error('Auction not found');
     }
-    return auction.updateBidPrice(bidPrice, bidderId);
+    return auctionContext.updateBidPrice(bidPrice, bidderId);
   }
-  async startAuction(auctionId) {
+
+  async startAuction(startAuctionDto: { auctionId: string }) {
+    const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
     return AuctionGameLifecycle.launch(auctionContext);
   }
