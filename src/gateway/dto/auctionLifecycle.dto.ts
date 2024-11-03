@@ -3,42 +3,51 @@ export enum AuctionStatus {
   ONGOING = 'ONGOING',
   ENDED = 'ENDED',
 }
-
-export class AuctionLifecycleDto {
+export class BidItem {
+  itemId: string;
+  sellerId: string;
+  bidderId: string;
+  startPrice: number;
+  bidPrice: number;
+  itemSellingLimitTime: number;
+  title: string;
+  description: string;
+  picture: string;
+}
+export class AuctionGameContext {
   auctionId: string;
-  itemIds: string[];
-  currentBid: number;
-  currentBidderId: string;
-  auctionStatus: AuctionStatus;
+  bidItems: BidItem[];
   auctionStartDateTime: number;
-  auctionEndDateTime: number; // 아래 리밋 타임과 아이템 개수로 계산
-  auctionItemSellingLimitTime: number;
-  bidHistory: {
-    bidderId: string;
-    bidAmount: number;
-    timestamp: Date;
-  }[];
-
+  private auctionStatus: AuctionStatus;
+  private currentBidItem: BidItem;
   constructor(
     auctionId: string,
-    itemIds: string[],
-    currentBid: number,
-    currentBidderId: string,
-    auctionStatus: AuctionStatus,
     auctionStartDateTime: number,
-    auctionItemSellingLimitTime: number,
-    bidHistory: { bidderId: string; bidAmount: number; timestamp: Date }[],
+    bidItems: BidItem[],
   ) {
     this.auctionId = auctionId;
-    this.itemIds = itemIds;
-    this.currentBid = currentBid;
-    this.currentBidderId = currentBidderId;
-    this.auctionStatus = auctionStatus;
     this.auctionStartDateTime = auctionStartDateTime;
-    this.auctionItemSellingLimitTime = auctionItemSellingLimitTime;
-    this.bidHistory = bidHistory;
-    // 동적으로 auctionEndDateTime 계산
-    this.auctionEndDateTime =
-      auctionStartDateTime + itemIds.length * auctionItemSellingLimitTime;
+    this.bidItems = bidItems;
+    this.auctionStatus = AuctionStatus.READY;
+  }
+  setNextBidItem() {
+    // 다음 아이템을 설정
+  }
+  onReduceTime() {
+    // 경매 시간을 줄임
+  }
+}
+// 여기는 사용자가 사용할 이벤트 목록
+export class ActionGameService {
+  // 모든 auction에 대한 정보를 가지고 있을 자료구조 ( 현재 열려있는 것들 )
+
+  joinAuction(auctionId) {
+    this.findAuction(auctionId);
+  }
+
+  getCurrentBidPrice(auctionId: string) {}
+
+  findAuction(auctionId: string) {
+    // 경매 id 가지고  context 찾아내기
   }
 }
