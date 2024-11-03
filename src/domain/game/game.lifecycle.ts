@@ -1,50 +1,79 @@
 import { AuctionGameContext } from './game.context';
+
 export abstract class AuctionGameLifecycle {
   private next;
-  constructor() {}
+  private auctionContext: AuctionGameContext;
 
-  private onRoomCreate(auctionContext: AuctionGameContext) {
+  constructor(auctionContext: AuctionGameContext) {
+    this.auctionContext = auctionContext;
+    this.run();
+  }
+  private onRoomCreate() {
     this.next = this.onBidCreate;
-    this.onRoomCreated(auctionContext);
-    this.next(auctionContext);
+    this.onRoomCreated(this.auctionContext);
   }
 
-  private onRoomDestroy(auctionContext: AuctionGameContext) {
-    this.onRoomDestroyed(auctionContext);
+  private onRoomDestroy() {
+    this.next = null;
+    this.onRoomDestroyed(this.auctionContext);
   }
 
-  private onBidCreate(auctionContext: AuctionGameContext) {
-    this.next = this.onBidReady;
-    this.onBidCreated(auctionContext);
-    this.next(auctionContext);
+  private onBidCreate() {
+    this.next = this.onBidRunnning;
+    this.onBidCreated(this.auctionContext);
   }
-  private onBidReady(auctionContext: AuctionGameContext) {
-    this.next = this.onBidStart;
-    this.next(auctionContext);
-  }
-  private onBidStart(auctionContext: AuctionGameContext) {
+
+  private async onBidRunnning() {
     this.next = this.onBidEnd;
-    this.onBidStarted(auctionContext);
-    this.next(auctionContext);
+    while (this.auctionContext.auctionStatus === 'ONGOING') {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
   }
+
   private onBidEnd(auctionContext: AuctionGameContext) {
     this.next = this.onRoomDestroy;
-    this.onBidEnded(auctionContext);
-    this.next(auctionContext);
+    if (!this.onBidEnded(auctionContext)) this.next = this.onBidCreate;
   }
 
+  protected ternimate() {
+    this.next = this.onRoomDestroy;
+  }
+
+  private run() {
+    this.next = this.onRoomCreate;
+    while (this.next) {
+      this.next();
+    }
+  }
   abstract onRoomCreated(auctionContext: AuctionGameContext);
   abstract onRoomDestroyed(auctionContext: AuctionGameContext);
   abstract onBidCreated(auctionContext: AuctionGameContext);
-  abstract onBidStarted(auctionContext: AuctionGameContext);
-  abstract onBidEnded(auctionContext: AuctionGameContext);
+  /**
+   *
+   * 다음 경매 아이템이 존재한다면 false를 반환해야 합니다.
+   */
+  abstract onBidEnded(auctionContext: AuctionGameContext): boolean;
 
-  launch(auctionId: string) {
-    console.log('actionId', auctionId);
-    const actionContext = new AuctionGameContext();
+  static launch(auctionGameContext: AuctionGameContext) {
     new Promise(() => {
-      this.onRoomCreate(actionContext);
+      const game = new AuctionGame(auctionGameContext);
+      console.log('game', game);
     });
-    return actionContext;
+    return auctionGameContext;
+  }
+}
+export class AuctionGame extends AuctionGameLifecycle {
+  onRoomCreated(auctionContext: AuctionGameContext) {
+    console.log('onRoomCreated', auctionContext);
+  }
+  onRoomDestroyed(auctionContext: AuctionGameContext) {
+    console.log('onRoomDestroyed', auctionContext);
+  }
+  onBidCreated(auctionContext: AuctionGameContext) {
+    console.log('onBidCreated', auctionContext);
+  }
+  onBidEnded(auctionContext: AuctionGameContext): boolean {
+    console.log('onBidEnded', auctionContext);
+    return true;
   }
 }

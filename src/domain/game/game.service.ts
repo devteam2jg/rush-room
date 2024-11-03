@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AuctionGameContext, BidItem } from './game.context';
 import { AuctionService } from '~/src/domain/auction/auction.service';
+import { AuctionGameLifecycle } from './game.lifecycle';
 
 @Injectable()
 export class GameService {
@@ -39,6 +40,14 @@ export class GameService {
     if (!auction) {
       throw new Error('Auction not found');
     }
+    return auction;
+  }
+  startAuction(auctionId) {
+    const auction = this.auctionsMap.get(auctionId);
+    if (!auction) {
+      throw new Error('Auction not found');
+    }
+    AuctionGameLifecycle.launch(auction);
     return auction;
   }
 }

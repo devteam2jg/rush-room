@@ -20,9 +20,8 @@ export class AuctionGameContext {
   auctionId: string;
   bidItems: BidItem[];
   auctionStartDateTime: Date;
-  private auctionStatus: AuctionStatus;
+  auctionStatus: AuctionStatus;
   private currentBidItem: BidItem;
-
   constructor(
     auctionId: string,
     auctionStartDateTime: Date,
