@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { AuctionGameContext, BidItem } from './game.context';
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { AuctionGameLifecycle } from './game.lifecycle';
+import {
+  LoadGameDataDto,
+  SaveGameDataDto,
+} from '~/src/domain/game/dto/game.dto';
 
 @Injectable()
 export class GameService {
@@ -16,6 +20,7 @@ export class GameService {
       auctionId,
       auctionitemId,
     );
+    this.auctionService.getAuctionDetail(auctionId, auctionitemId);
     const bidItems: BidItem[] = auction.items.map((item) => ({
       itemId: item.id,
       sellerId: item.postedUser,
@@ -27,17 +32,17 @@ export class GameService {
       description: item.description,
       picture: item.imageUrls,
     }));
-    const auctionGameContext = new AuctionGameContext(
-      auctionId,
-      auction.auctionDto.eventDate,
-      bidItems,
-    );
+
+    const loadfun = async () => {
+      return new LoadGameDataDto();
+    };
+    const savefun = async () => {
+      return new SaveGameDataDto();
+    };
+    // DB에서 불러오는 로직
+
+    const auctionGameContext = new AuctionGameContext(loadfun, savefun);
     this.auctionsMap.set(auctionId, auctionGameContext);
-
-    auctionGameContext.setSaveEvent(() => {
-      // DB에 저장하는 로직
-    });
-
     return auctionGameContext;
   }
 
@@ -59,6 +64,7 @@ export class GameService {
     return auction.updateBidPrice(bidPrice, bidderId);
   }
   async startAuction(auctionId) {
-    return AuctionGameLifecycle.launch(await this.createGameContext(auctionId));
+    const auctionContext = await this.createGameContext(auctionId);
+    return AuctionGameLifecycle.launch(auctionContext);
   }
 }

@@ -35,10 +35,7 @@ export class AuctionConnectionGateway {
     const { auctionId, auctionItemId } = joinData;
     socket.join(auctionId);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
-    const currentBid = this.gameService.joinAuctionGiveCurrentBid(
-      auctionId,
-      auctionItemId,
-    );
+    const currentBid = this.gameService.joinAuctionGiveCurrentBid(auctionId);
     socket.emit('current_bid', currentBid);
   }
 }

@@ -67,6 +67,7 @@ export abstract class AuctionGameLifecycle {
 }
 export class AuctionGame extends AuctionGameLifecycle {
   onRoomCreated(auctionContext: AuctionGameContext) {
+    auctionContext.load();
     console.log('onRoomCreated', auctionContext);
   }
 

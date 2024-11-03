@@ -1,3 +1,7 @@
+import {
+  LoadGameDataDto,
+  SaveGameDataDto,
+} from '~/src/domain/game/dto/game.dto';
 import { UserProfileDto } from '../users/dto/user.dto';
 
 export enum AuctionStatus {
@@ -27,15 +31,14 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
+  private loadEvent: () => Promise<LoadGameDataDto> = null;
+  private saveEvent: () => Promise<SaveGameDataDto> = null;
   constructor(
-    auctionId: string,
-    auctionStartDateTime: Date,
-    bidItems: BidItem[],
+    loadfun: () => Promise<LoadGameDataDto>,
+    savefun: () => Promise<SaveGameDataDto>,
   ) {
-    this.auctionId = auctionId;
-    this.auctionStartDateTime = auctionStartDateTime;
-    this.bidItems = bidItems;
-    this.auctionStatus = AuctionStatus.READY;
+    this.loadEvent = loadfun;
+    this.saveEvent = savefun;
   }
 
   setNextBidItem() {
@@ -58,9 +61,17 @@ export class AuctionGameContext {
     this.currentBidItem.canBid = false;
   }
 
-  private saveEvent = null;
-  setSaveEvent(eventFunction: () => void) {
+  setSaveEvent(eventFunction: () => Promise<SaveGameDataDto>) {
     this.saveEvent = eventFunction;
+  }
+  async load() {
+    const data = await this.loadEvent();
+    const { auctionId, bidItems, auctionStartDateTime, auctionStatus } = data;
+    this.auctionId = auctionId;
+    this.bidItems = bidItems;
+    this.auctionStartDateTime = auctionStartDateTime;
+    this.auctionStatus = auctionStatus;
+    this.currentBidItem = this.bidItems[0];
   }
   save() {
     this.saveEvent();
