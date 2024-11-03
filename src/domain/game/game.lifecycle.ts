@@ -1,7 +1,10 @@
 import { AuctionGameContext } from './game.context';
 export abstract class AuctionGameLifecycle {
   private next;
-  constructor() {}
+  private auctionContext: AuctionGameContext;
+  constructor(auctionContext: AuctionGameContext) {
+    this.auctionContext = auctionContext;
+  }
 
   private onRoomCreate(auctionContext: AuctionGameContext) {
     this.next = this.onBidCreate;
@@ -41,10 +44,33 @@ export abstract class AuctionGameLifecycle {
 
   launch(auctionId: string) {
     console.log('actionId', auctionId);
-    const actionContext = new AuctionGameContext();
     new Promise(() => {
-      this.onRoomCreate(actionContext);
+      this.onRoomCreate(this.auctionContext);
     });
-    return actionContext;
+    return this.auctionContext;
+  }
+}
+export class AuctionGame extends AuctionGameLifecycle {
+  constructor(auctionContext: AuctionGameContext) {
+    super(auctionContext);
+  }
+  onRoomCreated(auctionContext: AuctionGameContext) {
+    console.log('onRoomCreated', auctionContext);
+  }
+
+  onRoomDestroyed(auctionContext: AuctionGameContext) {
+    console.log('onRoomDestroyed', auctionContext);
+  }
+
+  onBidCreated(auctionContext: AuctionGameContext) {
+    console.log('onBidCreated', auctionContext);
+  }
+
+  onBidStarted(auctionContext: AuctionGameContext) {
+    console.log('onBidStarted', auctionContext);
+  }
+
+  onBidEnded(auctionContext: AuctionGameContext) {
+    console.log('onBidEnded', auctionContext);
   }
 }
