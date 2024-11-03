@@ -4,10 +4,8 @@ import {
   SubscribeMessage,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AuctionCommonService } from '~/src/gateway/auctionCommon.service';
-import { AuctionService } from '~/src/domain/auction/auction.service';
+
 import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
-import { GameService } from '~/src/domain/game/game.service';
 
 /**
  * 경매 관련 이벤트를 처리하는 WebSocket 게이트웨이.
@@ -21,7 +19,7 @@ export class AuctionConnectionGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly gameService: GameService) {}
+  constructor() {}
 
   /**
    * 'join_auction' 이벤트를 처리.
@@ -35,7 +33,6 @@ export class AuctionConnectionGateway {
     const { auctionId, auctionItemId } = joinData;
     socket.join(auctionId);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
-    const currentBid = this.gameService.joinAuctionGiveCurrentBid(auctionId);
-    socket.emit('current_bid', currentBid);
+    //socket.emit('current_bid', currentBid);
   }
 }

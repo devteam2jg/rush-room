@@ -31,14 +31,17 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  private loadEvent: () => Promise<LoadGameDataDto> = null;
-  private saveEvent: () => Promise<SaveGameDataDto> = null;
+  private loadEvent: (auctionId: string) => Promise<LoadGameDataDto> = null;
+  private saveEvent: (saveGameDataDto: SaveGameDataDto) => void = null;
   constructor(
-    loadfun: () => Promise<LoadGameDataDto>,
-    savefun: () => Promise<SaveGameDataDto>,
+    loadfun: (auctionId: string) => Promise<LoadGameDataDto>,
+    savefun: (saveGameDataDto: SaveGameDataDto) => void,
+    initialDataDto: { id: string },
   ) {
     this.loadEvent = loadfun;
     this.saveEvent = savefun;
+    const { id } = initialDataDto;
+    this.auctionId = id;
   }
 
   setNextBidItem() {
@@ -65,7 +68,7 @@ export class AuctionGameContext {
     this.saveEvent = eventFunction;
   }
   async load() {
-    const data = await this.loadEvent();
+    const data = await this.loadEvent(this.auctionId);
     const { auctionId, bidItems, auctionStartDateTime, auctionStatus } = data;
     this.auctionId = auctionId;
     this.bidItems = bidItems;
@@ -74,7 +77,7 @@ export class AuctionGameContext {
     this.currentBidItem = this.bidItems[0];
   }
   save() {
-    this.saveEvent();
+    this.saveEvent(new SaveGameDataDto());
   }
   // -----------------------------------------------------------------------------
   /** client event */
