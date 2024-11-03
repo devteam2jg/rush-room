@@ -30,24 +30,4 @@ export class AuctionGameContext {
     this.bidItems = bidItems;
     this.auctionStatus = AuctionStatus.READY;
   }
-  setNextBidItem() {
-    // 다음 아이템을 설정
-  }
-  onReduceTime() {
-    // 경매 시간을 줄임
-  }
-}
-// 여기는 사용자가 사용할 이벤트 목록
-export class ActionGameService {
-  // 모든 auction에 대한 정보를 가지고 있을 자료구조 ( 현재 열려있는 것들 )
-
-  joinAuction(auctionId) {
-    this.findAuction(auctionId);
-  }
-
-  getCurrentBidPrice(auctionId: string) {}
-
-  findAuction(auctionId: string) {
-    // 경매 id 가지고  context 찾아내기
-  }
 }
