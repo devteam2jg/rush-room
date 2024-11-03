@@ -1,4 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class GameService {}
+export class GameService {
+  run() {
+    // Do something
+  }
+}

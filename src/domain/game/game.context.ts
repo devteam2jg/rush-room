@@ -20,14 +20,4 @@ export class AuctionGameContext {
   auctionStartDateTime: number;
   private auctionStatus: AuctionStatus;
   private currentBidItem: BidItem;
-  constructor(
-    auctionId: string,
-    auctionStartDateTime: number,
-    bidItems: BidItem[],
-  ) {
-    this.auctionId = auctionId;
-    this.auctionStartDateTime = auctionStartDateTime;
-    this.bidItems = bidItems;
-    this.auctionStatus = AuctionStatus.READY;
-  }
 }
