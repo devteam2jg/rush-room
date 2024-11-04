@@ -4,7 +4,6 @@ import {
   InitialDataDto,
   ResponseDto,
 } from '~/src/domain/game/dto/game.dto';
-import { UserProfileDto } from '../users/dto/user.dto';
 
 export enum AuctionStatus {
   READY = 'READY',
@@ -13,7 +12,7 @@ export enum AuctionStatus {
 }
 export class BidItem {
   itemId: string;
-  sellerId: UserProfileDto;
+  sellerId: string;
   bidderId: string;
   startPrice: number;
   bidPrice: number;
