@@ -1,3 +1,4 @@
+import { MessageType } from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from './game.context';
 
 export abstract class AuctionGameLifecycle {
@@ -8,41 +9,70 @@ export abstract class AuctionGameLifecycle {
     this.auctionContext = auctionContext;
     this.run();
   }
-  private onRoomCreate() {
+  private async onRoomCreate() {
     this.next = this.onBidCreate;
-    this.onRoomCreated(this.auctionContext);
+    await this.onRoomCreated(this.auctionContext);
+    console.log('Room Created');
   }
-  private onRoomDestroy() {
+  private async onRoomDestroy() {
     this.next = null;
-    this.onRoomDestroyed(this.auctionContext);
+    await this.onRoomDestroyed(this.auctionContext);
+    console.log('Room Destroyed');
   }
 
-  private onBidCreate() {
+  private async onBidCreate() {
     this.next = this.onBidRunnning;
-    this.onBidCreated(this.auctionContext);
+    await this.onBidCreated(this.auctionContext);
+    console.log('Bid Created');
   }
 
   private async onBidRunnning() {
     this.next = this.onBidEnd;
-    this.onBidPhase1(this.auctionContext);
-    this.onBidPhase2(this.auctionContext);
+    console.log('Bid Running');
+    await this.onBidPhase1(this.auctionContext);
+    await this.onBidPhase2(this.auctionContext);
   }
 
-  private onBidEnd() {
+  private async onBidEnd() {
     this.next = this.onRoomDestroy;
     if (!this.onBidEnded(this.auctionContext)) this.next = this.onBidCreate;
+    console.log('Bid Ended');
   }
 
   protected ternimate() {
     this.next = null;
+    console.log('Game Ternimated');
   }
 
-  private run() {
+  private async run() {
+    console.log('Game Start');
     this.next = this.onRoomCreate;
     while (this.next) {
-      this.next();
+      await this.next();
     }
   }
+  private timer: NodeJS.Timeout | null = null;
+  protected timerEvent: () => void;
+  protected startTimer(callback: () => boolean): Promise<void> {
+    return new Promise((resolve) => {
+      this.clearTimer();
+      this.timer = setInterval(() => {
+        this.auctionContext.timerInterrupt();
+        this.timerEvent();
+        if (callback()) {
+          this.clearTimer();
+          resolve();
+        }
+      }, 1000);
+    });
+  }
+  clearTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
   abstract onRoomCreated(auctionContext: AuctionGameContext);
   abstract onRoomDestroyed(auctionContext: AuctionGameContext);
   abstract onBidCreated(auctionContext: AuctionGameContext);
@@ -55,24 +85,25 @@ export abstract class AuctionGameLifecycle {
   abstract onBidEnded(auctionContext: AuctionGameContext): boolean;
 
   static launch(auctionGameContext: AuctionGameContext) {
-    new Promise(() => {
-      const game = new AuctionGame(auctionGameContext);
-      console.log('Game End', game);
-    });
+    new AuctionGame(auctionGameContext);
   }
 }
 
 export class AuctionGame extends AuctionGameLifecycle {
-  onRoomCreated(auctionContext: AuctionGameContext) {
-    auctionContext.loadFromDB();
+  async onRoomCreated(auctionContext: AuctionGameContext) {
+    await auctionContext.loadFromDB();
   }
 
-  onRoomDestroyed(auctionContext: AuctionGameContext) {
-    auctionContext.saveToDB();
+  async onRoomDestroyed(auctionContext: AuctionGameContext) {
+    await auctionContext.saveToDB();
   }
 
   onBidCreated(auctionContext: AuctionGameContext) {
     const result = auctionContext.setNextBidItem();
+    this.timerEvent = () => {
+      auctionContext.sendToClient(null, MessageType.PRICE_UPDATE);
+      console.log('timerEvent');
+    };
     if (!result) this.ternimate();
   }
 
@@ -80,49 +111,51 @@ export class AuctionGame extends AuctionGameLifecycle {
     auctionContext.setUpdateBidEventListener(() => {
       const prevPrice = auctionContext.prevBidPrice;
       const currentPrice = auctionContext.currentBidItem.bidPrice;
-      const time = auctionContext.currentBidItem.itemSellingLimitTime;
       const subPrice = currentPrice - prevPrice;
 
       if (subPrice >= 20000) {
-        auctionContext.setTime(time - 5);
+        auctionContext.subTime(5);
       } else if (subPrice > 30000) {
-        auctionContext.setTime(time - 10);
+        auctionContext.subTime(10);
       } else if (subPrice > 50000) {
-        auctionContext.setTime(time - 30);
+        auctionContext.subTime(30);
       }
     });
     auctionContext.activateBid();
-
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const { time } = auctionContext.getCurrentBidItemInfo();
-      if (time < 30) break;
+    if (auctionContext.getTime() > 30) {
+      console.log('Bid Phase 1 start');
+      console.log('Bid Phase 1 timer', auctionContext.getTime());
+      await this.startTimer(() => auctionContext.getTime() <= 30);
+      console.log('Bid Phase 1 end');
     }
   }
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
     let cnt = 0;
     auctionContext.setUpdateBidEventListener(() => {
-      if (cnt == 0) {
-        auctionContext.setTime(30);
-        cnt++;
-      } else if (cnt == 1) {
-        auctionContext.setTime(20);
-        cnt++;
-      } else if (cnt == 2) {
-        auctionContext.setTime(10);
-        cnt++;
-      } else {
-        auctionContext.setTime(5);
-      }
-    });
-    while (true) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const curtime = auctionContext.getTime();
+      let time = 5;
 
-      const { time } = auctionContext.getCurrentBidItemInfo();
-      if (time <= 0) break;
-    }
+      switch (cnt) {
+        case 0:
+          time = 30;
+          break;
+        case 1:
+          time = 20;
+          break;
+        case 2:
+          time = 10;
+          break;
+      }
+      time = (curtime / 10) * 10 + 10;
+      auctionContext.setTime(time);
+      cnt++;
+      console.log('Time is updated to', time);
+    });
+    console.log('Bid Phase 2 start');
+    console.log('Bid Phase 2 timer', auctionContext.getTime());
+    await this.startTimer(() => auctionContext.getTime() <= 0);
+    console.log('Bid Phase 2 end');
   }
 
   onBidEnded(auctionContext: AuctionGameContext): boolean {

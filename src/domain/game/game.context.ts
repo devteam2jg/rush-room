@@ -45,15 +45,25 @@ export class AuctionGameContext {
     this.prevBidPrice = 0;
     this.sequence = 0;
   }
-
+  timerInterrupt() {
+    return --this.currentBidItem.itemSellingLimitTime;
+  }
+  getTime(): number {
+    return this.currentBidItem.itemSellingLimitTime;
+  }
   setNextBidItem(): boolean {
+    //console.log(this.bidItems);
     this.currentBidItem = this.bidItems[this.sequence];
+    //console.log(this.currentBidItem);
     if (!this.currentBidItem) return false;
     this.sequence++;
     return true;
   }
   isAuctionEnded(): boolean {
     return this.sequence === this.bidItems.length;
+  }
+  subTime(time: number) {
+    this.currentBidItem.itemSellingLimitTime -= time;
   }
   setTime(time: number) {
     this.currentBidItem.itemSellingLimitTime = time;
@@ -98,12 +108,21 @@ export class AuctionGameContext {
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
     const { bidPrice, bidderId, socket } = updateBidPriceDto;
-    if (!this.currentBidItem.canBid) return false;
-    if (bidPrice <= this.currentBidItem.bidPrice) return false;
+    console.log('currentBidItem', this.getTime());
+    console.log('try to update bid price', bidPrice, bidderId);
+    if (!this.currentBidItem.canBid) {
+      console.log('bid is not allowed');
+      return false;
+    }
+    if (bidPrice <= this.currentBidItem.bidPrice) {
+      console.log('bid price is lower than current price');
+      return false;
+    }
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
+    console.log('bid price is updated', bidPrice);
     this.updateEvent();
     this.sendToClient(socket, MessageType.PRICE_UPDATE);
     return true;
