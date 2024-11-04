@@ -18,4 +18,20 @@ export class InitialDataDto {
   id: string;
 }
 
-export class ResponseDto {}
+export class ResponseDto {
+  auctionId: string;
+  messageType: MessageType;
+}
+
+export enum MessageType {
+  PRICE_UPDATE = 'PRICE_UPDATE',
+  NOTIFICATION = 'NOTIFICATION',
+  USER_MESSAGE = 'USER_MESSAGE',
+  VOICE_MESSAGE = 'VOICE_MESSAGE',
+}
+
+export class UpdateBidPriceDto {
+  auctionId: string;
+  bidPrice: number;
+  bidderId: string;
+}
