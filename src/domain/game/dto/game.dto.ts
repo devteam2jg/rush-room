@@ -1,26 +1,26 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { AuctionStatus } from '../game.context';
 import { BidItem } from '../game.context';
-export class LoadGameDataDto {
+import { Socket } from 'socket.io';
+
+export class GameDataDto {
   auctionId: string;
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
+  callback: () => void;
 }
 
-export class SaveGameDataDto {
+export class LoadGameDataDto extends GameDataDto {}
+
+export class SaveGameDataDto extends PartialType(GameDataDto) {
   auctionId: string;
   bidItems: BidItem[];
-  auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
 }
 
 export class InitialDataDto {
   id: string;
-}
-
-export class ResponseDto {
-  auctionId: string;
-  messageType: MessageType;
 }
 
 export enum MessageType {
@@ -29,9 +29,35 @@ export enum MessageType {
   USER_MESSAGE = 'USER_MESSAGE',
   VOICE_MESSAGE = 'VOICE_MESSAGE',
 }
+export class BidDataDto {
+  socket: Socket;
+  auctionId: string;
+  MessageType: MessageType;
 
-export class UpdateBidPriceDto {
+  userId: string;
+  nickname: string;
+  bidPrice: number;
+  bidderId: string;
+
+  message: string;
+  data: Blob;
+}
+
+export class UpdateBidPriceDto extends PartialType(BidDataDto) {
   auctionId: string;
   bidPrice: number;
   bidderId: string;
+}
+
+export class ResponseDto {
+  auctionId: string;
+  messageType: MessageType;
+  socket?: Socket;
+}
+
+export class UserMessageDto {
+  auctionId: string;
+  userId: string;
+  message: string;
+  nickname: string;
 }

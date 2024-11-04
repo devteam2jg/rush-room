@@ -23,6 +23,6 @@ import { FileModule } from '~/src/domain/file/file.module';
     FileService,
     UsersService,
   ],
-  exports: [AuctionRepository, AuctionService],
+  exports: [AuctionRepository, AuctionService, AuctionItemRepository],
 })
 export class AuctionModule {}

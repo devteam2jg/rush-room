@@ -3,7 +3,7 @@ import {
   SaveGameDataDto,
   InitialDataDto,
   ResponseDto,
-  messageType,
+  MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 
@@ -29,7 +29,9 @@ export class AuctionGameContext {
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
+
   currentBidItem: BidItem;
+  sequence: number;
 
   prevBidPrice: number;
   prevBidderId: string;
@@ -37,14 +39,22 @@ export class AuctionGameContext {
   constructor(initialDataDto: InitialDataDto) {
     const { id } = initialDataDto;
     this.auctionId = id;
+
+    this.currentBidItem = null;
+    this.prevBidderId = null;
+    this.prevBidPrice = 0;
+    this.sequence = 0;
   }
 
-  setNextBidItem() {
-    this.currentBidItem = this.bidItems.find(
-      (item) => item.itemId !== this.currentBidItem.itemId,
-    );
+  setNextBidItem(): boolean {
+    this.currentBidItem = this.bidItems[this.sequence];
+    if (!this.currentBidItem) return false;
+    this.sequence++;
+    return true;
   }
-
+  isAuctionEnded(): boolean {
+    return this.sequence === this.bidItems.length;
+  }
   setTime(time: number) {
     this.currentBidItem.itemSellingLimitTime = time;
   }
@@ -55,17 +65,24 @@ export class AuctionGameContext {
     this.currentBidItem.canBid = false;
   }
 
-  async load() {
+  async loadFromDB(): Promise<boolean> {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
-    const { auctionId, bidItems, auctionStartDateTime, auctionStatus } = data;
+    const { auctionId, bidItems, auctionStartDateTime } = data;
     this.auctionId = auctionId;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
-    this.auctionStatus = auctionStatus;
-    this.currentBidItem = this.bidItems[0];
+    data.callback();
+    return true;
   }
-  save() {
-    this.saveEvent(new SaveGameDataDto());
+
+  async saveToDB(): Promise<boolean> {
+    const saveGameDataDto: SaveGameDataDto = {
+      auctionId: this.auctionId,
+      bidItems: this.bidItems,
+      auctionStatus: this.auctionStatus,
+    };
+    const result: boolean = await this.saveEvent(saveGameDataDto);
+    return result;
   }
   // -----------------------------------------------------------------------------
   /** client event */
@@ -80,7 +97,7 @@ export class AuctionGameContext {
 
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
-    const { bidPrice, bidderId } = updateBidPriceDto;
+    const { bidPrice, bidderId, socket } = updateBidPriceDto;
     if (!this.currentBidItem.canBid) return false;
     if (bidPrice <= this.currentBidItem.bidPrice) return false;
     this.prevBidPrice = this.currentBidItem.bidPrice;
@@ -88,20 +105,37 @@ export class AuctionGameContext {
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
-    this.sendtoClient(messageType.PRICE_UPDATE);
+    this.sendToClient(socket, MessageType.PRICE_UPDATE);
     return true;
   }
 
-  sendtoClient(messageType: MessageType) {
-    const responseDto = new ResponseDto();
-    this.socketEvent(responseDto);
+  sendToClient(socket, messageType: MessageType) {
+    switch (messageType) {
+      case MessageType.PRICE_UPDATE:
+        const response: ResponseDto = {
+          auctionId: this.auctionId,
+          messageType,
+          socket,
+        };
+        const data: any = {
+          time: this.currentBidItem.itemSellingLimitTime,
+          bidPrice: this.currentBidItem.bidPrice,
+          bidderId: this.currentBidItem.bidderId,
+        };
+        this.socketEvent(response, data);
+        break;
+      case MessageType.NOTIFICATION:
+      case MessageType.USER_MESSAGE:
+      default:
+        break;
+    }
   }
 
   /**
    * event listener list
    */
 
-  private socketEvent: (response: ResponseDto) => boolean = null;
+  private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 
   private loadEvent: (
     auctionId: string,
@@ -131,7 +165,7 @@ export class AuctionGameContext {
   }
 
   setSocketEventListener(
-    event: (response: ResponseDto) => boolean,
+    event: (response: ResponseDto, data: any) => boolean,
   ): AuctionGameContext {
     this.socketEvent = event;
     return this;

@@ -30,14 +30,11 @@ export abstract class AuctionGameLifecycle {
 
   private onBidEnd() {
     this.next = this.onRoomDestroy;
-    if (!this.onBidEnded(this.auctionContext)) {
-      this.auctionContext.setNextBidItem();
-      this.next = this.onBidCreate;
-    }
+    if (!this.onBidEnded(this.auctionContext)) this.next = this.onBidCreate;
   }
 
   protected ternimate() {
-    this.next = this.onRoomDestroy;
+    this.next = null;
   }
 
   private run() {
@@ -67,17 +64,16 @@ export abstract class AuctionGameLifecycle {
 
 export class AuctionGame extends AuctionGameLifecycle {
   onRoomCreated(auctionContext: AuctionGameContext) {
-    auctionContext.load();
-    console.log('onRoomCreated', auctionContext);
+    auctionContext.loadFromDB();
   }
 
   onRoomDestroyed(auctionContext: AuctionGameContext) {
-    auctionContext.save();
-    console.log('onRoomDestroyed', auctionContext);
+    auctionContext.saveToDB();
   }
 
   onBidCreated(auctionContext: AuctionGameContext) {
-    console.log('onBidCreated', auctionContext);
+    const result = auctionContext.setNextBidItem();
+    if (!result) this.ternimate();
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
@@ -131,6 +127,7 @@ export class AuctionGame extends AuctionGameLifecycle {
 
   onBidEnded(auctionContext: AuctionGameContext): boolean {
     auctionContext.deactivateBid();
-    return true;
+    const result: boolean = auctionContext.isAuctionEnded();
+    return result;
   }
 }

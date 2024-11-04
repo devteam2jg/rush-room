@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { AuctionGameContext, AuctionStatus } from './game.context';
-import { AuctionService } from '~/src/domain/auction/auction.service';
+import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
+
 import { AuctionGameLifecycle } from './game.lifecycle';
 import {
   InitialDataDto,
@@ -11,15 +11,12 @@ import {
 } from '~/src/domain/game/dto/game.dto';
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
-import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 
 @Injectable()
 export class GameService {
   constructor(
-    private readonly auctionService: AuctionService,
     private readonly gameGateway: GameGateway,
     private readonly auctionRepository: AuctionRepository,
-    private readonly auctionItemRepository: AuctionItemRepository,
   ) {}
 
   private auctionsMap: Map<string, AuctionGameContext> = new Map();
@@ -37,9 +34,7 @@ export class GameService {
       //TODO: load data from db
 
       const auction = await this.auctionRepository.findOneBy({ id: auctionId });
-      const auctionItems = auction.auctionItems;
-
-      auctionContext.bidItems = auctionItems.map((item) => {
+      const bidItems: BidItem[] = auction.auctionItems.map((item) => {
         return {
           itemId: item.id,
           sellerId: item.user.id,
@@ -53,31 +48,47 @@ export class GameService {
           canBid: false,
         };
       });
-      auctionContext.auctionStartDateTime = auction.eventDate;
-      auctionContext.auctionStatus = AuctionStatus.READY;
-      auctionContext.currentBidItem = auctionContext.bidItems[0];
-      auctionContext.prevBidderId = null;
-      auctionContext.prevBidPrice = 0;
+      const auctionStartDateTime = auction.eventDate;
+      const auctionStatus = AuctionStatus.READY;
+      const callback = () => this.auctionsMap.set(auctionId, auctionContext);
 
-      this.auctionsMap.set(auctionId, auctionContext);
-      return new LoadGameDataDto();
+      const loadGameDataDto: LoadGameDataDto = {
+        auctionId: auctionId,
+        bidItems: bidItems,
+        auctionStartDateTime: auctionStartDateTime,
+        auctionStatus: auctionStatus,
+        callback: callback,
+      };
+
+      return loadGameDataDto;
     };
 
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
-      //TODO: save data to db
-      const saveRResult = await this.auctionRepository.save({
-        id: saveGameDataDto.auctionId,
-        bidItems: saveGameDataDto.bidItems,
-        auctionStatus: saveGameDataDto.auctionStatus,
-      });
-
-      console.log(saveRResult);
+      const saveResult = await this.auctionRepository.update(
+        { id: saveGameDataDto.auctionId },
+        {
+          auctionItems: saveGameDataDto.bidItems.map((item) => {
+            return {
+              id: item.itemId,
+              startPrice: item.startPrice,
+              bidPrice: item.bidPrice,
+              user: { id: item.sellerId },
+              title: item.title,
+              description: item.description,
+              imageUrls: item.picture,
+            };
+          }),
+        },
+      );
+      //if (saveResult === null) return false;
+      console.log(saveResult);
       return true;
     };
-    const socketfun = (response: ResponseDto) => {
-      return this.gameGateway.sendToGame(response);
+
+    const socketfun = (response: ResponseDto, data: any) => {
+      return this.gameGateway.sendToMany(response, data);
     };
 
     const initialDataDto: InitialDataDto = { id: auctionId };
