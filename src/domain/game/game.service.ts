@@ -7,6 +7,7 @@ import {
   LoadGameDataDto,
   ResponseDto,
   SaveGameDataDto,
+  UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
@@ -75,17 +76,17 @@ export class GameService {
       console.log(saveRResult);
       return true;
     };
+    const socketfun = (response: ResponseDto) => {
+      return this.gameGateway.sendToGame(response);
+    };
 
     const initialDataDto: InitialDataDto = { id: auctionId };
 
-    const auctionContext = new AuctionGameContext(
-      loadfun,
-      savefun,
-      initialDataDto,
-    );
-    auctionContext.setSocketEvent((response: ResponseDto) => {
-      return this.gameGateway.sendToGame(response);
-    });
+    const auctionContext = new AuctionGameContext(initialDataDto)
+      .setLoadEventListener(loadfun)
+      .setSaveEventListener(savefun)
+      .setSocketEventListener(socketfun);
+
     return auctionContext;
   }
 
@@ -94,27 +95,20 @@ export class GameService {
    * @param auctionId
    * @returns
    */
-  joinAuctionGiveCurrentBid(auctionId) {
+  getCurrentBidInfo({ auctionId }) {
     const auctionContext = this.auctionsMap.get(auctionId);
     return auctionContext.getCurrentBidItemInfo();
   }
 
   /**
    * 경매 입찰
-   * @param updateBidPriceDto
+   * @param UpdateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(updateBidPriceDto: {
-    auctionId: string;
-    bidPrice: number;
-    bidderId: string;
-  }): boolean {
-    const { auctionId, bidPrice, bidderId } = updateBidPriceDto;
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
+    const { auctionId } = updateBidPriceDto;
     const auctionContext = this.auctionsMap.get(auctionId);
-    if (!auctionContext) {
-      throw new Error('Auction not found');
-    }
-    return auctionContext.updateBidPrice(bidPrice, bidderId);
+    return auctionContext.updateBidPrice(updateBidPriceDto);
   }
 
   /**

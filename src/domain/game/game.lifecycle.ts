@@ -64,6 +64,7 @@ export abstract class AuctionGameLifecycle {
     });
   }
 }
+
 export class AuctionGame extends AuctionGameLifecycle {
   onRoomCreated(auctionContext: AuctionGameContext) {
     auctionContext.load();
@@ -80,7 +81,7 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
-    auctionContext.setUpdateBidEvent(() => {
+    auctionContext.setUpdateBidEventListener(() => {
       const prevPrice = auctionContext.prevBidPrice;
       const currentPrice = auctionContext.currentBidItem.bidPrice;
       const time = auctionContext.currentBidItem.itemSellingLimitTime;
@@ -95,6 +96,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       }
     });
     auctionContext.activateBid();
+
     while (true) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -105,7 +107,7 @@ export class AuctionGame extends AuctionGameLifecycle {
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
     let cnt = 0;
-    auctionContext.setUpdateBidEvent(() => {
+    auctionContext.setUpdateBidEventListener(() => {
       if (cnt == 0) {
         auctionContext.setTime(30);
         cnt++;

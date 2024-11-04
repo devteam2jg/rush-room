@@ -3,6 +3,8 @@ import {
   SaveGameDataDto,
   InitialDataDto,
   ResponseDto,
+  messageType,
+  UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 
 export enum AuctionStatus {
@@ -32,22 +34,7 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  private loadEvent: (
-    auctionId: string,
-    auctionContext: AuctionGameContext,
-  ) => Promise<LoadGameDataDto> = null;
-  private saveEvent: (saveGameDataDto: SaveGameDataDto) => Promise<boolean> =
-    null;
-  constructor(
-    load: (
-      auctionId: string,
-      auctionContext: AuctionGameContext,
-    ) => Promise<LoadGameDataDto>,
-    save: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>,
-    initialDataDto: InitialDataDto,
-  ) {
-    this.loadEvent = load;
-    this.saveEvent = save;
+  constructor(initialDataDto: InitialDataDto) {
     const { id } = initialDataDto;
     this.auctionId = id;
   }
@@ -56,10 +43,6 @@ export class AuctionGameContext {
     this.currentBidItem = this.bidItems.find(
       (item) => item.itemId !== this.currentBidItem.itemId,
     );
-  }
-  private updateEvent = null;
-  setUpdateBidEvent(event: () => void) {
-    this.updateEvent = event;
   }
 
   setTime(time: number) {
@@ -72,9 +55,6 @@ export class AuctionGameContext {
     this.currentBidItem.canBid = false;
   }
 
-  setSaveEvent(event: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>) {
-    this.saveEvent = event;
-  }
   async load() {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
     const { auctionId, bidItems, auctionStartDateTime, auctionStatus } = data;
@@ -89,6 +69,7 @@ export class AuctionGameContext {
   }
   // -----------------------------------------------------------------------------
   /** client event */
+
   getCurrentBidItemInfo() {
     return {
       time: this.currentBidItem.itemSellingLimitTime,
@@ -98,7 +79,8 @@ export class AuctionGameContext {
   }
 
   /** client event */
-  updateBidPrice(bidPrice: number, bidderId: string): boolean {
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
+    const { bidPrice, bidderId } = updateBidPriceDto;
     if (!this.currentBidItem.canBid) return false;
     if (bidPrice <= this.currentBidItem.bidPrice) return false;
     this.prevBidPrice = this.currentBidItem.bidPrice;
@@ -106,11 +88,57 @@ export class AuctionGameContext {
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
+    this.sendtoClient(messageType.PRICE_UPDATE);
     return true;
   }
-  private socketEvent: (response: ResponseDto) => boolean = null;
-  sendtoClient() {
-    const responseDto = () => {};
+
+  sendtoClient(messageType: MessageType) {
+    const responseDto = new ResponseDto();
     this.socketEvent(responseDto);
+  }
+
+  /**
+   * event listener list
+   */
+
+  private socketEvent: (response: ResponseDto) => boolean = null;
+
+  private loadEvent: (
+    auctionId: string,
+    auctionContext: AuctionGameContext,
+  ) => Promise<LoadGameDataDto> = null;
+
+  private saveEvent: (saveGameDataDto: SaveGameDataDto) => Promise<boolean> =
+    null;
+
+  private updateEvent: () => void = null;
+
+  setLoadEventListener(
+    event: (
+      auctionId: string,
+      auctionContext: AuctionGameContext,
+    ) => Promise<LoadGameDataDto>,
+  ): AuctionGameContext {
+    this.loadEvent = event;
+    return this;
+  }
+
+  setSaveEventListener(
+    event: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>,
+  ): AuctionGameContext {
+    this.saveEvent = event;
+    return this;
+  }
+
+  setSocketEventListener(
+    event: (response: ResponseDto) => boolean,
+  ): AuctionGameContext {
+    this.socketEvent = event;
+    return this;
+  }
+
+  setUpdateBidEventListener(event: () => void): AuctionGameContext {
+    this.updateEvent = event;
+    return this;
   }
 }
