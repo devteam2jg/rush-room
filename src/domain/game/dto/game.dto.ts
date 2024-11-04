@@ -13,3 +13,9 @@ export class SaveGameDataDto {
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
 }
+
+export class InitialDataDto {
+  id: string;
+}
+
+export class ResponseDto {}

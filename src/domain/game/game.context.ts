@@ -1,6 +1,8 @@
 import {
   LoadGameDataDto,
   SaveGameDataDto,
+  InitialDataDto,
+  ResponseDto,
 } from '~/src/domain/game/dto/game.dto';
 import { UserProfileDto } from '../users/dto/user.dto';
 
@@ -31,15 +33,22 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  private loadEvent: (auctionId: string) => Promise<LoadGameDataDto> = null;
-  private saveEvent: (saveGameDataDto: SaveGameDataDto) => void = null;
+  private loadEvent: (
+    auctionId: string,
+    auctionContext: AuctionGameContext,
+  ) => Promise<LoadGameDataDto> = null;
+  private saveEvent: (saveGameDataDto: SaveGameDataDto) => Promise<boolean> =
+    null;
   constructor(
-    loadfun: (auctionId: string) => Promise<LoadGameDataDto>,
-    savefun: (saveGameDataDto: SaveGameDataDto) => void,
-    initialDataDto: { id: string },
+    load: (
+      auctionId: string,
+      auctionContext: AuctionGameContext,
+    ) => Promise<LoadGameDataDto>,
+    save: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>,
+    initialDataDto: InitialDataDto,
   ) {
-    this.loadEvent = loadfun;
-    this.saveEvent = savefun;
+    this.loadEvent = load;
+    this.saveEvent = save;
     const { id } = initialDataDto;
     this.auctionId = id;
   }
@@ -50,8 +59,8 @@ export class AuctionGameContext {
     );
   }
   private updateEvent = null;
-  setUpdateBidEvent(eventfuntion: () => void) {
-    this.updateEvent = eventfuntion;
+  setUpdateBidEvent(event: () => void) {
+    this.updateEvent = event;
   }
 
   setTime(time: number) {
@@ -64,11 +73,11 @@ export class AuctionGameContext {
     this.currentBidItem.canBid = false;
   }
 
-  setSaveEvent(eventFunction: () => Promise<SaveGameDataDto>) {
-    this.saveEvent = eventFunction;
+  setSaveEvent(event: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>) {
+    this.saveEvent = event;
   }
   async load() {
-    const data = await this.loadEvent(this.auctionId);
+    const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
     const { auctionId, bidItems, auctionStartDateTime, auctionStatus } = data;
     this.auctionId = auctionId;
     this.bidItems = bidItems;
@@ -99,5 +108,10 @@ export class AuctionGameContext {
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
     return true;
+  }
+  private socketEvent: (response: ResponseDto) => boolean = null;
+  sendtoClient() {
+    const responseDto = () => {};
+    this.socketEvent(responseDto);
   }
 }

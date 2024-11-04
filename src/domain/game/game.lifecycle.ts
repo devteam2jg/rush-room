@@ -62,7 +62,6 @@ export abstract class AuctionGameLifecycle {
       const game = new AuctionGame(auctionGameContext);
       console.log('Game End', game);
     });
-    return auctionGameContext;
   }
 }
 export class AuctionGame extends AuctionGameLifecycle {
