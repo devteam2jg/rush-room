@@ -6,6 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { Inject, forwardRef } from '@nestjs/common';
 
 import { Injectable } from '@nestjs/common';
 import {
@@ -24,7 +25,10 @@ import { GameService } from '~/src/domain/game/game.service';
 export class GameGateway {
   @WebSocketServer()
   server: Server;
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    @Inject(forwardRef(() => GameService))
+    private readonly gameService: GameService,
+  ) {}
 
   sendToMany(response: ResponseDto, data: any): boolean {
     const { auctionId, messageType } = response;

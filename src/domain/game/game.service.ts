@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
 
 import { AuctionGameLifecycle } from './game.lifecycle';
@@ -15,6 +15,7 @@ import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 @Injectable()
 export class GameService {
   constructor(
+    @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
     private readonly auctionRepository: AuctionRepository,
   ) {}
