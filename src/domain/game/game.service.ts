@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AuctionGameContext } from './game.context';
+import { AuctionGameContext, AuctionStatus } from './game.context';
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { AuctionGameLifecycle } from './game.lifecycle';
 import {
@@ -9,12 +9,16 @@ import {
   SaveGameDataDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameGateway } from '~/src/domain/game/game.gateway';
+import { AuctionRepository } from '~/src/domain/auction/auction.repository';
+import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 
 @Injectable()
 export class GameService {
   constructor(
     private readonly auctionService: AuctionService,
     private readonly gameGateway: GameGateway,
+    private readonly auctionRepository: AuctionRepository,
+    private readonly auctionItemRepository: AuctionItemRepository,
   ) {}
 
   private auctionsMap: Map<string, AuctionGameContext> = new Map();
@@ -31,6 +35,29 @@ export class GameService {
     ): Promise<LoadGameDataDto> => {
       //TODO: load data from db
 
+      const auction = await this.auctionRepository.findOneBy({ id: auctionId });
+      const auctionItems = auction.auctionItems;
+
+      auctionContext.bidItems = auctionItems.map((item) => {
+        return {
+          itemId: item.id,
+          sellerId: item.user.id,
+          bidderId: null,
+          startPrice: item.startPrice,
+          bidPrice: 0,
+          itemSellingLimitTime: auction.sellingLimitTime,
+          title: item.title,
+          description: item.description,
+          picture: item.imageUrls,
+          canBid: false,
+        };
+      });
+      auctionContext.auctionStartDateTime = auction.eventDate;
+      auctionContext.auctionStatus = AuctionStatus.READY;
+      auctionContext.currentBidItem = auctionContext.bidItems[0];
+      auctionContext.prevBidderId = null;
+      auctionContext.prevBidPrice = 0;
+
       this.auctionsMap.set(auctionId, auctionContext);
       return new LoadGameDataDto();
     };
@@ -38,8 +65,14 @@ export class GameService {
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
-      //TODO: save data to dbgi
-      console.log(saveGameDataDto);
+      //TODO: save data to db
+      const saveRResult = await this.auctionRepository.save({
+        id: saveGameDataDto.auctionId,
+        bidItems: saveGameDataDto.bidItems,
+        auctionStatus: saveGameDataDto.auctionStatus,
+      });
+
+      console.log(saveRResult);
       return true;
     };
 
