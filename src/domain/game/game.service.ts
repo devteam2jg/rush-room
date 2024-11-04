@@ -5,12 +5,17 @@ import { AuctionGameLifecycle } from './game.lifecycle';
 import {
   InitialDataDto,
   LoadGameDataDto,
+  ResponseDto,
   SaveGameDataDto,
 } from '~/src/domain/game/dto/game.dto';
+import { GameGateway } from '~/src/domain/game/game.gateway';
 
 @Injectable()
 export class GameService {
-  constructor(private readonly auctionService: AuctionService) {}
+  constructor(
+    private readonly auctionService: AuctionService,
+    private readonly gameGateway: GameGateway,
+  ) {}
 
   private auctionsMap: Map<string, AuctionGameContext> = new Map();
 
@@ -24,6 +29,8 @@ export class GameService {
       auctionId: string,
       auctionContext: AuctionGameContext,
     ): Promise<LoadGameDataDto> => {
+      //TODO: load data from db
+
       this.auctionsMap.set(auctionId, auctionContext);
       return new LoadGameDataDto();
     };
@@ -31,6 +38,7 @@ export class GameService {
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
+      //TODO: save data to dbgi
       console.log(saveGameDataDto);
       return true;
     };
@@ -42,7 +50,9 @@ export class GameService {
       savefun,
       initialDataDto,
     );
-
+    auctionContext.setSocketEvent((response: ResponseDto) => {
+      return this.gameGateway.sendToGame(response);
+    });
     return auctionContext;
   }
 
