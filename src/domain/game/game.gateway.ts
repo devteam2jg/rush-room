@@ -6,7 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, forwardRef } from '@nestjs/common';
+import { Inject, forwardRef, UseGuards } from '@nestjs/common';
 
 import { Injectable } from '@nestjs/common';
 import {
@@ -17,6 +17,7 @@ import {
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
 import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
+import { AuctionIsRunningGuard } from '~/src/domain/game/guards/auctionId.guards';
 
 @Injectable()
 @WebSocketGateway({
@@ -42,6 +43,12 @@ export class GameGateway {
     return true;
   }
 
+  /**
+   * 'join_auction' 이벤트를 처리.
+   * @param socket
+   * @param joinData - auctionId, auctionItemId 포함한 데이터.
+   */
+  // @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('join_auction')
   async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
     const { auctionId } = joinData;
@@ -49,12 +56,12 @@ export class GameGateway {
     //this.gameService.loadGame(auctionId, socket);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
   }
+
   /**
    * 'message' 이벤트를 처리.
    * 지정된 경매 방의 모든 클라이언트에게 메시지를 전송.
-   *
    * @param socket - 클라이언트 소켓.
-   * @param messageData - auctionId, userId, message를 포함한 메시지 데이터.
+   * @param messageData - auctionId, userId, message, nickname 포함한 메시지 데이터.
    */
   @SubscribeMessage('message')
   handleMessage(
@@ -81,6 +88,7 @@ export class GameGateway {
   /**
    * 음성 데이터 처리
    * 같은 room 사용자 모두에게 전송
+   * @param socket
    * @param voiceData
    */
   @SubscribeMessage('audio')
@@ -108,9 +116,7 @@ export class GameGateway {
   /**
    * 'new_bid' 이벤트를 처리.
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
-   *
-   * @param bidData - auctionId와 newCurrentBid를 포함한 입찰 데이터.
-   * @param socket - 클라이언트 소켓.
+   * @param bidData - auctionId, userNickName, bidPrice, bidderId 포함한 입찰 데이터.
    */
   @SubscribeMessage('new_bid')
   handleNewBid(
