@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import { CommonEntity } from '~/src/common/entities/common.entity';
 import { User } from '~/src/domain/users/entities/user.entity';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export enum Status {
   WAIT = 'WAIT',
@@ -46,4 +47,7 @@ export class Auction extends CommonEntity {
     eager: true,
   })
   auctionItems: AuctionItem[];
+
+  @Column({ type: 'json', nullable: true })
+  joinedUsers: UserDataDto[];
 }
