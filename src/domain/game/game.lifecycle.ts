@@ -1,5 +1,6 @@
 import { MessageType } from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from './game.context';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export abstract class AuctionGameLifecycle {
   private next: () => Promise<void>;
@@ -154,7 +155,9 @@ export class AuctionGame extends AuctionGameLifecycle {
 
   async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
     const bidItem = auctionContext.currentBidItem;
-    const userData = auctionContext.getUserDataById(bidItem.bidderId);
+    const userData: UserDataDto = auctionContext.getUserDataById(
+      bidItem.bidderId,
+    );
     auctionContext.deactivateBid();
     auctionContext.notifyToClient({
       type: 'BID_END',
