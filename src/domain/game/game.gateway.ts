@@ -6,7 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, forwardRef, UseGuards } from '@nestjs/common';
+import { Inject, forwardRef } from '@nestjs/common';
 
 import { Injectable } from '@nestjs/common';
 import {
@@ -16,8 +16,7 @@ import {
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
-import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
-import { AuctionIsRunningGuard } from '~/src/domain/game/guards/auctionId.guards';
+// import { AuctionIsRunningGuard } from '~/src/domain/game/guards/auctionId.guards';
 
 @Injectable()
 @WebSocketGateway({
@@ -46,13 +45,20 @@ export class GameGateway {
   /**
    * 'join_auction' 이벤트를 처리.
    * @param socket
-   * @param joinData - auctionId, auctionItemId 포함한 데이터.
+   * @param joinData - auctionId, userId 포함한 데이터.
    */
   // @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('join_auction')
-  async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
-    const { auctionId } = joinData;
-    socket.join(auctionId);
+  async handleJoinAuction(
+    socket: Socket,
+    joinData: { auctionId: string; userId: string },
+  ): Promise<void> {
+    const { auctionId, userId } = joinData;
+
+    if (this.gameService.isRunning(auctionId)) {
+      socket.join(auctionId);
+      await this.gameService.joinAuction(auctionId, userId);
+    }
     //this.gameService.loadGame(auctionId, socket);
     console.log(`Client ${socket.id} joined auction ${auctionId}`);
   }

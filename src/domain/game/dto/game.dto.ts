@@ -2,12 +2,14 @@ import { PartialType } from '@nestjs/mapped-types';
 import { AuctionStatus } from '../game.context';
 import { BidItem } from '../game.context';
 import { Socket } from 'socket.io';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export class GameDataDto {
   auctionId: string;
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
+  joinedUsers: UserDataDto[];
   callback: () => void;
 }
 

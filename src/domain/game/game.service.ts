@@ -13,6 +13,7 @@ import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { Socket } from 'socket.io';
+import { UsersService } from '~/src/domain/users/users.service';
 @Injectable()
 export class GameService {
   constructor(
@@ -20,6 +21,7 @@ export class GameService {
     private readonly gameGateway: GameGateway,
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
+    private readonly usersService: UsersService,
   ) {}
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
@@ -61,6 +63,7 @@ export class GameService {
 
       const auctionStartDateTime = auction.eventDate;
       const auctionStatus = AuctionStatus.READY;
+      const joinedUsers = auction.joinedUsers;
       const callback = () => this.auctionsMap.set(auctionId, auctionContext);
 
       const loadGameDataDto: LoadGameDataDto = {
@@ -68,6 +71,7 @@ export class GameService {
         bidItems: bidItems,
         auctionStartDateTime: auctionStartDateTime,
         auctionStatus: auctionStatus,
+        joinedUsers: joinedUsers,
         callback: callback,
       };
       return loadGameDataDto;
@@ -76,8 +80,9 @@ export class GameService {
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
-      const { bidItems } = saveGameDataDto;
+      const { bidItems, joinedUsers } = saveGameDataDto;
       await this.auctionItemRepository.updateAuctionItemMany(bidItems);
+      await this.auctionRepository.updateJoinedUsers(auctionId, joinedUsers);
       //if (saveResult === null) return false;
       return true;
     };
@@ -96,6 +101,14 @@ export class GameService {
     return auctionContext;
   }
 
+  /**
+   * 경매
+   */
+  async joinAuction(auctionId: string, userId: string) {
+    const auctionContext = this.auctionsMap.get(auctionId);
+    const user = await this.usersService.findById({ id: userId });
+    auctionContext.joinedUsers.push(user);
+  }
   /**
    * 경매 입찰
    * @param UpdateBidPriceDto

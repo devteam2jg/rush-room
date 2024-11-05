@@ -7,6 +7,7 @@ import {
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 import { Socket } from 'socket.io';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
@@ -35,6 +36,8 @@ export class AuctionGameContext {
 
   prevBidPrice: number;
   prevBidderId: string;
+
+  joinedUsers: UserDataDto[];
 
   constructor(initialDataDto: InitialDataDto) {
     const { id } = initialDataDto;
@@ -71,6 +74,9 @@ export class AuctionGameContext {
   }
   deactivateBid() {
     this.currentBidItem.canBid = false;
+  }
+  isBidActivated(): boolean {
+    return this.currentBidItem.canBid;
   }
 
   async loadFromDB(): Promise<boolean> {
