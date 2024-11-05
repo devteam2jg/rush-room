@@ -1,10 +1,10 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { AuctionStatus } from '../game.context';
-import { BidItem } from '../game.context';
+import { AuctionStatus, BidItem } from '../game.context';
 import { Socket } from 'socket.io';
 
 export class GameDataDto {
   auctionId: string;
+  auctionTitle: string;
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;

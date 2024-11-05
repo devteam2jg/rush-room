@@ -30,7 +30,8 @@ export abstract class AuctionGameLifecycle {
 
   private async onBidEnd() {
     this.next = this.onRoomDestroy;
-    if (!this.onBidEnded(this.auctionContext)) this.next = this.onBidCreate;
+    if (!(await this.onBidEnded(this.auctionContext)))
+      this.next = this.onBidCreate;
   }
 
   protected ternimate() {
@@ -64,7 +65,9 @@ export abstract class AuctionGameLifecycle {
       this.timer = null;
     }
   }
-
+  delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
   abstract onRoomCreated(auctionContext: AuctionGameContext);
   abstract onRoomDestroyed(auctionContext: AuctionGameContext);
   abstract onBidCreated(auctionContext: AuctionGameContext);
@@ -74,20 +77,25 @@ export abstract class AuctionGameLifecycle {
    *
    * 다음 경매 아이템이 존재한다면 false를 반환해야 합니다.
    */
-  abstract onBidEnded(auctionContext: AuctionGameContext): boolean;
+  abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
 
   static launch(auctionGameContext: AuctionGameContext) {
     new AuctionGame(auctionGameContext).run();
+    return {
+      message: 'Auction Started',
+    };
   }
 }
 
 export class AuctionGame extends AuctionGameLifecycle {
   async onRoomCreated(auctionContext: AuctionGameContext) {
     await auctionContext.loadFromDB();
+    console.log('Auction Created', auctionContext.auctionTitle);
   }
 
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
     await auctionContext.saveToDB();
+    console.log('Auction Destroyed', auctionContext.auctionTitle);
   }
 
   onBidCreated(auctionContext: AuctionGameContext) {
@@ -99,13 +107,15 @@ export class AuctionGame extends AuctionGameLifecycle {
       });
     };
     auctionContext.activateBid();
-    auctionContext.notifyAuctionStart({
-      type: 'AUCTION_START',
+    auctionContext.notifyToClient({
+      type: 'BID_START',
       itemId: bidItem.itemId,
       bidPrice: bidItem.startPrice,
       bidderId: null,
       title: bidItem.title,
     });
+
+    console.log('Bid Created', bidItem.title);
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
@@ -126,6 +136,8 @@ export class AuctionGame extends AuctionGameLifecycle {
     if (auctionContext.getTime() > 30) {
       await this.startTimer(() => auctionContext.getTime() <= 30);
     }
+
+    console.log('Bid Phase 1 Ended');
   }
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
@@ -137,20 +149,23 @@ export class AuctionGame extends AuctionGameLifecycle {
       auctionContext.setTime(max);
     });
     await this.startTimer(() => auctionContext.getTime() <= 0);
+    console.log('Bid Phase 2 Ended');
   }
 
-  onBidEnded(auctionContext: AuctionGameContext): boolean {
+  async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
     const bidItem = auctionContext.currentBidItem;
     auctionContext.deactivateBid();
-    auctionContext.notifyAuctionEnd({
-      type: 'AUCTION_END',
+    auctionContext.notifyToClient({
+      type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
       bidderId: bidItem.bidderId,
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
+    await this.delay(60000);
 
+    console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
   }
 }

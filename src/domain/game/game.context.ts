@@ -6,7 +6,6 @@ import {
   MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
-import { Socket } from 'socket.io';
 export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
@@ -29,7 +28,7 @@ export class AuctionGameContext {
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
-
+  auctionTitle: string;
   currentBidItem: BidItem;
   sequence: number;
 
@@ -77,6 +76,7 @@ export class AuctionGameContext {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
     const { auctionId, bidItems, auctionStartDateTime } = data;
     this.auctionId = auctionId;
+    this.auctionTitle = data.auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
     data.callback();
@@ -94,7 +94,7 @@ export class AuctionGameContext {
   }
 
   /** client event */
-  updateBidPrice(socket: Socket, updateBidPriceDto: UpdateBidPriceDto): any {
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
     console.log(updateBidPriceDto);
     console.log('currentTime', this.getTime());
@@ -165,10 +165,7 @@ export class AuctionGameContext {
     };
   }
 
-  notifyAuctionEnd(data: any) {
-    this.sendToClient(null, MessageType.NOTIFICATION, data);
-  }
-  notifyAuctionStart(data: any) {
+  notifyToClient(data: any) {
     this.sendToClient(null, MessageType.NOTIFICATION, data);
   }
   /***************************************************************************
