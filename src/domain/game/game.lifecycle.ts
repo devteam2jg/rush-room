@@ -99,14 +99,22 @@ export class AuctionGame extends AuctionGameLifecycle {
     console.log('Auction Destroyed', auctionContext.auctionTitle);
   }
 
-  onBidCreated(auctionContext: AuctionGameContext) {
+  async onBidCreated(auctionContext: AuctionGameContext) {
     const bidItem = auctionContext.setNextBidItem();
+    auctionContext.notifyToClient({
+      type: 'BID_READY',
+      itemId: bidItem.itemId,
+      bidPrice: bidItem.startPrice,
+      title: bidItem.title,
+    });
     if (!bidItem) this.ternimate();
     this.timerEvent = () => {
       auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
         time: auctionContext.getTime(),
       });
     };
+
+    await this.delay(5000);
     auctionContext.activateBid();
     auctionContext.notifyToClient({
       type: 'BID_START',
@@ -167,7 +175,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
-    await this.delay(60000);
+    await this.delay(10000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
