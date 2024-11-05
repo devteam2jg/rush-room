@@ -63,7 +63,6 @@ export class GameService {
 
       const auctionStartDateTime = auction.eventDate;
       const auctionStatus = AuctionStatus.READY;
-      const joinedUsers = auction.joinedUsers;
       const callback = () => this.auctionsMap.set(auctionId, auctionContext);
 
       const loadGameDataDto: LoadGameDataDto = {
@@ -72,7 +71,6 @@ export class GameService {
         bidItems: bidItems,
         auctionStartDateTime: auctionStartDateTime,
         auctionStatus: auctionStatus,
-        joinedUsers: joinedUsers,
         callback: callback,
       };
       return loadGameDataDto;
@@ -81,9 +79,8 @@ export class GameService {
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
-      const { bidItems, joinedUsers } = saveGameDataDto;
+      const { bidItems } = saveGameDataDto;
       await this.auctionItemRepository.updateAuctionItemMany(bidItems);
-      await this.auctionRepository.updateJoinedUsers(auctionId, joinedUsers);
       //if (saveResult === null) return false;
       return true;
     };
@@ -109,8 +106,7 @@ export class GameService {
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
     console.log(user);
-    auctionContext.joinedUsers.push(user);
-    console.log(auctionContext.joinedUsers);
+    auctionContext.join(user);
   }
   /**
    * 경매 입찰

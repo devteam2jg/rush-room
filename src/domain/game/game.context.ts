@@ -36,7 +36,11 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  joinedUsers: UserDataDto[];
+  private readonly joinedUsers: Map<string, UserDataDto> = new Map();
+  join(userData: UserDataDto) {
+    const { id } = userData;
+    this.joinedUsers.set(id, userData);
+  }
 
   constructor(initialDataDto: InitialDataDto) {
     const { id } = initialDataDto;
@@ -136,7 +140,7 @@ export class AuctionGameContext {
     };
   }
   getUserDataById(userId: string): UserDataDto {
-    return this.joinedUsers.find((user) => user.id === userId);
+    return this.joinedUsers.get(userId);
   }
   /** socket function
    *
