@@ -16,6 +16,7 @@ import {
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
+import { AuctionIds } from '~/src/common/dto/auctionIdsWithJwtPayload';
 
 @Injectable()
 @WebSocketGateway({
@@ -29,6 +30,13 @@ export class GameGateway {
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
   ) {}
+
+  @SubscribeMessage('join_auction')
+  async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
+    const { auctionId } = joinData;
+    socket.join(auctionId);
+    console.log(`Client ${socket.id} joined auction ${auctionId}`);
+  }
 
   sendToMany(response: ResponseDto, data: any): boolean {
     const { auctionId, messageType } = response;
