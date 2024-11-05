@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { Auction } from '~/src/domain/auction/entities/auction.entity';
+import { Auction, Status } from '~/src/domain/auction/entities/auction.entity';
 import { CreateAuctionDto } from '~/src/domain/auction/dto/create-auction.dto';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
 import { CreateAuctionResultDto } from '~/src/domain/auction/dto/create-auction-result.dto';
@@ -32,5 +32,12 @@ export class AuctionRepository extends Repository<Auction> {
       .set({ joinedUsers: joinedUsers })
       .where('id = :auctionId', { auctionId })
       .execute();
+  }
+
+  // status가 WAIT인 경매 리스트 가져오기
+  async getWaitAuctions(): Promise<Auction[]> {
+    return this.createQueryBuilder('auction')
+      .where('auction.status = :status', { status: Status.WAIT })
+      .getMany();
   }
 }
