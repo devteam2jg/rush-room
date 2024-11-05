@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import * as mediasoup from 'mediasoup';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
   namespace: '/sfu',
@@ -20,6 +21,7 @@ export class AppGateway {
   private readonly transports: mediasoup.types.WebRtcTransport[] = [];
   private readonly producers: mediasoup.types.Producer[] = [];
   private readonly consumers: mediasoup.types.Consumer[] = [];
+  private readonly logger = new Logger('AppGateway', { timestamp: true });
 
   constructor() {
     this.initializeMediasoup();
@@ -43,54 +45,56 @@ export class AppGateway {
           },
         ],
       });
-      console.log('Mediasoup worker and router initialized');
+      this.logger.verbose('Mediasoup worker and router initialized');
     } catch (error) {
-      console.error('Failed to initialize mediasoup:', error);
+      this.logger.error('Failed to initialize mediasoup:', error);
     }
   }
 
   @SubscribeMessage('getRouterRtpCapabilities')
   handleGetRtpCapabilities(@ConnectedSocket() client: Socket) {
     const rtpCapabilities = this.router.rtpCapabilities;
-    console.log('rtpCapabilities', rtpCapabilities);
-    client.emit('routerRtpCapabilities', rtpCapabilities);
+    this.logger.verbose('RtpCapabilities is delivered to client :', client.id);
+    return rtpCapabilities;
   }
 
   @SubscribeMessage('createProducerTransport')
   async handleCreateTransport(@ConnectedSocket() client: Socket) {
     const transport = await this.router.createWebRtcTransport({
-      listenIps: [{ ip: '0.0.0.0', announcedIp: '192.168.1.21' }],
+      listenIps: [{ ip: '0.0.0.0', announcedIp: '192.168.1.25' }],
       enableUdp: true,
       enableTcp: true,
       preferUdp: true,
     });
 
     this.transports.push(transport);
+    this.logger.verbose('Producer Transport created :', transport.id);
 
-    client.emit('transportCreated', {
+    return {
       id: transport.id,
       iceParameters: transport.iceParameters,
       iceCandidates: transport.iceCandidates,
       dtlsParameters: transport.dtlsParameters,
-    });
+    };
   }
   @SubscribeMessage('createConsumerTransport')
   async handleConsumerCreateTransport(@ConnectedSocket() client: Socket) {
     const transport = await this.router.createWebRtcTransport({
-      listenIps: [{ ip: '0.0.0.0', announcedIp: '192.168.1.21' }],
+      listenIps: [{ ip: '0.0.0.0', announcedIp: '192.168.1.25' }],
       enableUdp: true,
       enableTcp: true,
       preferUdp: true,
     });
 
     this.transports.push(transport);
+    this.logger.verbose('Consumer Transport created :', transport.id);
 
-    client.emit('transportCreated', {
+    return {
       id: transport.id,
       iceParameters: transport.iceParameters,
       iceCandidates: transport.iceCandidates,
       dtlsParameters: transport.dtlsParameters,
-    });
+    };
   }
 
   @SubscribeMessage('connectProducerTransport')
@@ -98,32 +102,39 @@ export class AppGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody() { transportId, dtlsParameters },
   ) {
+    this.logger.verbose('Connect Producer Transport :', transportId);
     const transport = this.transports.find((t) => t.id === transportId);
     if (!transport) {
       return client.emit('error', 'Transport not found');
     }
 
     await transport.connect({ dtlsParameters });
-    client.emit('transportConnected', { transportId });
+    return { transportId };
   }
   @SubscribeMessage('connectConsumerTransport')
   async handleConsumerConnectTransport(
     @ConnectedSocket() client: Socket,
     @MessageBody() { transportId, dtlsParameters },
   ) {
+    this.logger.verbose('Connect Consumer Transport :', transportId);
     const transport = this.transports.find((t) => t.id === transportId);
     if (!transport) {
       return client.emit('error', 'Transport not found');
     }
 
     await transport.connect({ dtlsParameters });
-    client.emit('transportConnected', { transportId });
+    return { transportId };
   }
 
   @SubscribeMessage('getProducers')
   handleGetProducers(@ConnectedSocket() client: Socket) {
     const producerIds = this.producers.map((producer) => producer.id);
-    client.emit('producers', producerIds);
+    this.logger.warn(
+      'Producers is delivered to client :',
+      client.id,
+      producerIds,
+    );
+    return producerIds;
   }
   @SubscribeMessage('produce')
   async handleProduce(
@@ -138,7 +149,7 @@ export class AppGateway {
     const producer = await transport.produce({ kind, rtpParameters });
     this.producers.push(producer);
 
-    client.emit('produced', { id: producer.id });
+    return { id: producer.id };
   }
 
   @SubscribeMessage('consume')
@@ -167,12 +178,13 @@ export class AppGateway {
     });
 
     this.consumers.push(consumer);
+    this.logger.verbose('Consumer created :', consumer.id);
 
-    client.emit('consumed', {
+    return {
       id: consumer.id,
       producerId: consumer.producerId,
       kind: consumer.kind,
       rtpParameters: consumer.rtpParameters,
-    });
+    };
   }
 }

@@ -10,6 +10,7 @@ import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
 import { AppGateway } from '~/src/app.gateway';
+import { MediasoupModule } from '~/src/mediasoup/mediasoup.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { AppGateway } from '~/src/app.gateway';
     GatewayModule,
     FileModule,
     AwsModule,
-    AppGateway,
+    // AppGateway,
+    MediasoupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
