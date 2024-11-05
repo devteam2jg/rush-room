@@ -52,7 +52,7 @@ export class GameService {
           sellerId: item.user.id,
           bidderId: null,
           startPrice: item.startPrice,
-          bidPrice: 0,
+          bidPrice: item.startPrice,
           itemSellingLimitTime: auction.sellingLimitTime * 4,
           title: item.title,
           description: item.description,
@@ -108,7 +108,9 @@ export class GameService {
   async joinAuction(auctionId: string, userId: string) {
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
+    console.log(user);
     auctionContext.joinedUsers.push(user);
+    console.log(auctionContext.joinedUsers);
   }
   /**
    * 경매 입찰
