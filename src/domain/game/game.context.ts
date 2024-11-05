@@ -6,7 +6,7 @@ import {
   MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
-
+import { Socket } from 'socket.io';
 export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
@@ -92,23 +92,17 @@ export class AuctionGameContext {
     const result: boolean = await this.saveEvent(saveGameDataDto);
     return result;
   }
-  // -----------------------------------------------------------------------------
-  /** client event */
-
-  getCurrentBidItemInfo() {
-    return {
-      time: this.currentBidItem.itemSellingLimitTime,
-      price: this.currentBidItem.bidPrice,
-      bidderId: this.currentBidItem.bidderId,
-    };
-  }
 
   /** client event */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
+  updateBidPrice(
+    socket: Socket,
+    updateBidPriceDto: UpdateBidPriceDto,
+  ): boolean {
     const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
     console.log(updateBidPriceDto);
     console.log('currentTime', this.getTime());
     console.log('try to update bid price', bidPrice, bidderId);
+
     if (!this.currentBidItem.canBid) {
       console.log('bid is not allowed');
       return false;
@@ -117,57 +111,74 @@ export class AuctionGameContext {
       console.log('bid price is lower than current price');
       return false;
     }
+
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
     console.log('bid price is updated', bidPrice);
+
     this.updateEvent();
 
     this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
+
     this.sendToClient(null, MessageType.PRICE_UPDATE, {
       bidderNickname,
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
     });
+
+    this.sendToClient(socket, MessageType.NOTIFICATION, {
+      message: '입찰이 완료되었습니다',
+      bidPrice: this.currentBidItem.bidPrice,
+    });
     return true;
   }
 
+  /** socket function
+   *
+   * @param socket 소켓 이 null이면 모든 참여자에게 메세지를 보냄, 아니면 해당 소켓에만 메세지를 보냄
+   * @param messageType
+   * @param data
+   *
+   * 비동기로 동작함
+   */
   sendToClient(socket, messageType: MessageType, data?: any) {
-    if (!data)
-      data = {
-        time: this.currentBidItem.itemSellingLimitTime,
-        bidPrice: this.currentBidItem.bidPrice,
-        bidderId: this.currentBidItem.bidderId,
+    return new Promise(() => {
+      if (!data)
+        data = {
+          time: this.currentBidItem.itemSellingLimitTime,
+          bidPrice: this.currentBidItem.bidPrice,
+          bidderId: this.currentBidItem.bidderId,
+        };
+      const response: ResponseDto = {
+        auctionId: this.auctionId,
+        messageType,
+        socket,
       };
-    let response: ResponseDto;
-    switch (messageType) {
-      case MessageType.TIME_UPDATE:
-        response = {
-          auctionId: this.auctionId,
-          messageType,
-          socket: null,
-        };
-        this.socketEvent(response, data);
-        break;
-      case MessageType.PRICE_UPDATE:
-        response = {
-          auctionId: this.auctionId,
-          messageType,
-          socket: null,
-        };
-        this.socketEvent(response, data);
-        break;
-      case MessageType.NOTIFICATION:
-      case MessageType.USER_MESSAGE:
-      default:
-        break;
-    }
+      this.socketEvent(response, data);
+    });
   }
 
-  /**
+  requestCurrentBidInfo() {
+    return {
+      itemId: this.currentBidItem.itemId,
+      time: this.getTime(),
+      bidPrice: this.currentBidItem.bidPrice,
+      bidderId: this.currentBidItem.bidderId,
+    };
+  }
+
+  notifyAuctionEnd() {
+    this.sendToClient(null, MessageType.NOTIFICATION, {
+      type: 'AUCTION_END',
+      message: '경매가 종료되었습니다',
+    });
+  }
+  /***************************************************************************
    * event listener list
-   */
+   *
+   ***************************************************************************/
 
   private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 

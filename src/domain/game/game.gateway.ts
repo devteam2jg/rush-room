@@ -61,7 +61,7 @@ export class GameGateway {
     @ConnectedSocket()
     socket: Socket,
     messageData: UserMessageDto,
-  ): void {
+  ): boolean {
     const { auctionId, userId, message, nickname } = messageData;
     const messageType = MessageType.USER_MESSAGE;
     const data = {
@@ -75,6 +75,7 @@ export class GameGateway {
       socket,
     };
     this.sendToMany(response, data);
+    return true;
   }
 
   /**
@@ -113,9 +114,19 @@ export class GameGateway {
    */
   @SubscribeMessage('new_bid')
   handleNewBid(
+    @ConnectedSocket()
+    socket: Socket,
     @MessageBody()
     bidData: UpdateBidPriceDto,
+  ): boolean {
+    return this.gameService.updateBidPrice(socket, bidData);
+  }
+
+  @SubscribeMessage('INFO')
+  handleRequestAuctionInfo(
+    @MessageBody() data: { auctionId: string; type: 'GET_AUCTION_INFO' },
   ) {
-    return this.gameService.updateBidPrice(bidData);
+    const { auctionId } = data;
+    return this.gameService.requestAuctionInfo(auctionId);
   }
 }

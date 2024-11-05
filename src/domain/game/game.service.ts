@@ -12,6 +12,7 @@ import {
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
+import { Socket } from 'socket.io';
 @Injectable()
 export class GameService {
   constructor(
@@ -98,23 +99,17 @@ export class GameService {
   }
 
   /**
-   * 경매 게임 로드
-   * @param auctionId
-   * @param socket
-   */
-  // async loadGame(auctionId: string, socket: any) {
-  //   const auctionContext = this.auctionsMap.get(auctionId);
-  // }
-
-  /**
    * 경매 입찰
    * @param UpdateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
+  updateBidPrice(
+    socket: Socket,
+    updateBidPriceDto: UpdateBidPriceDto,
+  ): boolean {
     const { auctionId } = updateBidPriceDto;
     const auctionContext = this.auctionsMap.get(auctionId);
-    return auctionContext.updateBidPrice(updateBidPriceDto);
+    return auctionContext.updateBidPrice(socket, updateBidPriceDto);
   }
 
   /**
@@ -126,5 +121,10 @@ export class GameService {
     const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
     AuctionGameLifecycle.launch(auctionContext);
+  }
+
+  requestAuctionInfo(auctionId: string) {
+    const auctionContext = this.auctionsMap.get(auctionId);
+    return auctionContext.requestCurrentBidInfo();
   }
 }
