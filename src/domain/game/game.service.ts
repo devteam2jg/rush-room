@@ -101,10 +101,7 @@ export class GameService {
    * @param UpdateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(
-    socket: Socket,
-    updateBidPriceDto: UpdateBidPriceDto,
-  ): boolean {
+  updateBidPrice(socket: Socket, updateBidPriceDto: UpdateBidPriceDto): any {
     const { auctionId } = updateBidPriceDto;
     const auctionContext = this.auctionsMap.get(auctionId);
     return auctionContext.updateBidPrice(socket, updateBidPriceDto);

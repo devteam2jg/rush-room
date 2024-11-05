@@ -2,7 +2,7 @@ import { MessageType } from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from './game.context';
 
 export abstract class AuctionGameLifecycle {
-  private next;
+  private next: () => Promise<void>;
   private readonly auctionContext: AuctionGameContext;
 
   constructor(auctionContext: AuctionGameContext) {
@@ -91,15 +91,21 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   onBidCreated(auctionContext: AuctionGameContext) {
-    const result = auctionContext.setNextBidItem();
-    if (!result) this.ternimate();
+    const bidItem = auctionContext.setNextBidItem();
+    if (!bidItem) this.ternimate();
     this.timerEvent = () => {
       auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
         time: auctionContext.getTime(),
       });
     };
     auctionContext.activateBid();
-    auctionContext.notifyAuctionStart();
+    auctionContext.notifyAuctionStart({
+      type: 'AUCTION_START',
+      itemId: bidItem.itemId,
+      bidPrice: bidItem.startPrice,
+      bidderId: null,
+      title: bidItem.title,
+    });
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
@@ -123,18 +129,28 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
+    let max = 30;
     auctionContext.setUpdateBidEventListener(() => {
       const curtime = auctionContext.getTime();
-      const time = ((curtime / 10) | 0) * 10 + 10;
-      auctionContext.setTime(time);
+      if (curtime <= 20 && curtime > 10) max = 20;
+      else if (curtime <= 10) max = 10;
+      auctionContext.setTime(max);
     });
     await this.startTimer(() => auctionContext.getTime() <= 0);
   }
 
   onBidEnded(auctionContext: AuctionGameContext): boolean {
+    const bidItem = auctionContext.currentBidItem;
     auctionContext.deactivateBid();
-    auctionContext.notifyAuctionEnd();
+    auctionContext.notifyAuctionEnd({
+      type: 'AUCTION_END',
+      itemId: bidItem.itemId,
+      bidPrice: bidItem.bidPrice,
+      bidderId: bidItem.bidderId,
+      title: bidItem.title,
+    });
     const result: boolean = auctionContext.isAuctionEnded();
+
     return result;
   }
 }

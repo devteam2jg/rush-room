@@ -93,13 +93,13 @@ export class GameGateway {
     socket: Socket,
     @MessageBody()
     bidData: UpdateBidPriceDto,
-  ): boolean {
+  ): any {
     return this.gameService.updateBidPrice(socket, bidData);
   }
 
   @SubscribeMessage('INFO')
   handleRequestAuctionInfo(
-    @MessageBody() data: { auctionId: string; type: 'GET_AUCTION_INFO' },
+    @MessageBody() data: { auctionId: string; type?: string },
   ) {
     const { auctionId } = data;
     return this.gameService.requestAuctionInfo(auctionId);
