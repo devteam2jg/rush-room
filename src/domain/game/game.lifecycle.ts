@@ -147,7 +147,7 @@ export class AuctionGame extends AuctionGameLifecycle {
           time = 10;
           break;
       }
-      time = (curtime / 10) * 10 + 10;
+      time = curtime - (curtime % 10) + 10;
       auctionContext.setTime(time);
       cnt++;
       console.log('Time is updated to', time);

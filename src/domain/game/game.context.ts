@@ -52,9 +52,7 @@ export class AuctionGameContext {
     return this.currentBidItem.itemSellingLimitTime;
   }
   setNextBidItem(): boolean {
-    //console.log(this.bidItems);
     this.currentBidItem = this.bidItems[this.sequence];
-    //console.log(this.currentBidItem);
     if (!this.currentBidItem) return false;
     this.sequence++;
     return true;
@@ -108,7 +106,7 @@ export class AuctionGameContext {
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
     const { bidPrice, bidderId, socket } = updateBidPriceDto;
-    console.log('currentBidItem', this.getTime());
+    console.log('currentTime', this.getTime());
     console.log('try to update bid price', bidPrice, bidderId);
     if (!this.currentBidItem.canBid) {
       console.log('bid is not allowed');
@@ -124,22 +122,29 @@ export class AuctionGameContext {
     this.currentBidItem.bidderId = bidderId;
     console.log('bid price is updated', bidPrice);
     this.updateEvent();
-    this.sendToClient(socket, MessageType.PRICE_UPDATE);
+
+    const data: any = {
+      time: this.currentBidItem.itemSellingLimitTime,
+      bidPrice: this.currentBidItem.bidPrice,
+      bidderId: this.currentBidItem.bidderId,
+    };
+    this.sendToClient(socket, MessageType.PRICE_UPDATE, data);
     return true;
   }
 
-  sendToClient(socket, messageType: MessageType) {
+  sendToClient(socket, messageType: MessageType, data?: any) {
+    if (!data)
+      data = {
+        time: this.currentBidItem.itemSellingLimitTime,
+        bidPrice: this.currentBidItem.bidPrice,
+        bidderId: this.currentBidItem.bidderId,
+      };
     switch (messageType) {
       case MessageType.PRICE_UPDATE:
         const response: ResponseDto = {
           auctionId: this.auctionId,
           messageType,
-          socket,
-        };
-        const data: any = {
-          time: this.currentBidItem.itemSellingLimitTime,
-          bidPrice: this.currentBidItem.bidPrice,
-          bidderId: this.currentBidItem.bidderId,
+          socket: null,
         };
         this.socketEvent(response, data);
         break;
