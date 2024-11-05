@@ -1,6 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
-
 import { AuctionGameLifecycle } from './game.lifecycle';
 import {
   InitialDataDto,
@@ -12,7 +11,6 @@ import {
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
-import { Socket } from 'socket.io';
 import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 
