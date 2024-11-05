@@ -154,12 +154,13 @@ export class AuctionGame extends AuctionGameLifecycle {
 
   async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
     const bidItem = auctionContext.currentBidItem;
+    const userData = auctionContext.getUserDataById(bidItem.bidderId);
     auctionContext.deactivateBid();
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
-      bidderId: bidItem.bidderId,
+      name: userData.name,
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();

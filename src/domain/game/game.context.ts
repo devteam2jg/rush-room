@@ -6,7 +6,6 @@ import {
   MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
-import { Socket } from 'socket.io';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 export enum AuctionStatus {
   READY = 'READY',
@@ -136,7 +135,9 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
     };
   }
-
+  getUserDataById(userId: string): UserDataDto {
+    return this.joinedUsers.find((user) => user.id === userId);
+  }
   /** socket function
    *
    * @param socket 소켓 이 null이면 모든 참여자에게 메세지를 보냄, 아니면 해당 소켓에만 메세지를 보냄

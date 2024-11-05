@@ -12,7 +12,6 @@ import {
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
-import { Socket } from 'socket.io';
 import { UsersService } from '~/src/domain/users/users.service';
 
 @Injectable()
