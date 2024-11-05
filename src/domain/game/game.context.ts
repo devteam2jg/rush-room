@@ -175,6 +175,12 @@ export class AuctionGameContext {
       message: '경매가 종료되었습니다',
     });
   }
+  notifyAuctionStart() {
+    this.sendToClient(null, MessageType.NOTIFICATION, {
+      type: 'AUCTION_START',
+      message: '경매가 시작되었습니다',
+    });
+  }
   /***************************************************************************
    * event listener list
    *
