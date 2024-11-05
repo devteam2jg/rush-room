@@ -14,6 +14,7 @@ export class GameController {
     this.gameService.updateBidPrice({
       auctionId: id,
       bidderId: 'test',
+      bidderNickname: 'test',
       bidPrice: price,
     });
   }

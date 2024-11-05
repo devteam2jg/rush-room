@@ -31,13 +31,6 @@ export class GameGateway {
     private readonly gameService: GameService,
   ) {}
 
-  @SubscribeMessage('join_auction')
-  async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
-    const { auctionId } = joinData;
-    socket.join(auctionId);
-    console.log(`Client ${socket.id} joined auction ${auctionId}`);
-  }
-
   sendToMany(response: ResponseDto, data: any): boolean {
     const { auctionId, messageType } = response;
     this.server.to(auctionId).emit(messageType, data);
@@ -47,6 +40,14 @@ export class GameGateway {
     const { messageType, socket } = response;
     socket.emit(messageType, data);
     return true;
+  }
+
+  @SubscribeMessage('join_auction')
+  async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
+    const { auctionId } = joinData;
+    socket.join(auctionId);
+    //this.gameService.loadGame(auctionId, socket);
+    console.log(`Client ${socket.id} joined auction ${auctionId}`);
   }
   /**
    * 'message' 이벤트를 처리.

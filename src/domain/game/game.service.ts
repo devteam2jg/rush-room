@@ -98,14 +98,13 @@ export class GameService {
   }
 
   /**
-   * 현재 경매가 조회
+   * 경매 게임 로드
    * @param auctionId
-   * @returns
+   * @param socket
    */
-  getCurrentBidInfo({ auctionId }) {
-    const auctionContext = this.auctionsMap.get(auctionId);
-    return auctionContext.getCurrentBidItemInfo();
-  }
+  // async loadGame(auctionId: string, socket: any) {
+  //   const auctionContext = this.auctionsMap.get(auctionId);
+  // }
 
   /**
    * 경매 입찰

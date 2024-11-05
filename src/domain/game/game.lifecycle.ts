@@ -101,7 +101,9 @@ export class AuctionGame extends AuctionGameLifecycle {
   onBidCreated(auctionContext: AuctionGameContext) {
     const result = auctionContext.setNextBidItem();
     this.timerEvent = () => {
-      auctionContext.sendToClient(null, MessageType.PRICE_UPDATE);
+      auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
+        time: auctionContext.getTime(),
+      });
       console.log('timerEvent');
     };
     if (!result) this.ternimate();

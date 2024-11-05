@@ -105,7 +105,8 @@ export class AuctionGameContext {
 
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): boolean {
-    const { bidPrice, bidderId, socket } = updateBidPriceDto;
+    const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
+    console.log(updateBidPriceDto);
     console.log('currentTime', this.getTime());
     console.log('try to update bid price', bidPrice, bidderId);
     if (!this.currentBidItem.canBid) {
@@ -123,12 +124,12 @@ export class AuctionGameContext {
     console.log('bid price is updated', bidPrice);
     this.updateEvent();
 
-    const data: any = {
-      time: this.currentBidItem.itemSellingLimitTime,
+    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
+    this.sendToClient(null, MessageType.PRICE_UPDATE, {
+      bidderNickname,
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
-    };
-    this.sendToClient(socket, MessageType.PRICE_UPDATE, data);
+    });
     return true;
   }
 
@@ -139,9 +140,18 @@ export class AuctionGameContext {
         bidPrice: this.currentBidItem.bidPrice,
         bidderId: this.currentBidItem.bidderId,
       };
+    let response: ResponseDto;
     switch (messageType) {
+      case MessageType.TIME_UPDATE:
+        response = {
+          auctionId: this.auctionId,
+          messageType,
+          socket: null,
+        };
+        this.socketEvent(response, data);
+        break;
       case MessageType.PRICE_UPDATE:
-        const response: ResponseDto = {
+        response = {
           auctionId: this.auctionId,
           messageType,
           socket: null,

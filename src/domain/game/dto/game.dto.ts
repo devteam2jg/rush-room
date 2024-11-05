@@ -24,6 +24,7 @@ export class InitialDataDto {
 }
 
 export enum MessageType {
+  TIME_UPDATE = 'TIME_UPDATE',
   PRICE_UPDATE = 'PRICE_UPDATE',
   NOTIFICATION = 'NOTIFICATION',
   USER_MESSAGE = 'USER_MESSAGE',
@@ -45,6 +46,7 @@ export class BidDataDto {
 
 export class UpdateBidPriceDto extends PartialType(BidDataDto) {
   auctionId: string;
+  bidderNickname: string;
   bidPrice: number;
   bidderId: string;
 }
