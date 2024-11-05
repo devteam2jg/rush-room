@@ -22,7 +22,7 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
   ) {}
 
-  private auctionsMap: Map<string, AuctionGameContext> = new Map();
+  private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
 
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
@@ -37,8 +37,6 @@ export class GameService {
       auctionId: string,
       auctionContext: AuctionGameContext,
     ): Promise<LoadGameDataDto> => {
-      //TODO: load data from db
-
       const auction = await this.auctionRepository.findOneBy({ id: auctionId });
 
       const bidItems: BidItem[] = (

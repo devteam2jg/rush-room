@@ -197,26 +197,26 @@ export class AuctionGameContext {
       auctionId: string,
       auctionContext: AuctionGameContext,
     ) => Promise<LoadGameDataDto>,
-  ): AuctionGameContext {
+  ): this {
     this.loadEvent = event;
     return this;
   }
 
   setSaveEventListener(
     event: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>,
-  ): AuctionGameContext {
+  ): this {
     this.saveEvent = event;
     return this;
   }
 
   setSocketEventListener(
     event: (response: ResponseDto, data: any) => boolean,
-  ): AuctionGameContext {
+  ): this {
     this.socketEvent = event;
     return this;
   }
 
-  setUpdateBidEventListener(event: () => void): AuctionGameContext {
+  setUpdateBidEventListener(event: () => void): this {
     this.updateEvent = event;
     return this;
   }

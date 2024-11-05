@@ -133,25 +133,10 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
-    let cnt = 0;
     auctionContext.setUpdateBidEventListener(() => {
       const curtime = auctionContext.getTime();
-      let time = 5;
-
-      switch (cnt) {
-        case 0:
-          time = 30;
-          break;
-        case 1:
-          time = 20;
-          break;
-        case 2:
-          time = 10;
-          break;
-      }
-      time = curtime - (curtime % 10) + 10;
+      const time = ((curtime / 10) | 0) * 10 + 10;
       auctionContext.setTime(time);
-      cnt++;
       console.log('Time is updated to', time);
     });
     console.log('Bid Phase 2 start');
