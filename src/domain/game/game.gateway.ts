@@ -48,7 +48,7 @@ export class GameGateway {
    * @param socket
    * @param joinData - auctionId, auctionItemId 포함한 데이터.
    */
-  @UseGuards(AuctionIsRunningGuard)
+  // @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('join_auction')
   async handleJoinAuction(socket: Socket, joinData: AuctionIds): Promise<void> {
     const { auctionId } = joinData;
@@ -63,7 +63,6 @@ export class GameGateway {
    * @param socket - 클라이언트 소켓.
    * @param messageData - auctionId, userId, message, nickname 포함한 메시지 데이터.
    */
-  @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('message')
   handleMessage(
     @ConnectedSocket()
@@ -118,7 +117,6 @@ export class GameGateway {
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    * @param bidData - auctionId, userNickName, bidPrice, bidderId 포함한 입찰 데이터.
    */
-  @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('new_bid')
   handleNewBid(
     @MessageBody()
