@@ -30,7 +30,7 @@ export class AuctionGameContext {
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
-
+  auctionTitle: string;
   currentBidItem: BidItem;
   sequence: number;
 
@@ -54,11 +54,11 @@ export class AuctionGameContext {
   getTime(): number {
     return this.currentBidItem.itemSellingLimitTime;
   }
-  setNextBidItem(): boolean {
+  setNextBidItem(): BidItem {
     this.currentBidItem = this.bidItems[this.sequence];
-    if (!this.currentBidItem) return false;
+    if (!this.currentBidItem) return null;
     this.sequence++;
-    return true;
+    return this.currentBidItem;
   }
   isAuctionEnded(): boolean {
     return this.sequence === this.bidItems.length;
@@ -83,6 +83,7 @@ export class AuctionGameContext {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
     const { auctionId, bidItems, auctionStartDateTime } = data;
     this.auctionId = auctionId;
+    this.auctionTitle = data.auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
     data.callback();
@@ -100,29 +101,26 @@ export class AuctionGameContext {
   }
 
   /** client event */
-  updateBidPrice(
-    socket: Socket,
-    updateBidPriceDto: UpdateBidPriceDto,
-  ): boolean {
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
     console.log(updateBidPriceDto);
     console.log('currentTime', this.getTime());
     console.log('try to update bid price', bidPrice, bidderId);
 
-    if (!this.currentBidItem.canBid) {
-      console.log('bid is not allowed');
-      return false;
-    }
-    if (bidPrice <= this.currentBidItem.bidPrice) {
-      console.log('bid price is lower than current price');
-      return false;
-    }
+    if (!this.currentBidItem.canBid)
+      return {
+        message: '입찰이 불가능한 상태입니다',
+      };
+    if (bidPrice <= this.currentBidItem.bidPrice)
+      return {
+        message: '현재 입찰가보다 낮은 금액입니다',
+        bidPrice: this.currentBidItem,
+      };
 
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
-    console.log('bid price is updated', bidPrice);
 
     this.updateEvent();
 
@@ -133,12 +131,10 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
     });
-
-    this.sendToClient(socket, MessageType.NOTIFICATION, {
+    return {
       message: '입찰이 완료되었습니다',
       bidPrice: this.currentBidItem.bidPrice,
-    });
-    return true;
+    };
   }
 
   /** socket function
@@ -153,6 +149,7 @@ export class AuctionGameContext {
     return new Promise(() => {
       if (!data)
         data = {
+          itemId: this.currentBidItem.itemId,
           time: this.currentBidItem.itemSellingLimitTime,
           bidPrice: this.currentBidItem.bidPrice,
           bidderId: this.currentBidItem.bidderId,
@@ -175,11 +172,8 @@ export class AuctionGameContext {
     };
   }
 
-  notifyAuctionEnd() {
-    this.sendToClient(null, MessageType.NOTIFICATION, {
-      type: 'AUCTION_END',
-      message: '경매가 종료되었습니다',
-    });
+  notifyToClient(data: any) {
+    this.sendToClient(null, MessageType.NOTIFICATION, data);
   }
   /***************************************************************************
    * event listener list

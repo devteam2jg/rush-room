@@ -14,6 +14,7 @@ import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { Socket } from 'socket.io';
 import { UsersService } from '~/src/domain/users/users.service';
+
 @Injectable()
 export class GameService {
   constructor(
@@ -68,6 +69,7 @@ export class GameService {
 
       const loadGameDataDto: LoadGameDataDto = {
         auctionId: auctionId,
+        auctionTitle: auction.title,
         bidItems: bidItems,
         auctionStartDateTime: auctionStartDateTime,
         auctionStatus: auctionStatus,
@@ -114,13 +116,10 @@ export class GameService {
    * @param UpdateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(
-    socket: Socket,
-    updateBidPriceDto: UpdateBidPriceDto,
-  ): boolean {
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { auctionId } = updateBidPriceDto;
     const auctionContext = this.auctionsMap.get(auctionId);
-    return auctionContext.updateBidPrice(socket, updateBidPriceDto);
+    return auctionContext.updateBidPrice(updateBidPriceDto);
   }
 
   /**
@@ -131,7 +130,7 @@ export class GameService {
   async startAuction(startAuctionDto: { auctionId: string }) {
     const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
-    AuctionGameLifecycle.launch(auctionContext);
+    return AuctionGameLifecycle.launch(auctionContext);
   }
 
   requestAuctionInfo(auctionId: string) {

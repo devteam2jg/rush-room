@@ -6,9 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, forwardRef } from '@nestjs/common';
-
-import { Injectable } from '@nestjs/common';
+import { Inject, forwardRef, Injectable } from '@nestjs/common';
 import {
   MessageType,
   ResponseDto,
@@ -92,6 +90,29 @@ export class GameGateway {
   }
 
   /**
+   * 'new_bid' 이벤트를 처리.
+   * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
+   * @param bidData - auctionId, userNickName, bidPrice, bidderId 포함한 입찰 데이터.
+   */
+  @SubscribeMessage('new_bid')
+  handleNewBid(
+    @ConnectedSocket()
+    socket: Socket,
+    @MessageBody()
+    bidData: UpdateBidPriceDto,
+  ): any {
+    return this.gameService.updateBidPrice(bidData);
+  }
+
+  @SubscribeMessage('INFO')
+  handleRequestAuctionInfo(
+    @MessageBody() data: { auctionId: string; type?: string },
+  ) {
+    const { auctionId } = data;
+    return this.gameService.requestAuctionInfo(auctionId);
+  }
+
+  /**
    * 음성 데이터 처리
    * 같은 room 사용자 모두에게 전송
    * @param socket
@@ -117,28 +138,5 @@ export class GameGateway {
       { auctionId, messageType: MessageType.VOICE_MESSAGE, socket },
       messageData,
     );
-  }
-
-  /**
-   * 'new_bid' 이벤트를 처리.
-   * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
-   * @param bidData - auctionId, userNickName, bidPrice, bidderId 포함한 입찰 데이터.
-   */
-  @SubscribeMessage('new_bid')
-  handleNewBid(
-    @ConnectedSocket()
-    socket: Socket,
-    @MessageBody()
-    bidData: UpdateBidPriceDto,
-  ): boolean {
-    return this.gameService.updateBidPrice(socket, bidData);
-  }
-
-  @SubscribeMessage('INFO')
-  handleRequestAuctionInfo(
-    @MessageBody() data: { auctionId: string; type: 'GET_AUCTION_INFO' },
-  ) {
-    const { auctionId } = data;
-    return this.gameService.requestAuctionInfo(auctionId);
   }
 }
