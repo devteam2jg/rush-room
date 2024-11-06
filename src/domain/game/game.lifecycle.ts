@@ -1,38 +1,57 @@
 import { MessageType } from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from './game.context';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
+import {
+  findNullAndsetDefaultValue,
+  LifecycleFuctionDto,
+} from '~/src/domain/game/dto/lifecycle.dto';
 
 export abstract class AuctionGameLifecycle {
   private next: () => Promise<void>;
   private readonly auctionContext: AuctionGameContext;
+  private readonly lifecycle: LifecycleFuctionDto;
 
-  constructor(auctionContext: AuctionGameContext) {
+  constructor(
+    auctionContext: AuctionGameContext,
+    lifecycle: LifecycleFuctionDto,
+  ) {
     this.auctionContext = auctionContext;
+    this.lifecycle = findNullAndsetDefaultValue(lifecycle);
   }
   private async onRoomCreate() {
     this.next = this.onBidCreate;
+    await this.lifecycle.jobBeforeRoomCreate(this.auctionContext);
     await this.onRoomCreated(this.auctionContext);
+    await this.lifecycle.jobAfterRoomCreate(this.auctionContext);
   }
   private async onRoomDestroy() {
     this.next = null;
+    await this.lifecycle.jobBeforeRoomDestroy(this.auctionContext);
     await this.onRoomDestroyed(this.auctionContext);
+    await this.lifecycle.jobAfterRoomDestroy(this.auctionContext);
   }
 
   private async onBidCreate() {
     this.next = this.onBidRunnning;
+    await this.lifecycle.jobBeforeBidCreate(this.auctionContext);
     await this.onBidCreated(this.auctionContext);
+    await this.lifecycle.jobAfterBidCreate(this.auctionContext);
   }
 
   private async onBidRunnning() {
     this.next = this.onBidEnd;
+    await this.lifecycle.jobBeforeBidRunning(this.auctionContext);
     await this.onBidPhase1(this.auctionContext);
     await this.onBidPhase2(this.auctionContext);
+    await this.lifecycle.jobAfterBidRunning(this.auctionContext);
   }
 
   private async onBidEnd() {
     this.next = this.onRoomDestroy;
+    await this.lifecycle.jobBeforeBidEnd(this.auctionContext);
     if (!(await this.onBidEnded(this.auctionContext)))
       this.next = this.onBidCreate;
+    await this.lifecycle.jobAfterBidEnd(this.auctionContext);
   }
 
   protected ternimate() {
@@ -80,8 +99,11 @@ export abstract class AuctionGameLifecycle {
    */
   abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
 
-  static launch(auctionGameContext: AuctionGameContext) {
-    new AuctionGame(auctionGameContext).run();
+  static launch(
+    auctionGameContext: AuctionGameContext,
+    lifecycle: LifecycleFuctionDto,
+  ) {
+    new AuctionGame(auctionGameContext, lifecycle).run();
     return {
       message: 'Auction Started',
     };

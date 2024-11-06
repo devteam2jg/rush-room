@@ -8,11 +8,13 @@ import {
   SaveGameDataDto,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
+import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class GameService {
@@ -84,7 +86,6 @@ export class GameService {
     ): Promise<boolean> => {
       const { bidItems } = saveGameDataDto;
       await this.auctionItemRepository.updateAuctionItemMany(bidItems);
-      //if (saveResult === null) return false;
       return true;
     };
 
@@ -101,7 +102,19 @@ export class GameService {
 
     return auctionContext;
   }
-
+  private createGameFunction() {
+    const lifecycleDto: LifecycleFuctionDto = {
+      jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
+        this.auctionsMap.set(auctionContext.auctionId, auctionContext);
+        return true;
+      },
+      jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
+        this.auctionsMap.delete(auctionContext.auctionId);
+        return true;
+      },
+    };
+    return lifecycleDto;
+  }
   /**
    * 경매
    */
@@ -130,7 +143,6 @@ export class GameService {
     auctionId: string;
   }): Promise<{ message: string }> {
     const { auctionId } = startAuctionDto;
-    const auctionContext = await this.createGameContext(auctionId);
 
     // 경매 시작 하면 상태 진행으로 변경
     await this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
@@ -141,12 +153,14 @@ export class GameService {
         message: '이미 시작된 경매입니다',
       };
     }
-
-    return AuctionGameLifecycle.launch(auctionContext);
+    const auctionContext = await this.createGameContext(auctionId);
+    const lifecycleDto = this.createGameFunction();
+    return AuctionGameLifecycle.launch(auctionContext, lifecycleDto);
   }
 
-  requestAuctionInfo(auctionId: string) {
+  requestAuctionInfo(socket: Socket, auctionId: string) {
     const auctionContext = this.auctionsMap.get(auctionId);
+    auctionContext.requestLastNotifyData(socket);
     return auctionContext.requestCurrentBidInfo();
   }
 

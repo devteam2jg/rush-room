@@ -6,6 +6,7 @@ import {
   MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
+import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 export enum AuctionStatus {
   READY = 'READY',
@@ -89,7 +90,6 @@ export class AuctionGameContext {
     this.auctionTitle = auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
-    data.callback();
     return true;
   }
 
@@ -176,9 +176,13 @@ export class AuctionGameContext {
       bidderId: this.currentBidItem.bidderId,
     };
   }
-
+  private lastNotifyData: any = null;
   notifyToClient(data: any) {
+    this.lastNotifyData = data;
     this.sendToClient(null, MessageType.NOTIFICATION, data);
+  }
+  requestLastNotifyData(socket) {
+    this.sendToClient(socket, MessageType.NOTIFICATION, this.lastNotifyData);
   }
   /***************************************************************************
    * event listener list
@@ -196,6 +200,8 @@ export class AuctionGameContext {
     null;
 
   private updateEvent: () => void = null;
+
+  private lifeCycleFunctionDto: LifecycleFuctionDto = null;
 
   setLoadEventListener(
     event: (
@@ -224,5 +230,12 @@ export class AuctionGameContext {
   setUpdateBidEventListener(event: () => void): this {
     this.updateEvent = event;
     return this;
+  }
+  setLifeCycleFunctionDto(lifeCycleFunctionDto: LifecycleFuctionDto): this {
+    this.lifeCycleFunctionDto = lifeCycleFunctionDto;
+    return this;
+  }
+  getLifeCycleFunctionDto(): LifecycleFuctionDto {
+    return this.lifeCycleFunctionDto;
   }
 }

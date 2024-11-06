@@ -1,0 +1,43 @@
+import { AuctionGameContext } from '~/src/domain/game/game.context';
+
+export type JobFunction = (
+  auctionContext: AuctionGameContext,
+) => Promise<boolean>;
+
+export class LifecycleFuctionDto {
+  jobBeforeRoomCreate?: JobFunction;
+  jobAfterRoomCreate?: JobFunction;
+
+  jobBeforeRoomDestroy?: JobFunction;
+  jobAfterRoomDestroy?: JobFunction;
+
+  jobBeforeBidCreate?: JobFunction;
+  jobAfterBidCreate?: JobFunction;
+
+  jobBeforeBidRunning?: JobFunction;
+  jobAfterBidRunning?: JobFunction;
+
+  jobBeforeBidEnd?: JobFunction;
+  jobAfterBidEnd?: JobFunction;
+}
+export function findNullAndsetDefaultValue(lifecycle: LifecycleFuctionDto) {
+  if (!lifecycle.jobBeforeRoomCreate)
+    lifecycle.jobBeforeRoomCreate = async () => true;
+  if (!lifecycle.jobAfterRoomCreate)
+    lifecycle.jobAfterRoomCreate = async () => true;
+  if (!lifecycle.jobBeforeRoomDestroy)
+    lifecycle.jobBeforeRoomDestroy = async () => true;
+  if (!lifecycle.jobAfterRoomDestroy)
+    lifecycle.jobAfterRoomDestroy = async () => true;
+  if (!lifecycle.jobBeforeBidCreate)
+    lifecycle.jobBeforeBidCreate = async () => true;
+  if (!lifecycle.jobAfterBidCreate)
+    lifecycle.jobAfterBidCreate = async () => true;
+  if (!lifecycle.jobBeforeBidRunning)
+    lifecycle.jobBeforeBidRunning = async () => true;
+  if (!lifecycle.jobAfterBidRunning)
+    lifecycle.jobAfterBidRunning = async () => true;
+  if (!lifecycle.jobBeforeBidEnd) lifecycle.jobBeforeBidEnd = async () => true;
+  if (!lifecycle.jobAfterBidEnd) lifecycle.jobAfterBidEnd = async () => true;
+  return lifecycle;
+}

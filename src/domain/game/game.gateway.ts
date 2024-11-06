@@ -107,10 +107,11 @@ export class GameGateway {
 
   @SubscribeMessage('INFO')
   handleRequestAuctionInfo(
+    @ConnectedSocket() socket: Socket,
     @MessageBody() data: { auctionId: string; type?: string },
   ) {
     const { auctionId } = data;
-    return this.gameService.requestAuctionInfo(auctionId);
+    return this.gameService.requestAuctionInfo(socket, auctionId);
   }
 
   /**
