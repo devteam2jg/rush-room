@@ -97,17 +97,22 @@ export class AuctionGame extends AuctionGameLifecycle {
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
     await auctionContext.saveToDB();
     console.log('Auction Destroyed', auctionContext.auctionTitle);
+
+    auctionContext.notifyToClient({
+      type: 'AUCTION_END',
+    });
   }
 
   async onBidCreated(auctionContext: AuctionGameContext) {
     const bidItem = auctionContext.setNextBidItem();
+    if (!bidItem) this.ternimate();
     auctionContext.notifyToClient({
       type: 'BID_READY',
       itemId: bidItem.itemId,
       bidPrice: bidItem.startPrice,
       title: bidItem.title,
     });
-    if (!bidItem) this.ternimate();
+
     this.timerEvent = () => {
       auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
         time: auctionContext.getTime(),
@@ -162,16 +167,17 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
+    auctionContext.deactivateBid();
     const bidItem = auctionContext.currentBidItem;
     const userData: UserDataDto = auctionContext.getUserDataById(
       bidItem.bidderId,
     );
-    auctionContext.deactivateBid();
+
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
-      name: userData.name,
+      name: userData?.name,
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();

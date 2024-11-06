@@ -103,6 +103,7 @@ export class GameService {
    * 경매
    */
   async joinAuction(auctionId: string, userId: string) {
+    console.log('joinAuction', auctionId, userId);
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
     console.log(user);
@@ -124,9 +125,17 @@ export class GameService {
    * @param startAuctionDto
    * @returns Promise<boolean>
    */
-  async startAuction(startAuctionDto: { auctionId: string }) {
+  async startAuction(startAuctionDto: {
+    auctionId: string;
+  }): Promise<{ message: string }> {
     const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
+    if (this.isRunning(auctionId)) {
+      //TODO: 아직 불완전함
+      return {
+        message: '이미 시작된 경매입니다',
+      };
+    }
     return AuctionGameLifecycle.launch(auctionContext);
   }
 
