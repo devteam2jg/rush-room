@@ -1,6 +1,5 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
-
 import { AuctionGameLifecycle } from './game.lifecycle';
 import {
   InitialDataDto,
@@ -13,6 +12,7 @@ import { GameGateway } from '~/src/domain/game/game.gateway';
 import { AuctionRepository } from '~/src/domain/auction/auction.repository';
 import { AuctionItemRepository } from '~/src/domain/auction/auction-item.repository';
 import { UsersService } from '~/src/domain/users/users.service';
+import { Status } from '~/src/domain/auction/entities/auction.entity';
 
 @Injectable()
 export class GameService {
@@ -22,7 +22,10 @@ export class GameService {
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
-  ) {}
+  ) {
+    // 생성자로 실행하는거 맞나??
+    this.setAuctionStartTimers();
+  }
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
 
@@ -128,17 +131,41 @@ export class GameService {
   }): Promise<{ message: string }> {
     const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
+
+    // 경매 시작 하면 상태 진행으로 변경
+    await this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
+
     if (this.isRunning(auctionId)) {
       //TODO: 아직 불완전함
       return {
         message: '이미 시작된 경매입니다',
       };
     }
+
     return AuctionGameLifecycle.launch(auctionContext);
   }
 
   requestAuctionInfo(auctionId: string) {
     const auctionContext = this.auctionsMap.get(auctionId);
     return auctionContext.requestCurrentBidInfo();
+  }
+
+  // 경매 시작 타이머 설정
+  async setAuctionStartTimers(): Promise<void> {
+    const auctions = await this.auctionRepository.getWaitAuctions(); // 조건에 맞는 경매 조회
+
+    for (const auction of auctions) {
+      const now = new Date();
+      const startTime = new Date(auction.eventDate); // 경매 시작 시간, string으로 받아오기 때문에 Date로 변환
+
+      const timeDifference = startTime.getTime() - now.getTime(); // 시작 시간과 현재 시간 차이 (ms)
+
+      // 10분(600000ms) 이하일 때만 타이머 설정
+      if (timeDifference <= 600000 && timeDifference > 0) {
+        setTimeout(async () => {
+          await this.startAuction({ auctionId: auction.id }); // 경매 시작 함수 호출
+        }, timeDifference);
+      }
+    }
   }
 }
