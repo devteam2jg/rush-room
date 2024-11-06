@@ -1,12 +1,18 @@
 import { mediaCodecs } from './../media.config';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { IRoom } from './room.interface';
 import { MediasoupService } from '../mediasoup.service';
+import { GameService } from '~/src/domain/game/game.service';
 
 @Injectable()
 export class RoomService {
   private rooms: Map<string, IRoom> = new Map();
-  constructor(private readonly mediasoupService: MediasoupService) {}
+
+  constructor(
+    private readonly mediasoupService: MediasoupService,
+    @Inject(forwardRef(() => GameService))
+    private readonly gameService: GameService,
+  ) {}
 
   public async createRoom(roomId: string): Promise<IRoom> {
     if (this.rooms.has(roomId)) {
@@ -28,7 +34,7 @@ export class RoomService {
   }
 
   public getRoom(roomId: string): IRoom | undefined {
-    return this.rooms.get(roomId);
+    return this.gameService.getRoom(roomId);
   }
 
   public removeRoom(roomId: string): void {
