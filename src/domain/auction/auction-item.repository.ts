@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { AuctionItem } from '~/src/domain/auction/entities/auction-item.entity';
 import { CreateAuctionServiceDto } from '~/src/domain/auction/dto/service/create.auction.service.dto';
-import { BidItem } from '~/src/domain/game/game.context';
+import { BidItem } from '~/src/domain/game/context/game.context';
 
 @Injectable()
 export class AuctionItemRepository extends Repository<AuctionItem> {

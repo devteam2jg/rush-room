@@ -2,7 +2,7 @@ import {
   LoadGameDataDto,
   SaveGameDataDto,
 } from '~/src/domain/game/dto/game.dto';
-import { AuctionGameContext } from '~/src/domain/game/game.context';
+import { AuctionGameContext } from '~/src/domain/game/context/game.context';
 
 export type JobFunction = (
   auctionContext: AuctionGameContext,

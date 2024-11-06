@@ -1,6 +1,10 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
-import { AuctionGameLifecycle } from './game.lifecycle';
+import {
+  AuctionGameContext,
+  AuctionStatus,
+  BidItem,
+} from '~/src/domain/game/context/game.context';
+import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import {
   LoadGameDataDto,
   ResponseDto,

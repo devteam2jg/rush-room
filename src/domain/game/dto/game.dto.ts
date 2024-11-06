@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { AuctionStatus, BidItem } from '../game.context';
+import { AuctionStatus, BidItem } from '../context/game.context';
 import { Socket } from 'socket.io';
 
 export class GameDataDto {
