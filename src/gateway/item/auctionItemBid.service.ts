@@ -4,7 +4,7 @@ import { AuctionItemRepository } from '~/src/domain/auction/auction-item.reposit
 import { AuctionManager } from '~/src/domain/auction/auction.manager';
 
 @Injectable()
-export class AuctionGatewayService {
+export class AuctionItemBidService {
   constructor(
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly auctionManager: AuctionManager,
