@@ -4,7 +4,7 @@ import {
   AuctionStatus,
   BidItem,
 } from '~/src/domain/game/context/game.context';
-import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
+import { AuctionGame } from '~/src/domain/game/lifecycle/game.lifecycle';
 import {
   LoadGameDataDto,
   ResponseDto,
@@ -93,7 +93,7 @@ export class GameService {
       };
     }
     const lifecycleDto = this.createGameFunction(auctionId);
-    return AuctionGameLifecycle.launch(lifecycleDto);
+    return AuctionGame.launch(lifecycleDto);
   }
 
   requestAuctionInfo(socket: Socket, auctionId: string) {

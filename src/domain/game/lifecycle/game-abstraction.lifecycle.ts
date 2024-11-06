@@ -1,5 +1,4 @@
 import { AuctionGameContext } from '~/src/domain/game/context/game.context';
-import { AuctionGame } from '~/src/domain/game/lifecycle/game.lifecycle';
 import {
   findNullAndsetDefaultValue,
   LifecycleFuctionDto,
@@ -96,11 +95,4 @@ export abstract class AuctionGameLifecycle {
   abstract onBidPhase1(auctionContext: AuctionGameContext);
   abstract onBidPhase2(auctionContext: AuctionGameContext);
   abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
-
-  static launch(lifecycle: LifecycleFuctionDto) {
-    new AuctionGame(lifecycle).run();
-    return {
-      message: 'Auction Started',
-    };
-  }
 }
