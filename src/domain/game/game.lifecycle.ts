@@ -11,12 +11,15 @@ export abstract class AuctionGameLifecycle {
   private readonly auctionContext: AuctionGameContext;
   private readonly lifecycle: LifecycleFuctionDto;
 
-  constructor(
-    auctionContext: AuctionGameContext,
-    lifecycle: LifecycleFuctionDto,
-  ) {
-    this.auctionContext = auctionContext;
+  constructor(lifecycle: LifecycleFuctionDto) {
     this.lifecycle = findNullAndsetDefaultValue(lifecycle);
+
+    this.auctionContext = new AuctionGameContext({
+      id: lifecycle.auctionId,
+    })
+      .setLoadEventListener(lifecycle.loadEvent)
+      .setSaveEventListener(lifecycle.saveEvent)
+      .setSocketEventListener(lifecycle.socketEvent);
   }
   private async onRoomCreate() {
     this.next = this.onBidCreate;
@@ -99,11 +102,8 @@ export abstract class AuctionGameLifecycle {
    */
   abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
 
-  static launch(
-    auctionGameContext: AuctionGameContext,
-    lifecycle: LifecycleFuctionDto,
-  ) {
-    new AuctionGame(auctionGameContext, lifecycle).run();
+  static launch(lifecycle: LifecycleFuctionDto) {
+    new AuctionGame(lifecycle).run();
     return {
       message: 'Auction Started',
     };

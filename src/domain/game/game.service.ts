@@ -2,7 +2,6 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { AuctionGameContext, AuctionStatus, BidItem } from './game.context';
 import { AuctionGameLifecycle } from './game.lifecycle';
 import {
-  InitialDataDto,
   LoadGameDataDto,
   ResponseDto,
   SaveGameDataDto,
@@ -34,76 +33,13 @@ export class GameService {
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
   }
-  /**
-   * 경매 게임 컨텍스트 생성
-   * @param auctionId
-   * @returns Promise<AuctionGameContext>
-   */
-  private async createGameContext(auctionId: string) {
-    const loadfun = async (
-      auctionId: string,
-      auctionContext: AuctionGameContext,
-    ): Promise<LoadGameDataDto> => {
-      const auction = await this.auctionRepository.findOneBy({ id: auctionId });
+  private createGameFunction(auctionId: string): LifecycleFuctionDto {
+    return {
+      auctionId,
+      saveEvent: this.save,
+      loadEvent: this.load,
+      socketEvent: this.socketfun,
 
-      const bidItems: BidItem[] = (
-        await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
-          auctionId,
-          null,
-        )
-      ).map((item) => {
-        return {
-          itemId: item.id,
-          sellerId: item.user.id,
-          bidderId: null,
-          startPrice: item.startPrice,
-          bidPrice: item.startPrice,
-          itemSellingLimitTime: auction.sellingLimitTime * 4,
-          title: item.title,
-          description: item.description,
-          picture: item.imageUrls,
-          canBid: false,
-        };
-      });
-
-      const auctionStartDateTime = auction.eventDate;
-      const auctionStatus = AuctionStatus.READY;
-      const callback = () => this.auctionsMap.set(auctionId, auctionContext);
-
-      const loadGameDataDto: LoadGameDataDto = {
-        auctionId: auctionId,
-        auctionTitle: auction.title,
-        bidItems: bidItems,
-        auctionStartDateTime: auctionStartDateTime,
-        auctionStatus: auctionStatus,
-        callback: callback,
-      };
-      return loadGameDataDto;
-    };
-
-    const savefun = async (
-      saveGameDataDto: SaveGameDataDto,
-    ): Promise<boolean> => {
-      const { bidItems } = saveGameDataDto;
-      await this.auctionItemRepository.updateAuctionItemMany(bidItems);
-      return true;
-    };
-
-    const socketfun = (response: ResponseDto, data: any) => {
-      return this.gameGateway.sendToMany(response, data);
-    };
-
-    const initialDataDto: InitialDataDto = { id: auctionId };
-
-    const auctionContext = new AuctionGameContext(initialDataDto)
-      .setLoadEventListener(loadfun)
-      .setSaveEventListener(savefun)
-      .setSocketEventListener(socketfun);
-
-    return auctionContext;
-  }
-  private createGameFunction() {
-    const lifecycleDto: LifecycleFuctionDto = {
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
         this.auctionsMap.set(auctionContext.auctionId, auctionContext);
         return true;
@@ -113,7 +49,6 @@ export class GameService {
         return true;
       },
     };
-    return lifecycleDto;
   }
   /**
    * 경매
@@ -153,9 +88,8 @@ export class GameService {
         message: '이미 시작된 경매입니다',
       };
     }
-    const auctionContext = await this.createGameContext(auctionId);
-    const lifecycleDto = this.createGameFunction();
-    return AuctionGameLifecycle.launch(auctionContext, lifecycleDto);
+    const lifecycleDto = this.createGameFunction(auctionId);
+    return AuctionGameLifecycle.launch(lifecycleDto);
   }
 
   requestAuctionInfo(socket: Socket, auctionId: string) {
@@ -193,4 +127,53 @@ export class GameService {
       }
     }
   }
+
+  private readonly load = async (
+    auctionId: string,
+  ): Promise<LoadGameDataDto> => {
+    const auction = await this.auctionRepository.findOneBy({ id: auctionId });
+
+    const bidItems: BidItem[] = (
+      await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
+        auctionId,
+        null,
+      )
+    ).map((item) => {
+      return {
+        itemId: item.id,
+        sellerId: item.user.id,
+        bidderId: null,
+        startPrice: item.startPrice,
+        bidPrice: item.startPrice,
+        itemSellingLimitTime: auction.sellingLimitTime * 4,
+        title: item.title,
+        description: item.description,
+        picture: item.imageUrls,
+        canBid: false,
+      };
+    });
+
+    const auctionStartDateTime = auction.eventDate;
+    const auctionStatus = AuctionStatus.READY;
+
+    const loadGameDataDto: LoadGameDataDto = {
+      auctionId: auctionId,
+      auctionTitle: auction.title,
+      bidItems: bidItems,
+      auctionStartDateTime: auctionStartDateTime,
+      auctionStatus: auctionStatus,
+    };
+    return loadGameDataDto;
+  };
+
+  private readonly save = async (
+    saveGameDataDto: SaveGameDataDto,
+  ): Promise<boolean> => {
+    const { bidItems } = saveGameDataDto;
+    await this.auctionItemRepository.updateAuctionItemMany(bidItems);
+    return true;
+  };
+  private readonly socketfun = (response: ResponseDto, data: any) => {
+    return this.gameGateway.sendToMany(response, data);
+  };
 }

@@ -8,7 +8,6 @@ export class GameDataDto {
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
-  callback: () => void;
 }
 
 export class LoadGameDataDto extends GameDataDto {}

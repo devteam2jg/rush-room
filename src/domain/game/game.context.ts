@@ -84,7 +84,7 @@ export class AuctionGameContext {
   }
 
   async loadFromDB(): Promise<boolean> {
-    const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
+    const data: LoadGameDataDto = await this.loadEvent(this.auctionId);
     const { auctionId, bidItems, auctionStartDateTime, auctionTitle } = data;
     this.auctionId = auctionId;
     this.auctionTitle = auctionTitle;
@@ -191,10 +191,7 @@ export class AuctionGameContext {
 
   private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 
-  private loadEvent: (
-    auctionId: string,
-    auctionContext: AuctionGameContext,
-  ) => Promise<LoadGameDataDto> = null;
+  private loadEvent: (auctionId: string) => Promise<LoadGameDataDto> = null;
 
   private saveEvent: (saveGameDataDto: SaveGameDataDto) => Promise<boolean> =
     null;
@@ -204,10 +201,7 @@ export class AuctionGameContext {
   private lifeCycleFunctionDto: LifecycleFuctionDto = null;
 
   setLoadEventListener(
-    event: (
-      auctionId: string,
-      auctionContext: AuctionGameContext,
-    ) => Promise<LoadGameDataDto>,
+    event: (auctionId: string) => Promise<LoadGameDataDto>,
   ): this {
     this.loadEvent = event;
     return this;
