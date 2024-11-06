@@ -1,4 +1,4 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AuctionGameContext,
   AuctionStatus,
@@ -18,22 +18,40 @@ import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
+import { RoomService } from '~/src/domain/game/room-service/room.service';
+import { TransportService } from '~/src/domain/game/mediasoup/transport/transport.service';
+import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
+import { JoinAuctionResultDto } from '~/src/domain/game/dto/join.auction.result.dto';
+import { ProduceDto } from '~/src/domain/game/dto/produce.dto';
+import { ProducerConsumerService } from '~/src/domain/game/mediasoup/producer-consumer/producer-consumer.service';
+import { ConsumerDto } from '~/src/domain/game/dto/consumer.dto';
+import { ConnectTransportDto } from '~/src/domain/game/dto/connect.transport.dto';
 
 @Injectable()
 export class GameService {
+  private readonly transportService: TransportService;
+  private readonly producerConsumerService: ProducerConsumerService;
+  private logger = new Logger(GameService.name, { timestamp: true });
+
+  private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
+  private readonly auctionsForReady: Map<string, string> = new Map();
+
   constructor(
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
+    @Inject(forwardRef(() => RoomService))
+    private readonly roomService: RoomService,
   ) {
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
+    this.transportService = new TransportService(this.roomService);
+    this.producerConsumerService = new ProducerConsumerService(
+      this.roomService,
+    );
   }
-
-  private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
-  private readonly auctionsForReady: Map<string, string> = new Map();
 
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
@@ -54,6 +72,126 @@ export class GameService {
     this.auctionsMap.delete(auctionId);
   }
 
+  /**
+   * 경매
+   */
+  async joinAuction(
+    joinAuctionDto: JoinAuctionDto,
+    socket: Socket,
+  ): Promise<JoinAuctionResultDto> {
+    const { auctionId, userId } = joinAuctionDto;
+    const peerId = socket.id;
+    const auctionContext = this.auctionsMap.get(auctionId);
+    const user = await this.usersService.findById({ id: userId });
+    auctionContext.join(user, socket);
+
+    const room = auctionContext.room;
+    const sendTransportOptions =
+      await this.transportService.createWebRtcTransport(
+        auctionId,
+        peerId,
+        'send',
+      );
+
+    const recvTransportOptions =
+      await this.transportService.createWebRtcTransport(
+        auctionId,
+        peerId,
+        'recv',
+      );
+    // 방의 현재 참여자 목록 전송
+    const peerIds = Array.from(room.peers.keys());
+
+    // TODO: 방송 중인 한명의 정보만 전달. 기존 Producer들의 정보 수집
+    const existingProducers = [];
+    for (const [otherPeerId, peer] of room.peers) {
+      if (otherPeerId !== peerId) {
+        for (const producer of peer.producers.values()) {
+          existingProducers.push({
+            producerId: producer.producer.id,
+            peerId: otherPeerId,
+            kind: producer.producer.kind,
+          });
+        }
+      }
+    }
+    return {
+      sendTransportOptions,
+      recvTransportOptions,
+      rtpCapabilities: room.router.router.rtpCapabilities,
+      peerIds,
+      existingProducers,
+    };
+  }
+
+  getRoom(auctionId: string) {
+    const auctionContext = this.auctionsMap.get(auctionId);
+    return auctionContext.room;
+  }
+
+  async createServerTransport(
+    connectTransportDto: ConnectTransportDto,
+    socket: Socket,
+  ) {
+    return this.transportService.connectTransport(connectTransportDto, socket);
+  }
+
+  async createServerProducer(produceDto: ProduceDto, socket: Socket) {
+    const { auctionId, kind, transportId, rtpParameters } = produceDto;
+    const peerId = socket.id;
+    const producerId = await this.producerConsumerService.createProducer({
+      auctionId,
+      peerId,
+      transportId,
+      kind,
+      rtpParameters,
+    });
+    this.logger.debug(`New producer created: ${producerId}`);
+    const auctionContext = this.auctionsMap.get(auctionId);
+    auctionContext.notifyToClient({
+      type: 'NEW_PRODUCER',
+      producerId,
+      peerId,
+      kind,
+    });
+    return { producerId };
+  }
+
+  async createServerConsumer(consumeDto: ConsumerDto, socket: Socket) {
+    const { auctionId, producerId, rtpCapabilities, transportId } = consumeDto;
+    const peerId = socket.id;
+    const consumerData = await this.producerConsumerService.createConsumer({
+      auctionId,
+      peerId,
+      transportId,
+      producerId,
+      rtpCapabilities,
+    });
+    this.logger.log(
+      `New consumer created and consuming producerId: ${consumerData.producerId}`,
+    );
+    return { consumerData };
+  }
+
+  async stopSellerProducer(data) {
+    const { auctionId } = data;
+    this.logger.log(`stopSellerProducer: ${auctionId}`);
+    return this.producerConsumerService.stopSellerPeer({
+      auctionId,
+    });
+  }
+
+  /**ㄴ
+   * 경매 입찰
+   * @param updateBidPriceDto
+   * @returns boolean
+   */
+  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
+    const { auctionId } = updateBidPriceDto;
+    const auctionContext = this.auctionsMap.get(auctionId);
+    return auctionContext.updateBidPrice(updateBidPriceDto);
+  }
+
   private createGameFunction(auctionId: string): LifecycleFuctionDto {
     return {
       auctionId,
@@ -63,11 +201,12 @@ export class GameService {
 
       jobBeforeRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        if (this.isRunningOrReady(auctionId)) return false;
+        if (this.isRunning(auctionId)) return false;
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
+        auctionContext.room = await this.roomService.createRoom(auctionId);
         this.deleteReady(auctionId);
         this.setRunning(auctionId, auctionContext);
         return true;
@@ -78,24 +217,6 @@ export class GameService {
         return true;
       },
     };
-  }
-  /**
-   * 경매
-   */
-  async joinAuction(auctionId: string, userId: string) {
-    const auctionContext = this.auctionsMap.get(auctionId);
-    const user = await this.usersService.findById({ id: userId });
-    auctionContext.join(user);
-  }
-  /**ㄴ
-   * 경매 입찰
-   * @param UpdateBidPriceDto
-   * @returns boolean
-   */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { auctionId } = updateBidPriceDto;
-    const auctionContext = this.auctionsMap.get(auctionId);
-    return auctionContext.updateBidPrice(updateBidPriceDto);
   }
 
   /**
@@ -160,7 +281,7 @@ export class GameService {
     auctionId: string,
   ): Promise<LoadGameDataDto> => {
     const auction = await this.auctionRepository.findOneBy({ id: auctionId });
-
+    if (!auction) throw new Error('not found auction');
     const bidItems: BidItem[] = (
       await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(
         auctionId,
