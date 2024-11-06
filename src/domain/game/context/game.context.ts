@@ -38,9 +38,11 @@ export class AuctionGameContext {
   prevBidderId: string;
 
   private readonly joinedUsers: Map<string, UserDataDto> = new Map();
-  join(userData: UserDataDto) {
+  join(userData: UserDataDto): boolean {
     const { id } = userData;
+    if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
+    return true;
   }
 
   constructor(initialDataDto: InitialDataDto) {

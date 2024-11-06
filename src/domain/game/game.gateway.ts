@@ -14,7 +14,7 @@ import {
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
-import { JwtWsAuthGuard } from '~/src/domain/game/guards/wsAuth.guard';
+import { GameGuard } from '~/src/domain/game/guards/game.guard';
 
 @Injectable()
 @WebSocketGateway({
@@ -45,10 +45,12 @@ export class GameGateway {
    * @param socket
    * @param joinData - auctionId, userId 포함한 데이터.
    */
-  @UseGuards(JwtWsAuthGuard)
-  @SubscribeMessage('join_auction')
+  @UseGuards(GameGuard)
+  @SubscribeMessage('JOIN')
   async handleJoinAuction(
+    @ConnectedSocket()
     socket: Socket,
+    @MessageBody()
     joinData: { auctionId: string; userId: string },
   ): Promise<{ message: string }> {
     const { auctionId, userId } = joinData;
@@ -70,15 +72,19 @@ export class GameGateway {
    * @param socket - 클라이언트 소켓.
    * @param messageData - auctionId, userId, message, nickname 포함한 메시지 데이터.
    */
-  @SubscribeMessage('message')
+
+  @UseGuards(GameGuard)
+  @SubscribeMessage(MessageType.USER_MESSAGE)
   handleMessage(
     @ConnectedSocket()
     socket: Socket,
+    @MessageBody()
     messageData: UserMessageDto,
   ): boolean {
     const { auctionId, userId, message, nickname } = messageData;
     const messageType = MessageType.USER_MESSAGE;
     const data = {
+      auctionId,
       userId,
       message,
       nickname,
@@ -88,6 +94,7 @@ export class GameGateway {
       messageType,
       socket,
     };
+    console.log('messageData', messageData);
     this.sendToMany(response, data);
     return true;
   }
@@ -97,6 +104,8 @@ export class GameGateway {
    * 새로운 입찰가가 현재 입찰가보다 높으면 현재 입찰가를 업데이트.
    * @param bidData - auctionId, userNickName, bidPrice, bidderId 포함한 입찰 데이터.
    */
+
+  @UseGuards(GameGuard)
   @SubscribeMessage('new_bid')
   handleNewBid(
     @ConnectedSocket()
@@ -107,6 +116,7 @@ export class GameGateway {
     return this.gameService.updateBidPrice(bidData);
   }
 
+  @UseGuards(GameGuard)
   @SubscribeMessage('INFO')
   handleRequestAuctionInfo(
     @ConnectedSocket() socket: Socket,
@@ -122,6 +132,8 @@ export class GameGateway {
    * @param socket
    * @param voiceData
    */
+
+  @UseGuards(GameGuard)
   @SubscribeMessage('audio')
   handleAudio(
     socket: Socket,

@@ -18,12 +18,14 @@ import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
-
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
+import { AuctionService } from '~/src/domain/auction/auction.service';
 @Injectable()
 export class GameService {
   constructor(
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
+    private readonly auctionService: AuctionService,
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
@@ -63,7 +65,7 @@ export class GameService {
 
       jobBeforeRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        if (this.isRunningOrReady(auctionId)) return false;
+        if (this.isRunning(auctionId)) return false;
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
@@ -77,6 +79,11 @@ export class GameService {
         this.deleteRunning(auctionId);
         return true;
       },
+      jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
+        const bidItem = auctionContext.currentBidItem;
+        this.saveEach(bidItem);
+        return true;
+      },
     };
   }
   /**
@@ -84,7 +91,8 @@ export class GameService {
    */
   async joinAuction(auctionId: string, userId: string) {
     const auctionContext = this.auctionsMap.get(auctionId);
-    const user = await this.usersService.findById({ id: userId });
+    const user: UserDataDto = await this.usersService.findById({ id: userId });
+    console.log('user', user);
     auctionContext.join(user);
   }
   /**ㄴ
@@ -111,11 +119,13 @@ export class GameService {
     // 경매 시작 하면 상태 진행으로 변경
     this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
     if (this.isRunningOrReady(auctionId)) {
+      console.log('이미 시작된 경매입니다');
       return {
         message: '이미 시작된 경매입니다',
       };
     }
     this.setReady(auctionId);
+    console.log('경매 시작', auctionId);
     const lifecycleDto = this.createGameFunction(auctionId);
     return GameStarter.launch(lifecycleDto);
   }
@@ -203,5 +213,11 @@ export class GameService {
   };
   private readonly socketfun = (response: ResponseDto, data: any) => {
     return this.gameGateway.sendToMany(response, data);
+  };
+  private readonly saveEach = async (bidItem: BidItem): Promise<boolean> => {
+    return new Promise(async (resolve) => {
+      await this.auctionItemRepository.updateAuctionItemMany([bidItem]);
+      resolve(true);
+    });
   };
 }

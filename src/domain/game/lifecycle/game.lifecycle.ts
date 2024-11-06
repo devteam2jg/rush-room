@@ -26,7 +26,6 @@ export class AuctionGame extends AuctionGameLifecycle {
         time: auctionContext.getTime(),
       });
     };
-
     await this.delay(5000);
     auctionContext.activateBid();
     auctionContext.notifyToClient({
@@ -80,16 +79,16 @@ export class AuctionGame extends AuctionGameLifecycle {
     const userData: UserDataDto = auctionContext.getUserDataById(
       bidItem.bidderId,
     );
-
+    console.log('Bid Ended', userData);
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
-      name: userData?.name,
+      name: userData ? userData.name : null,
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
-    await this.delay(10000);
+    await this.delay(60000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
