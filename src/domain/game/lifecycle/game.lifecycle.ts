@@ -2,25 +2,18 @@ import { AuctionGameContext } from '~/src/domain/game/context/game.context';
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { MessageType } from '~/src/domain/game/dto/game.dto';
-import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 export class AuctionGame extends AuctionGameLifecycle {
   async onRoomCreated(auctionContext: AuctionGameContext) {
     await auctionContext.loadFromDB();
     console.log('Auction Created', auctionContext.auctionTitle);
   }
 
-  async onRoomDestroyed(auctionContext: AuctionGameContext) {
-    await auctionContext.saveToDB();
-    console.log('Auction Destroyed', auctionContext.auctionTitle);
-
-    auctionContext.notifyToClient({
-      type: 'AUCTION_END',
-    });
-  }
-
   async onBidCreated(auctionContext: AuctionGameContext) {
     const bidItem = auctionContext.setNextBidItem();
-    if (!bidItem) this.ternimate();
+    if (!bidItem) {
+      this.ternimate();
+      return;
+    }
     auctionContext.notifyToClient({
       type: 'BID_READY',
       itemId: bidItem.itemId,
@@ -101,10 +94,13 @@ export class AuctionGame extends AuctionGameLifecycle {
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
   }
-  static launch(lifecycle: LifecycleFuctionDto) {
-    new AuctionGame(lifecycle).run();
-    return {
-      message: 'Auction Started',
-    };
+
+  async onRoomDestroyed(auctionContext: AuctionGameContext) {
+    await auctionContext.saveToDB();
+    console.log('Auction Destroyed', auctionContext.auctionTitle);
+
+    auctionContext.notifyToClient({
+      type: 'AUCTION_END',
+    });
   }
 }
