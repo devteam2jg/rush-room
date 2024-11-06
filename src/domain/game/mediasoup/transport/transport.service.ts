@@ -1,19 +1,19 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { RoomService } from '../room/room.service';
+import { Logger } from '@nestjs/common';
+import { RoomService } from '../../room-service/room.service';
 import { ITransportOptions } from './transport.interface';
 import { WebRtcTransport } from 'mediasoup/node/lib/types';
 import { webRtcTransport_options } from '../media.config';
 import { ConnectTransportDto } from '~/src/domain/game/dto/connect.transport.dto';
 import { Socket } from 'socket.io';
 
-@Injectable()
 export class TransportService {
   private logger = new Logger('TransportService', { timestamp: true });
 
-  constructor(
-    @Inject(forwardRef(() => RoomService))
-    private readonly roomService: RoomService,
-  ) {}
+  private readonly roomService: RoomService;
+
+  constructor(roomService: RoomService) {
+    this.roomService = roomService;
+  }
 
   public async createWebRtcTransport(
     roomId: string,

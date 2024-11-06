@@ -1,14 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RoomService } from '../room/room.service';
+import { Logger } from '@nestjs/common';
+import { RoomService } from '../../room-service/room.service';
 import { IConsumeParams, IProduceParams } from './producer-consumer.interface';
 import { Consumer } from 'mediasoup/node/lib/types';
 
-@Injectable()
 export class ProducerConsumerService {
   private readonly logger = new Logger('ProducerConsumerService', {
     timestamp: true,
   });
-  constructor(private readonly roomService: RoomService) {}
+  private readonly roomService: RoomService;
+
+  constructor(roomService: RoomService) {
+    this.roomService = roomService;
+  }
 
   public async createProducer(params: IProduceParams): Promise<string> {
     const { auctionId, peerId, kind, rtpParameters, transportId } = params;

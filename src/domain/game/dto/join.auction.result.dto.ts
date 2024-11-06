@@ -1,4 +1,4 @@
-import { ITransportOptions } from '~/src/mediasoup/transport/transport.interface';
+import { ITransportOptions } from '~/src/domain/game/mediasoup/transport/transport.interface';
 import { RtpCapabilities } from 'mediasoup/node/lib/types';
 import { MediaKind } from 'mediasoup/node/lib/RtpParameters';
 

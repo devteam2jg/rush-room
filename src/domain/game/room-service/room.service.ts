@@ -1,7 +1,7 @@
-import { mediaCodecs } from './../media.config';
+import { mediaCodecs } from '~/src/domain/game/mediasoup/media.config';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { IRoom } from './room.interface';
-import { MediasoupService } from '../mediasoup.service';
+import { MediasoupService } from '~/src/domain/game/mediasoup/mediasoup.service';
 import { GameService } from '~/src/domain/game/game.service';
 
 @Injectable()

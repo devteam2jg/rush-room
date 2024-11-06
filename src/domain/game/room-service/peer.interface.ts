@@ -2,7 +2,7 @@ import {
   IConsumer,
   IProducer,
   ITransport,
-} from '../interface/media-resources.interfaces';
+} from '~/src/domain/game/mediasoup/interface/media-resources.interfaces';
 
 export interface Peer {
   id: string;
