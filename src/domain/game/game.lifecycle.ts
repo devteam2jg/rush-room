@@ -1,5 +1,6 @@
 import { MessageType } from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from './game.context';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export abstract class AuctionGameLifecycle {
   private next: () => Promise<void>;
@@ -96,16 +97,29 @@ export class AuctionGame extends AuctionGameLifecycle {
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
     await auctionContext.saveToDB();
     console.log('Auction Destroyed', auctionContext.auctionTitle);
+
+    auctionContext.notifyToClient({
+      type: 'AUCTION_END',
+    });
   }
 
-  onBidCreated(auctionContext: AuctionGameContext) {
+  async onBidCreated(auctionContext: AuctionGameContext) {
     const bidItem = auctionContext.setNextBidItem();
     if (!bidItem) this.ternimate();
+    auctionContext.notifyToClient({
+      type: 'BID_READY',
+      itemId: bidItem.itemId,
+      bidPrice: bidItem.startPrice,
+      title: bidItem.title,
+    });
+
     this.timerEvent = () => {
       auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
         time: auctionContext.getTime(),
       });
     };
+
+    await this.delay(5000);
     auctionContext.activateBid();
     auctionContext.notifyToClient({
       type: 'BID_START',
@@ -153,17 +167,21 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
-    const bidItem = auctionContext.currentBidItem;
     auctionContext.deactivateBid();
+    const bidItem = auctionContext.currentBidItem;
+    const userData: UserDataDto = auctionContext.getUserDataById(
+      bidItem.bidderId,
+    );
+
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
-      bidderId: bidItem.bidderId,
+      name: userData?.name,
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
-    await this.delay(60000);
+    await this.delay(10000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;

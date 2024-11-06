@@ -6,7 +6,6 @@ import {
   MessageType,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
-import { Socket } from 'socket.io';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 export enum AuctionStatus {
   READY = 'READY',
@@ -37,7 +36,11 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  joinedUsers: UserDataDto[];
+  private readonly joinedUsers: Map<string, UserDataDto> = new Map();
+  join(userData: UserDataDto) {
+    const { id } = userData;
+    this.joinedUsers.set(id, userData);
+  }
 
   constructor(initialDataDto: InitialDataDto) {
     const { id } = initialDataDto;
@@ -81,9 +84,9 @@ export class AuctionGameContext {
 
   async loadFromDB(): Promise<boolean> {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
-    const { auctionId, bidItems, auctionStartDateTime } = data;
+    const { auctionId, bidItems, auctionStartDateTime, auctionTitle } = data;
     this.auctionId = auctionId;
-    this.auctionTitle = data.auctionTitle;
+    this.auctionTitle = auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
     data.callback();
@@ -136,7 +139,9 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
     };
   }
-
+  getUserDataById(userId: string): UserDataDto {
+    return this.joinedUsers.get(userId);
+  }
   /** socket function
    *
    * @param socket 소켓 이 null이면 모든 참여자에게 메세지를 보냄, 아니면 해당 소켓에만 메세지를 보냄

@@ -55,7 +55,7 @@ export class GameService {
           sellerId: item.user.id,
           bidderId: null,
           startPrice: item.startPrice,
-          bidPrice: 0,
+          bidPrice: item.startPrice,
           itemSellingLimitTime: auction.sellingLimitTime * 4,
           title: item.title,
           description: item.description,
@@ -66,7 +66,6 @@ export class GameService {
 
       const auctionStartDateTime = auction.eventDate;
       const auctionStatus = AuctionStatus.READY;
-      const joinedUsers = auction.joinedUsers;
       const callback = () => this.auctionsMap.set(auctionId, auctionContext);
 
       const loadGameDataDto: LoadGameDataDto = {
@@ -75,7 +74,6 @@ export class GameService {
         bidItems: bidItems,
         auctionStartDateTime: auctionStartDateTime,
         auctionStatus: auctionStatus,
-        joinedUsers: joinedUsers,
         callback: callback,
       };
       return loadGameDataDto;
@@ -84,9 +82,8 @@ export class GameService {
     const savefun = async (
       saveGameDataDto: SaveGameDataDto,
     ): Promise<boolean> => {
-      const { bidItems, joinedUsers } = saveGameDataDto;
+      const { bidItems } = saveGameDataDto;
       await this.auctionItemRepository.updateAuctionItemMany(bidItems);
-      await this.auctionRepository.updateJoinedUsers(auctionId, joinedUsers);
       //if (saveResult === null) return false;
       return true;
     };
@@ -111,9 +108,9 @@ export class GameService {
   async joinAuction(auctionId: string, userId: string) {
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
-    auctionContext.joinedUsers.push(user);
+    auctionContext.join(user);
   }
-  /**
+  /**ㄴ
    * 경매 입찰
    * @param UpdateBidPriceDto
    * @returns boolean
@@ -129,11 +126,22 @@ export class GameService {
    * @param startAuctionDto
    * @returns Promise<boolean>
    */
-  async startAuction(startAuctionDto: { auctionId: string }) {
+  async startAuction(startAuctionDto: {
+    auctionId: string;
+  }): Promise<{ message: string }> {
     const { auctionId } = startAuctionDto;
     const auctionContext = await this.createGameContext(auctionId);
+
     // 경매 시작 하면 상태 진행으로 변경
     await this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
+
+    if (this.isRunning(auctionId)) {
+      //TODO: 아직 불완전함
+      return {
+        message: '이미 시작된 경매입니다',
+      };
+    }
+
     return AuctionGameLifecycle.launch(auctionContext);
   }
 
