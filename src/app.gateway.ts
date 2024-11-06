@@ -47,7 +47,7 @@ export class AppGateway {
       });
       this.logger.verbose('Mediasoup worker and router initialized');
     } catch (error) {
-      this.logger.error('Failed to initialize mediasoup:', error);
+      this.logger.error('Failed to initialize mediasoup-temp:', error);
     }
   }
 

@@ -9,8 +9,8 @@ import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
-import { AppGateway } from '~/src/app.gateway';
 import { MediasoupModule } from '~/src/mediasoup/mediasoup.module';
+import { SignalingModule } from '~/src/signaling/signaling.module';
 
 @Module({
   imports: [
@@ -37,8 +37,8 @@ import { MediasoupModule } from '~/src/mediasoup/mediasoup.module';
     GatewayModule,
     FileModule,
     AwsModule,
-    // AppGateway,
     MediasoupModule,
+    SignalingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io';
 import * as mediasoup from 'mediasoup';
-// mediasoup.types.ts
+// mediasoup-temp.types.ts
 export interface RoomState {
   router: mediasoup.types.Router;
   roomId: string;

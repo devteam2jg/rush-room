@@ -10,7 +10,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { MediasoupService } from './mediasoup.service';
-import { RoomState } from '~/src/mediasoup/mediasoup.types';
+import { RoomState } from '~/src/mediasoup-temp/mediasoup.types';
 import { MediaKind } from 'mediasoup/node/lib/RtpParameters';
 import { Logger } from '@nestjs/common';
 import { ProducerScore } from 'mediasoup/node/lib/Producer';
@@ -81,7 +81,7 @@ export class MediaSoupGateway
   }
   @SubscribeMessage('createRoom')
   async handleCreateRoom(@MessageBody() { auctionId }) {
-    this.logger.log(`Create room: ${auctionId}`);
+    this.logger.verbose(`----Create room: ${auctionId}`);
     try {
       if (!this.rooms.has(auctionId)) {
         const router = await this.mediasoupService.createRouter();
@@ -135,7 +135,8 @@ export class MediaSoupGateway
 
   @SubscribeMessage('createTransport')
   async handleCreateProducerTransport(
-    client: Socket,
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
     { roomId, isProducer }: { roomId: string; isProducer: boolean },
   ) {
     try {
@@ -212,7 +213,8 @@ export class MediaSoupGateway
 
   @SubscribeMessage('connectTransport')
   async handleConnectProducerTransport(
-    client: Socket,
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
     {
       transportId,
       dtlsParameters,
@@ -226,10 +228,10 @@ export class MediaSoupGateway
       const transport = room.transports.get(transportId);
       if (!transport) throw new Error('Transport not found');
 
-      await transport.connect({ dtlsParameters });
       this.logger.log(
-        `c-2. Connect transport: ${transportId} to room: ${roomId}}, dtls: ${dtlsParameters}`,
+        `c-2-pre1. Connect transport: ${transportId}, dtls: ${transport.appData}`,
       );
+      await transport.connect({ dtlsParameters });
       return { success: true, message: '제발' };
     } catch (error) {
       this.logger.error('Connect producer transport error:', error);
@@ -285,12 +287,10 @@ export class MediaSoupGateway
     @MessageBody()
     {
       roomId,
-      producerId,
       rtpCapabilities,
       transportId,
     }: {
       roomId: string;
-      producerId: string;
       transportId: string;
       rtpCapabilities: any;
     },
@@ -342,8 +342,8 @@ export class MediaSoupGateway
       });
 
       return {
-        producerId: producer.id,
         id: consumer.id,
+        producerId: producer.id,
         kind: consumer.kind,
         rtpParameters: consumer.rtpParameters,
         type: consumer.type,
@@ -397,7 +397,19 @@ export class MediaSoupGateway
 
     // Producer의 소유자 찾아서 producerIds에서 제거
   }
+  @SubscribeMessage('consumeReady')
+  async handleConsumeReady(@MessageBody() { roomId }: { roomId: string }) {
+    try {
+      const room = this.rooms.get(roomId);
+      if (!room) throw new Error('Room not found');
 
+      const producerId = room.sellingProducer.id;
+      this.logger.verbose(`3. Get producers: ${producerId}`);
+      this.server.to(roomId).emit('setNewProducer', { producerId });
+    } catch (error) {
+      this.logger.error('Get producers error:', error);
+    }
+  }
   @SubscribeMessage('getProducers')
   async handleGetProducers(@MessageBody() { roomId }: { roomId: string }) {
     try {
