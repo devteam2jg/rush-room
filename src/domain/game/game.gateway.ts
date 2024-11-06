@@ -1,12 +1,12 @@
 import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  SubscribeMessage,
-  MessageBody,
-  ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, forwardRef, Injectable, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, UseGuards } from '@nestjs/common';
 import {
   MessageType,
   ResponseDto,
@@ -15,6 +15,11 @@ import {
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
+import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
+import { JoinAuctionResultDto } from '~/src/domain/game/dto/join.auction.result.dto';
+import { ConnectTransportDto } from '~/src/domain/game/dto/connect.transport.dto';
+import { ProduceDto } from '~/src/domain/game/dto/produce.dto';
+import { ConsumerDto } from '~/src/domain/game/dto/consumer.dto';
 
 @Injectable()
 @WebSocketGateway({
@@ -48,18 +53,13 @@ export class GameGateway {
   @UseGuards(GameGuard)
   @SubscribeMessage('JOIN')
   async handleJoinAuction(
-    @ConnectedSocket()
-    socket: Socket,
-    @MessageBody()
-    joinData: { auctionId: string; userId: string },
-  ): Promise<{ message: string }> {
-    const { auctionId, userId } = joinData;
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() joinData: JoinAuctionDto,
+  ): Promise<JoinAuctionResultDto | { message: string }> {
+    const { auctionId } = joinData;
     if (this.gameService.isRunning(auctionId)) {
       socket.join(auctionId);
-      await this.gameService.joinAuction(auctionId, userId);
-      return {
-        message: 'success',
-      };
+      return await this.gameService.joinAuction(joinData, socket);
     }
     return {
       message: 'fail',
@@ -154,5 +154,45 @@ export class GameGateway {
       { auctionId, messageType: MessageType.VOICE_MESSAGE, socket },
       messageData,
     );
+  }
+
+  @SubscribeMessage('leave-room')
+  async handleLeaveRoom(@ConnectedSocket() socket: Socket) {
+    /* TODO: room 관련 자원 할당 해제
+     * */
+  }
+
+  @SubscribeMessage('connect-transport')
+  async handleConnectTransport(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() connectTransportDto: ConnectTransportDto,
+  ) {
+    return this.gameService.createServerTransport(connectTransportDto, socket);
+  }
+
+  @SubscribeMessage('produce')
+  async handleProduce(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() produceDto: ProduceDto,
+  ) {
+    return this.gameService.createServerProducer(produceDto, socket);
+  }
+
+  @SubscribeMessage('consume')
+  async handleConsume(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() consumerDto: ConsumerDto,
+  ) {
+    return this.gameService.createServerConsumer(consumerDto, socket);
+  }
+
+  @SubscribeMessage('stop-prev-producer')
+  async handleStopPrevProducer(@MessageBody() data) {
+    const prevSellerPeerId = await this.gameService.stopSellerProducer(data);
+
+    if (prevSellerPeerId) {
+      this.server.to(prevSellerPeerId).emit('stop-producer');
+    }
+    return { prevSellerPeerId };
   }
 }

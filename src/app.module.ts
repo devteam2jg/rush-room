@@ -8,8 +8,6 @@ import { AuthModule } from '~/src/domain/auth/auth.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
-import { MediasoupModule } from '~/src/mediasoup/mediasoup.module';
-import { SignalingModule } from '~/src/signaling/signaling.module';
 import { GameModule } from './domain/game/game.module';
 
 @Module({
@@ -36,8 +34,6 @@ import { GameModule } from './domain/game/game.module';
     AuctionModule,
     FileModule,
     AwsModule,
-    MediasoupModule,
-    SignalingModule,
     GameModule,
   ],
   controllers: [AppController],

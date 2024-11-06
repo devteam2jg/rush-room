@@ -1,13 +1,16 @@
 import {
-  LoadGameDataDto,
-  SaveGameDataDto,
   InitialDataDto,
-  ResponseDto,
+  LoadGameDataDto,
   MessageType,
+  ResponseDto,
+  SaveGameDataDto,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
+import { IRoom } from '~/src/domain/game/room-service/room.interface';
+import { Socket } from 'socket.io';
+
 export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
@@ -37,11 +40,15 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
+  room: IRoom;
+
   private readonly joinedUsers: Map<string, UserDataDto> = new Map();
-  join(userData: UserDataDto): boolean {
+  join(userData: UserDataDto, socket: Socket) {
     const { id } = userData;
     if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
+ // TODO: 재욱과 합
+    this.notifyToClient({ type: 'NEW_PEER', peerId: socket.id });
     return true;
   }
 

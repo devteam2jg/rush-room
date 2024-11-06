@@ -1,4 +1,4 @@
-import { IRouter } from '../interface/media-resources.interfaces';
+import { IRouter } from '~/src/domain/game/mediasoup/interface/media-resources.interfaces';
 import { Peer } from './peer.interface';
 
 export interface IRoom {
