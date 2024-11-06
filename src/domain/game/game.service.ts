@@ -87,7 +87,7 @@ export class GameService {
     await this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
 
     if (this.isRunning(auctionId)) {
-      //TODO: 아직 불완전함
+      //TODO: 아직 불완전함, 경매 시작시에 처음 Map에 set되기까지 딜레이가 존재함, 이 딜레이 기간동안 중복으로 시작시에 오류 발생함.
       return {
         message: '이미 시작된 경매입니다',
       };
