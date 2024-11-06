@@ -9,6 +9,7 @@ import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
+import { GameModule } from './domain/game/game.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AwsModule } from './domain/aws/aws.module';
     GatewayModule,
     FileModule,
     AwsModule,
+    GameModule,
   ],
   controllers: [AppController],
   providers: [AppService],
