@@ -47,8 +47,8 @@ export class AuctionGameContext {
     const { id } = userData;
     if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
- // TODO: 재욱과 합
-    this.notifyToClient({ type: 'NEW_PEER', peerId: socket.id });
+    // TODO: 재욱과 합
+    //this.notifyToClient({ type: 'NEW_PEER', peerId: socket.id });
     return true;
   }
 
@@ -191,6 +191,7 @@ export class AuctionGameContext {
     this.sendToClient(null, MessageType.NOTIFICATION, data);
   }
   requestLastNotifyData(socket) {
+    console.log('requestLastNotifyData', this.lastNotifyData);
     this.sendToClient(socket, MessageType.NOTIFICATION, this.lastNotifyData);
   }
   /***************************************************************************

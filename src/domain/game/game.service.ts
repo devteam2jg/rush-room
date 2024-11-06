@@ -18,7 +18,6 @@ import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
-import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { RoomService } from '~/src/domain/game/room-service/room.service';
 import { TransportService } from '~/src/domain/game/mediasoup/transport/transport.service';
@@ -33,7 +32,7 @@ import { ConnectTransportDto } from '~/src/domain/game/dto/connect.transport.dto
 export class GameService {
   private readonly transportService: TransportService;
   private readonly producerConsumerService: ProducerConsumerService;
-  private logger = new Logger(GameService.name, { timestamp: true });
+  private readonly logger = new Logger(GameService.name, { timestamp: true });
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
   private readonly auctionsForReady: Map<string, string> = new Map();
@@ -55,7 +54,9 @@ export class GameService {
       this.roomService,
     );
   }
-
+  getRunningContext(auctionId: string): AuctionGameContext {
+    return this.auctionsMap.get(auctionId);
+  }
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
   }
@@ -150,13 +151,13 @@ export class GameService {
       rtpParameters,
     });
     this.logger.debug(`New producer created: ${producerId}`);
-    const auctionContext = this.auctionsMap.get(auctionId);
-    auctionContext.notifyToClient({
-      type: 'NEW_PRODUCER',
-      producerId,
-      peerId,
-      kind,
-    });
+    //const auctionContext = this.auctionsMap.get(auctionId);
+    // auctionContext.notifyToClient({
+    //   type: 'NEW_PRODUCER',
+    //   producerId,
+    //   peerId,
+    //   kind,
+    // });
     return { producerId };
   }
 
@@ -226,7 +227,7 @@ export class GameService {
       },
     };
   }
-  
+
   /**
    * 경매 시작
    * @param startAuctionDto

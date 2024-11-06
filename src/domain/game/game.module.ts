@@ -11,7 +11,13 @@ import { MediasoupService } from '~/src/domain/game/mediasoup/mediasoup.service'
 
 @Module({
   imports: [AuctionModule, UsersModule],
-  providers: [RoomService, GameGateway, GameService, MediasoupService, GameGuard],
+  providers: [
+    RoomService,
+    GameGateway,
+    GameService,
+    MediasoupService,
+    GameGuard,
+  ],
   exports: [GameService],
   controllers: [GameController],
 })
