@@ -5,7 +5,6 @@ import { UsersModule } from '~/src/domain/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '~/src/domain/auth/auth.module';
-import { GatewayModule } from './gateway/gateway.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
@@ -35,7 +34,6 @@ import { GameModule } from './domain/game/game.module';
     UsersModule,
     AuthModule,
     AuctionModule,
-    GatewayModule,
     FileModule,
     AwsModule,
     MediasoupModule,
