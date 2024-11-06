@@ -25,8 +25,8 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
   ) {
-    // 생성자로 실행하는거 맞나??
-    this.setAuctionStartTimers();
+    // 생성자로 경매 타이머 실행
+    this.intervalAuctionCheck();
   }
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
@@ -164,8 +164,17 @@ export class GameService {
     return auctionContext.requestCurrentBidInfo();
   }
 
+  async intervalAuctionCheck() {
+    // 첫 실행에서 경매 놓치지 않도록 타이머 설정
+    await this.startAuctionTimers();
+    // 10분마다 타이머 설정
+    setInterval(async () => {
+      await this.startAuctionTimers();
+    }, 600000); // 600000밀리초 = 10분
+  }
+
   // 경매 시작 타이머 설정
-  async setAuctionStartTimers(): Promise<void> {
+  async startAuctionTimers(): Promise<void> {
     const auctions = await this.auctionRepository.getWaitAuctions(); // 조건에 맞는 경매 조회
 
     for (const auction of auctions) {
@@ -179,6 +188,8 @@ export class GameService {
         setTimeout(async () => {
           await this.startAuction({ auctionId: auction.id }); // 경매 시작 함수 호출
         }, timeDifference);
+      } else if (timeDifference <= 0) {
+        await this.startAuction({ auctionId: auction.id }); // 이미 시작 시간이 지난 경매는 즉시 시작
       }
     }
   }
