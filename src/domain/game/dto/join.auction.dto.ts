@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class JoinChannelDto {
+export class JoinAuctionDto {
   @IsNotEmpty()
   @IsString()
-  roomId: string;
+  auctionId: string;
 
   @IsNotEmpty()
   @IsString()
-  peerId: string;
+  userId: string;
 }
