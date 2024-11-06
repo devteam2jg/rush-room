@@ -14,7 +14,6 @@ import {
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
-// import { AuctionIsRunningGuard } from '~/src/domain/game/guards/auctionId.guards';
 
 @Injectable()
 @WebSocketGateway({
@@ -45,20 +44,22 @@ export class GameGateway {
    * @param socket
    * @param joinData - auctionId, userId 포함한 데이터.
    */
-  // @UseGuards(AuctionIsRunningGuard)
   @SubscribeMessage('join_auction')
   async handleJoinAuction(
     socket: Socket,
     joinData: { auctionId: string; userId: string },
-  ): Promise<void> {
+  ): Promise<{ message: string }> {
     const { auctionId, userId } = joinData;
-
     if (this.gameService.isRunning(auctionId)) {
       socket.join(auctionId);
       await this.gameService.joinAuction(auctionId, userId);
+      return {
+        message: 'success',
+      };
     }
-    //this.gameService.loadGame(auctionId, socket);
-    console.log(`Client ${socket.id} joined auction ${auctionId}`);
+    return {
+      message: 'fail',
+    };
   }
 
   /**
