@@ -103,13 +103,11 @@ export class GameService {
    * 경매
    */
   async joinAuction(auctionId: string, userId: string) {
-    console.log('joinAuction', auctionId, userId);
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
-    console.log(user);
     auctionContext.join(user);
   }
-  /**
+  /**ㄴ
    * 경매 입찰
    * @param UpdateBidPriceDto
    * @returns boolean
