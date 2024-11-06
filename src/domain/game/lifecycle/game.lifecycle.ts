@@ -8,18 +8,12 @@ export class AuctionGame extends AuctionGameLifecycle {
     console.log('Auction Created', auctionContext.auctionTitle);
   }
 
-  async onRoomDestroyed(auctionContext: AuctionGameContext) {
-    await auctionContext.saveToDB();
-    console.log('Auction Destroyed', auctionContext.auctionTitle);
-
-    auctionContext.notifyToClient({
-      type: 'AUCTION_END',
-    });
-  }
-
   async onBidCreated(auctionContext: AuctionGameContext) {
     const bidItem = auctionContext.setNextBidItem();
-    if (!bidItem) this.ternimate();
+    if (!bidItem) {
+      this.ternimate();
+      return;
+    }
     auctionContext.notifyToClient({
       type: 'BID_READY',
       itemId: bidItem.itemId,
@@ -99,5 +93,14 @@ export class AuctionGame extends AuctionGameLifecycle {
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
+  }
+
+  async onRoomDestroyed(auctionContext: AuctionGameContext) {
+    await auctionContext.saveToDB();
+    console.log('Auction Destroyed', auctionContext.auctionTitle);
+
+    auctionContext.notifyToClient({
+      type: 'AUCTION_END',
+    });
   }
 }

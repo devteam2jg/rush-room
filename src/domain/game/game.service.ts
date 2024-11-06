@@ -33,10 +33,27 @@ export class GameService {
   }
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
+  private readonly auctionsForReady: Map<string, string> = new Map();
 
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
   }
+  setRunning(auctionId: string, auctionContext: AuctionGameContext) {
+    this.auctionsMap.set(auctionId, auctionContext);
+  }
+  setReady(auctionId: string) {
+    this.auctionsForReady.set(auctionId, auctionId);
+  }
+  isRunningOrReady(auctionId: string): boolean {
+    return this.isRunning(auctionId) || this.auctionsForReady.has(auctionId);
+  }
+  deleteReady(auctionId: string) {
+    this.auctionsForReady.delete(auctionId);
+  }
+  deleteRunning(auctionId: string) {
+    this.auctionsMap.delete(auctionId);
+  }
+
   private createGameFunction(auctionId: string): LifecycleFuctionDto {
     return {
       auctionId,
@@ -44,12 +61,20 @@ export class GameService {
       loadEvent: this.load,
       socketEvent: this.socketfun,
 
+      jobBeforeRoomCreate: async (auctionContext: AuctionGameContext) => {
+        const auctionId = auctionContext.auctionId;
+        if (this.isRunningOrReady(auctionId)) return false;
+        return true;
+      },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
-        this.auctionsMap.set(auctionContext.auctionId, auctionContext);
+        const auctionId = auctionContext.auctionId;
+        this.deleteReady(auctionId);
+        this.setRunning(auctionId, auctionContext);
         return true;
       },
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
-        this.auctionsMap.delete(auctionContext.auctionId);
+        const auctionId = auctionContext.auctionId;
+        this.deleteRunning(auctionId);
         return true;
       },
     };
@@ -84,14 +109,13 @@ export class GameService {
     const { auctionId } = startAuctionDto;
 
     // 경매 시작 하면 상태 진행으로 변경
-    await this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
-
-    if (this.isRunning(auctionId)) {
-      //TODO: 아직 불완전함, 경매 시작시에 처음 Map에 set되기까지 딜레이가 존재함, 이 딜레이 기간동안 중복으로 시작시에 오류 발생함.
+    this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
+    if (this.isRunningOrReady(auctionId)) {
       return {
         message: '이미 시작된 경매입니다',
       };
     }
+    this.setReady(auctionId);
     const lifecycleDto = this.createGameFunction(auctionId);
     return GameStarter.launch(lifecycleDto);
   }

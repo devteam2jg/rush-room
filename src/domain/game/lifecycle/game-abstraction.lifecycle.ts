@@ -21,38 +21,58 @@ export abstract class AuctionGameLifecycle {
   }
   private async onRoomCreate() {
     this.next = this.onBidCreate;
-    await this.lifecycle.jobBeforeRoomCreate(this.auctionContext);
+    if (!(await this.lifecycle.jobBeforeRoomCreate(this.auctionContext))) {
+      this.ternimate();
+      return;
+    }
     await this.onRoomCreated(this.auctionContext);
-    await this.lifecycle.jobAfterRoomCreate(this.auctionContext);
+    if (!(await this.lifecycle.jobAfterRoomCreate(this.auctionContext)))
+      this.ternimate();
   }
   private async onRoomDestroy() {
     this.next = null;
-    await this.lifecycle.jobBeforeRoomDestroy(this.auctionContext);
+    if (!(await this.lifecycle.jobBeforeRoomDestroy(this.auctionContext))) {
+      this.ternimate();
+      return;
+    }
     await this.onRoomDestroyed(this.auctionContext);
-    await this.lifecycle.jobAfterRoomDestroy(this.auctionContext);
+    if (!(await this.lifecycle.jobAfterRoomDestroy(this.auctionContext)))
+      this.ternimate();
   }
 
   private async onBidCreate() {
     this.next = this.onBidRunnning;
-    await this.lifecycle.jobBeforeBidCreate(this.auctionContext);
+    if (!(await this.lifecycle.jobBeforeBidCreate(this.auctionContext))) {
+      this.ternimate();
+      return;
+    }
     await this.onBidCreated(this.auctionContext);
-    await this.lifecycle.jobAfterBidCreate(this.auctionContext);
+    if (!(await this.lifecycle.jobAfterBidCreate(this.auctionContext)))
+      this.ternimate();
   }
 
   private async onBidRunnning() {
     this.next = this.onBidEnd;
-    await this.lifecycle.jobBeforeBidRunning(this.auctionContext);
+    if (!(await this.lifecycle.jobBeforeBidRunning(this.auctionContext))) {
+      this.ternimate();
+      return;
+    }
     await this.onBidPhase1(this.auctionContext);
     await this.onBidPhase2(this.auctionContext);
-    await this.lifecycle.jobAfterBidRunning(this.auctionContext);
+    if (!(await this.lifecycle.jobAfterBidRunning(this.auctionContext)))
+      this.ternimate();
   }
 
   private async onBidEnd() {
     this.next = this.onRoomDestroy;
-    await this.lifecycle.jobBeforeBidEnd(this.auctionContext);
+    if (!(await this.lifecycle.jobBeforeBidEnd(this.auctionContext))) {
+      this.ternimate();
+      return;
+    }
     if (!(await this.onBidEnded(this.auctionContext)))
       this.next = this.onBidCreate;
-    await this.lifecycle.jobAfterBidEnd(this.auctionContext);
+    if (!(await this.lifecycle.jobAfterBidEnd(this.auctionContext)))
+      this.ternimate();
   }
 
   protected ternimate() {
