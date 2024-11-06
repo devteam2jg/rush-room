@@ -148,10 +148,7 @@ export class SignalingGateway
   }
 
   @SubscribeMessage('connect-transport')
-  async handleConnectTransport(
-    @MessageBody() data,
-    @ConnectedSocket() client: Socket,
-  ) {
+  async handleConnectTransport(@MessageBody() data) {
     const { roomId, peerId, dtlsParameters, transportId } = data;
     const room = this.roomService.getRoom(roomId);
     const peer = room?.peers.get(peerId);
@@ -170,10 +167,10 @@ export class SignalingGateway
 
   @SubscribeMessage('produce')
   async handleProduce(@MessageBody() data, @ConnectedSocket() client: Socket) {
-    const { roomId, peerId, kind, transportId, rtpParameters } = data;
+    const { auctionId, peerId, kind, transportId, rtpParameters } = data;
     try {
       const producerId = await this.producerConsumerService.createProducer({
-        roomId,
+        auctionId,
         peerId,
         transportId,
         kind,
@@ -181,7 +178,7 @@ export class SignalingGateway
       });
       this.logger.debug(`New producer created: ${producerId}`);
       // 다른 클라이언트에게 새로운 Producer 알림
-      client.to(roomId).emit('new-producer', { producerId, peerId, kind });
+      client.to(auctionId).emit('new-producer', { producerId, peerId, kind });
 
       return { producerId };
     } catch (error) {
@@ -192,10 +189,11 @@ export class SignalingGateway
 
   @SubscribeMessage('consume')
   async handleConsume(@MessageBody() data, @ConnectedSocket() client: Socket) {
-    const { roomId, peerId, producerId, rtpCapabilities, transportId } = data;
+    const { auctionId, peerId, producerId, rtpCapabilities, transportId } =
+      data;
     try {
       const consumerData = await this.producerConsumerService.createConsumer({
-        roomId,
+        auctionId,
         peerId,
         transportId,
         producerId,
@@ -214,13 +212,10 @@ export class SignalingGateway
   }
 
   @SubscribeMessage('stop-prev-producer')
-  async handleStopPrevProducer(
-    @MessageBody() data,
-    @ConnectedSocket() client: Socket,
-  ) {
-    const { roomId } = data;
+  async handleStopPrevProducer(@MessageBody() data) {
+    const { auctionId } = data;
     const prevSellerPeerId = this.producerConsumerService.stopSellerPeer({
-      roomId,
+      auctionId,
     });
     if (prevSellerPeerId) {
       this.server.to(prevSellerPeerId).emit('stop-producer');
