@@ -84,9 +84,9 @@ export class AuctionGameContext {
 
   async loadFromDB(): Promise<boolean> {
     const data: LoadGameDataDto = await this.loadEvent(this.auctionId, this);
-    const { auctionId, bidItems, auctionStartDateTime } = data;
+    const { auctionId, bidItems, auctionStartDateTime, auctionTitle } = data;
     this.auctionId = auctionId;
-    this.auctionTitle = data.auctionTitle;
+    this.auctionTitle = auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
     data.callback();
