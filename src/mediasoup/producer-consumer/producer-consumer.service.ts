@@ -11,10 +11,10 @@ export class ProducerConsumerService {
   constructor(private readonly roomService: RoomService) {}
 
   public async createProducer(params: IProduceParams): Promise<string> {
-    const { roomId, peerId, kind, rtpParameters, transportId } = params;
-    const room = this.roomService.getRoom(roomId);
+    const { auctionId, peerId, kind, rtpParameters, transportId } = params;
+    const room = this.roomService.getRoom(auctionId);
     if (!room) {
-      throw new Error(`Room ${roomId} not found`);
+      throw new Error(`Room ${auctionId} not found`);
     }
 
     const peer = room.peers.get(peerId);
@@ -37,11 +37,12 @@ export class ProducerConsumerService {
   }
 
   public async createConsumer(params: IConsumeParams): Promise<any> {
-    const { roomId, peerId, producerId, rtpCapabilities, transportId } = params;
-    const room = this.roomService.getRoom(roomId);
+    const { auctionId, peerId, producerId, rtpCapabilities, transportId } =
+      params;
+    const room = this.roomService.getRoom(auctionId);
 
     if (!room) {
-      throw new Error(`Room ${roomId} not found`);
+      throw new Error(`Room ${auctionId} not found`);
     }
 
     if (!room.router.router.canConsume({ producerId, rtpCapabilities })) {
@@ -71,9 +72,10 @@ export class ProducerConsumerService {
     };
   }
 
-  public stopSellerPeer(param: { roomId: string }) {
-    const { roomId } = param;
-    const room = this.roomService.getRoom(roomId);
+  public stopSellerPeer(param: { auctionId: string }) {
+    const { auctionId } = param;
+    const room = this.roomService.getRoom(auctionId);
+    if (!room) throw new Error(`Room ${auctionId} not found`);
     const sellerPeerId = room.sellerPeerId;
     if (!sellerPeerId) return;
     const sellerPeer = room.peers.get(sellerPeerId);
