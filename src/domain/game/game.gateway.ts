@@ -6,7 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Inject, forwardRef, Injectable } from '@nestjs/common';
+import { Inject, forwardRef, Injectable, UseGuards } from '@nestjs/common';
 import {
   MessageType,
   ResponseDto,
@@ -14,6 +14,7 @@ import {
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
 import { GameService } from '~/src/domain/game/game.service';
+import { JwtWsAuthGuard } from '~/src/domain/game/guards/wsAuth.guard';
 
 @Injectable()
 @WebSocketGateway({
@@ -44,6 +45,7 @@ export class GameGateway {
    * @param socket
    * @param joinData - auctionId, userId 포함한 데이터.
    */
+  @UseGuards(JwtWsAuthGuard)
   @SubscribeMessage('join_auction')
   async handleJoinAuction(
     socket: Socket,
