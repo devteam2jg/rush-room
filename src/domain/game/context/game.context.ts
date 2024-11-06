@@ -43,12 +43,13 @@ export class AuctionGameContext {
   room: IRoom;
 
   private readonly joinedUsers: Map<string, UserDataDto> = new Map();
-
   join(userData: UserDataDto, socket: Socket) {
     const { id } = userData;
+    if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
-    // TODO: 재욱과 합
+ // TODO: 재욱과 합
     this.notifyToClient({ type: 'NEW_PEER', peerId: socket.id });
+    return true;
   }
 
   constructor(initialDataDto: InitialDataDto) {

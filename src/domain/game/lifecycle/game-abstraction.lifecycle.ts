@@ -77,6 +77,7 @@ export abstract class AuctionGameLifecycle {
 
   protected ternimate() {
     this.next = null;
+    console.log('Ternimated');
   }
 
   async run() {
@@ -105,6 +106,19 @@ export abstract class AuctionGameLifecycle {
       clearInterval(this.timer);
       this.timer = null;
     }
+  }
+  protected startTimer2(callback: () => boolean, time?: number): Promise<void> {
+    return new Promise((resolve) => {
+      this.clearTimer();
+      this.timer = setInterval(() => {
+        this.auctionContext.timerInterrupt();
+        this.timerEvent();
+        if (callback()) {
+          this.clearTimer();
+          resolve();
+        }
+      }, 1000);
+    });
   }
   delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
