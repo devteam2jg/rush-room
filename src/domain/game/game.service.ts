@@ -4,7 +4,6 @@ import {
   AuctionStatus,
   BidItem,
 } from '~/src/domain/game/context/game.context';
-import { AuctionGame } from '~/src/domain/game/lifecycle/game.lifecycle';
 import {
   LoadGameDataDto,
   ResponseDto,
@@ -18,6 +17,7 @@ import { AuctionItemRepository } from '~/src/domain/auction/auction-item.reposit
 import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
+import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 
 @Injectable()
 export class GameService {
@@ -93,7 +93,7 @@ export class GameService {
       };
     }
     const lifecycleDto = this.createGameFunction(auctionId);
-    return AuctionGame.launch(lifecycleDto);
+    return GameStarter.launch(lifecycleDto);
   }
 
   requestAuctionInfo(socket: Socket, auctionId: string) {

@@ -2,7 +2,6 @@ import { AuctionGameContext } from '~/src/domain/game/context/game.context';
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { MessageType } from '~/src/domain/game/dto/game.dto';
-import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 export class AuctionGame extends AuctionGameLifecycle {
   async onRoomCreated(auctionContext: AuctionGameContext) {
     await auctionContext.loadFromDB();
@@ -100,11 +99,5 @@ export class AuctionGame extends AuctionGameLifecycle {
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
-  }
-  static launch(lifecycle: LifecycleFuctionDto) {
-    new AuctionGame(lifecycle).run();
-    return {
-      message: 'Auction Started',
-    };
   }
 }
