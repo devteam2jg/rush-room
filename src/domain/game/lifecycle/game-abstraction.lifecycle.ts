@@ -95,10 +95,6 @@ export abstract class AuctionGameLifecycle {
   abstract onBidCreated(auctionContext: AuctionGameContext);
   abstract onBidPhase1(auctionContext: AuctionGameContext);
   abstract onBidPhase2(auctionContext: AuctionGameContext);
-  /**
-   *
-   * 다음 경매 아이템이 존재한다면 false를 반환해야 합니다.
-   */
   abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
 
   static launch(lifecycle: LifecycleFuctionDto) {
