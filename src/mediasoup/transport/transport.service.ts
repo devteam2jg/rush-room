@@ -28,6 +28,10 @@ export class TransportService {
         },
       });
 
+    this.logger.debug(
+      `WebRtc Listen and Announce Ip is ${JSON.stringify(webRtcTransport_options.listenIps)}`,
+    );
+
     this.roomService.addPeerToRoom(roomId, peerId);
 
     const peer = room.peers.get(peerId)!;
