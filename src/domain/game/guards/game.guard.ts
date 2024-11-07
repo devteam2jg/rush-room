@@ -1,18 +1,10 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  forwardRef,
-} from '@nestjs/common';
-import { GameService } from '~/src/domain/game/game.service';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+
+import { GameStatusService } from '~/src/domain/game/game.status.service';
 
 @Injectable()
 export class GameGuard implements CanActivate {
-  constructor(
-    @Inject(forwardRef(() => GameService))
-    private readonly gameService: GameService,
-  ) {}
+  constructor(private readonly gameStatusService: GameStatusService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient();
@@ -24,7 +16,7 @@ export class GameGuard implements CanActivate {
       return false;
     }
 
-    const isRunning = await this.gameService.isRunning(auctionId);
+    const isRunning = await this.gameStatusService.isRunning(auctionId);
     if (!isRunning) {
       client.emit('ERROR', 'Auction is not running');
     }

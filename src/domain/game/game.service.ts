@@ -19,13 +19,11 @@ import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
+import { GameStatusService } from '~/src/domain/game/game.status.service';
 
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name, { timestamp: true });
-
-  private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
-  private readonly auctionsForReady: Map<string, string> = new Map();
 
   constructor(
     @Inject(forwardRef(() => GameGateway))
@@ -33,30 +31,10 @@ export class GameService {
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
+    private readonly gameStatusService: GameStatusService,
   ) {
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
-  }
-  getRunningContext(auctionId: string): AuctionGameContext {
-    return this.auctionsMap.get(auctionId);
-  }
-  isRunning(auctionId: string): boolean {
-    return this.auctionsMap.has(auctionId);
-  }
-  setRunning(auctionId: string, auctionContext: AuctionGameContext) {
-    this.auctionsMap.set(auctionId, auctionContext);
-  }
-  setReady(auctionId: string) {
-    this.auctionsForReady.set(auctionId, auctionId);
-  }
-  isRunningOrReady(auctionId: string): boolean {
-    return this.isRunning(auctionId) || this.auctionsForReady.has(auctionId);
-  }
-  deleteReady(auctionId: string) {
-    this.auctionsForReady.delete(auctionId);
-  }
-  deleteRunning(auctionId: string) {
-    this.auctionsMap.delete(auctionId);
   }
 
   /**
@@ -64,7 +42,7 @@ export class GameService {
    */
   async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
     const { auctionId, userId } = joinAuctionDto;
-    const auctionContext = this.auctionsMap.get(auctionId);
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     const user = await this.usersService.findById({ id: userId });
     auctionContext.join(user);
   }
@@ -76,7 +54,7 @@ export class GameService {
    */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { auctionId } = updateBidPriceDto;
-    const auctionContext = this.auctionsMap.get(auctionId);
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     return auctionContext.updateBidPrice(updateBidPriceDto);
   }
 
@@ -89,18 +67,18 @@ export class GameService {
 
       jobBeforeRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        if (this.isRunning(auctionId)) return false;
+        if (this.gameStatusService.isRunning(auctionId)) return false;
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        this.deleteReady(auctionId);
-        this.setRunning(auctionId, auctionContext);
+        this.gameStatusService.deleteReady(auctionId);
+        this.gameStatusService.setRunning(auctionId, auctionContext);
         return true;
       },
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        this.deleteRunning(auctionId);
+        this.gameStatusService.deleteRunning(auctionId);
         return true;
       },
       jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
@@ -123,50 +101,43 @@ export class GameService {
 
     // 경매 시작 하면 상태 진행으로 변경
     this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
-    if (this.isRunningOrReady(auctionId)) {
+    if (this.gameStatusService.isRunningOrReady(auctionId)) {
       console.log('이미 시작된 경매입니다');
       return {
         message: '이미 시작된 경매입니다',
       };
     }
-    this.setReady(auctionId);
+    this.gameStatusService.setReady(auctionId);
     console.log('경매 시작', auctionId);
     const lifecycleDto = this.createGameFunction(auctionId);
     return GameStarter.launch(lifecycleDto);
   }
 
   requestAuctionInfo(socket: Socket, auctionId: string) {
-    const auctionContext = this.auctionsMap.get(auctionId);
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     auctionContext.requestLastNotifyData(socket);
     return auctionContext.requestCurrentBidInfo();
   }
 
   async intervalAuctionCheck() {
-    // 첫 실행에서 경매 놓치지 않도록 타이머 설정
     await this.startAuctionTimers();
-    // 10분마다 타이머 설정
     setInterval(async () => {
       await this.startAuctionTimers();
-    }, 600000); // 600000밀리초 = 10분
+    }, 600000);
   }
 
-  // 경매 시작 타이머 설정
   async startAuctionTimers(): Promise<void> {
-    const auctions = await this.auctionRepository.getWaitAuctions(); // 조건에 맞는 경매 조회
-
+    const auctions = await this.auctionRepository.getWaitAuctions();
     for (const auction of auctions) {
       const now = new Date();
-      const startTime = new Date(auction.eventDate); // 경매 시작 시간, string으로 받아오기 때문에 Date로 변환
-
-      const timeDifference = startTime.getTime() - now.getTime(); // 시작 시간과 현재 시간 차이 (ms)
-
-      // 10분(600000ms) 이하일 때만 타이머 설정
+      const startTime = new Date(auction.eventDate);
+      const timeDifference = startTime.getTime() - now.getTime();
       if (timeDifference <= 600000 && timeDifference > 0) {
         setTimeout(async () => {
-          await this.startAuction({ auctionId: auction.id }); // 경매 시작 함수 호출
+          await this.startAuction({ auctionId: auction.id });
         }, timeDifference);
       } else if (timeDifference <= 0) {
-        await this.startAuction({ auctionId: auction.id }); // 이미 시작 시간이 지난 경매는 즉시 시작
+        await this.startAuction({ auctionId: auction.id });
       }
     }
   }

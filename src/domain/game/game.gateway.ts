@@ -16,7 +16,7 @@ import {
 import { GameService } from '~/src/domain/game/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
-
+import { GameStatusService } from '~/src/domain/game/game.status.service';
 @Injectable()
 @WebSocketGateway({
   namespace: '/auction-execute',
@@ -28,6 +28,7 @@ export class GameGateway {
   constructor(
     @Inject(forwardRef(() => GameService))
     private readonly gameService: GameService,
+    private readonly gameStatusService: GameStatusService,
   ) {}
 
   sendToMany(response: ResponseDto, data: any): boolean {
@@ -53,7 +54,7 @@ export class GameGateway {
     @MessageBody() joinData: JoinAuctionDto,
   ): Promise<{ message: string }> {
     const { auctionId } = joinData;
-    if (this.gameService.isRunning(auctionId)) {
+    if (this.gameStatusService.isRunning(auctionId)) {
       socket.join(auctionId);
       await this.gameService.joinAuction(joinData);
       return {
