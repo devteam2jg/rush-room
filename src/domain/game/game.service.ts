@@ -19,19 +19,10 @@ import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { AuctionService } from '~/src/domain/auction/auction.service';
-import { RoomService } from '~/src/domain/game/room-service/room.service';
-import { TransportService } from '~/src/domain/game/mediasoup/transport/transport.service';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
-import { JoinAuctionResultDto } from '~/src/domain/game/dto/join.auction.result.dto';
-import { ProduceDto } from '~/src/domain/game/dto/produce.dto';
-import { ProducerConsumerService } from '~/src/domain/game/mediasoup/producer-consumer/producer-consumer.service';
-import { ConsumerDto } from '~/src/domain/game/dto/consumer.dto';
-import { ConnectTransportDto } from '~/src/domain/game/dto/connect.transport.dto';
 
 @Injectable()
 export class GameService {
-  private readonly transportService: TransportService;
-  private readonly producerConsumerService: ProducerConsumerService;
   private readonly logger = new Logger(GameService.name, { timestamp: true });
 
   private readonly auctionsMap: Map<string, AuctionGameContext> = new Map();
@@ -44,15 +35,9 @@ export class GameService {
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
-    @Inject(forwardRef(() => RoomService))
-    private readonly roomService: RoomService,
   ) {
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
-    this.transportService = new TransportService(this.roomService);
-    this.producerConsumerService = new ProducerConsumerService(
-      this.roomService,
-    );
   }
   getRunningContext(auctionId: string): AuctionGameContext {
     return this.auctionsMap.get(auctionId);
@@ -79,110 +64,11 @@ export class GameService {
   /**
    * 경매
    */
-  async joinAuction(
-    joinAuctionDto: JoinAuctionDto,
-    socket: Socket,
-  ): Promise<JoinAuctionResultDto> {
+  async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
     const { auctionId, userId } = joinAuctionDto;
-    const peerId = socket.id;
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
-    auctionContext.join(user, socket);
-
-    const room = auctionContext.room;
-    const sendTransportOptions =
-      await this.transportService.createWebRtcTransport(
-        auctionId,
-        peerId,
-        'send',
-      );
-
-    const recvTransportOptions =
-      await this.transportService.createWebRtcTransport(
-        auctionId,
-        peerId,
-        'recv',
-      );
-    // 방의 현재 참여자 목록 전송
-    const peerIds = Array.from(room.peers.keys());
-
-    // TODO: 방송 중인 한명의 정보만 전달. 기존 Producer들의 정보 수집
-    const existingProducers = [];
-    for (const [otherPeerId, peer] of room.peers) {
-      if (otherPeerId !== peerId) {
-        for (const producer of peer.producers.values()) {
-          existingProducers.push({
-            producerId: producer.producer.id,
-            peerId: otherPeerId,
-            kind: producer.producer.kind,
-          });
-        }
-      }
-    }
-    return {
-      sendTransportOptions,
-      recvTransportOptions,
-      rtpCapabilities: room.router.router.rtpCapabilities,
-      peerIds,
-      existingProducers,
-    };
-  }
-
-  getRoom(auctionId: string) {
-    const auctionContext = this.auctionsMap.get(auctionId);
-    return auctionContext.room;
-  }
-
-  async createServerTransport(
-    connectTransportDto: ConnectTransportDto,
-    socket: Socket,
-  ) {
-    return this.transportService.connectTransport(connectTransportDto, socket);
-  }
-
-  async createServerProducer(produceDto: ProduceDto, socket: Socket) {
-    const { auctionId, kind, transportId, rtpParameters } = produceDto;
-    const peerId = socket.id;
-    const producerId = await this.producerConsumerService.createProducer({
-      auctionId,
-      peerId,
-      transportId,
-      kind,
-      rtpParameters,
-    });
-    this.logger.debug(`New producer created: ${producerId}`);
-    //const auctionContext = this.auctionsMap.get(auctionId);
-    // auctionContext.notifyToClient({
-    //   type: 'NEW_PRODUCER',
-    //   producerId,
-    //   peerId,
-    //   kind,
-    // });
-    return { producerId };
-  }
-
-  async createServerConsumer(consumeDto: ConsumerDto, socket: Socket) {
-    const { auctionId, producerId, rtpCapabilities, transportId } = consumeDto;
-    const peerId = socket.id;
-    const consumerData = await this.producerConsumerService.createConsumer({
-      auctionId,
-      peerId,
-      transportId,
-      producerId,
-      rtpCapabilities,
-    });
-    this.logger.log(
-      `New consumer created and consuming producerId: ${consumerData.producerId}`,
-    );
-    return { consumerData };
-  }
-
-  async stopSellerProducer(data) {
-    const { auctionId } = data;
-    this.logger.log(`stopSellerProducer: ${auctionId}`);
-    return this.producerConsumerService.stopSellerPeer({
-      auctionId,
-    });
+    auctionContext.join(user);
   }
 
   /**ㄴ
@@ -210,7 +96,6 @@ export class GameService {
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
-        auctionContext.room = await this.roomService.createRoom(auctionId);
         this.deleteReady(auctionId);
         this.setRunning(auctionId, auctionContext);
         return true;

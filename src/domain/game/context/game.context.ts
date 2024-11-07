@@ -8,8 +8,6 @@ import {
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
-import { IRoom } from '~/src/domain/game/room-service/room.interface';
-import { Socket } from 'socket.io';
 
 export enum AuctionStatus {
   READY = 'READY',
@@ -40,10 +38,9 @@ export class AuctionGameContext {
   prevBidPrice: number;
   prevBidderId: string;
 
-  room: IRoom;
-
   private readonly joinedUsers: Map<string, UserDataDto> = new Map();
-  join(userData: UserDataDto, socket: Socket) {
+
+  join(userData: UserDataDto) {
     const { id } = userData;
     if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
