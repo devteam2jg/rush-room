@@ -7,7 +7,7 @@ import {
   AwsMediaConvertConfigDto,
   AwsUserConfigDto,
 } from '~/src/domain/aws/dto/aws.dto';
-import { validateEnv } from '~/src/utils/validate-env';
+import { validateEnv } from '~/src/common/utils/validate-env';
 import { plainToClass } from 'class-transformer';
 
 export const awsConfigProvider = {
