@@ -1,4 +1,7 @@
-import { AuctionGameContext } from '~/src/domain/game/context/game.context';
+import {
+  AuctionGameContext,
+  BidItem,
+} from '~/src/domain/game/context/game.context';
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { MessageType } from '~/src/domain/game/dto/game.dto';
@@ -9,7 +12,7 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidCreated(auctionContext: AuctionGameContext) {
-    const bidItem = auctionContext.setNextBidItem();
+    const bidItem: BidItem = auctionContext.setNextBidItem();
     if (!bidItem) {
       this.ternimate();
       return;
@@ -18,6 +21,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       type: 'BID_READY',
       itemId: bidItem.itemId,
       bidPrice: bidItem.startPrice,
+      sellerId: bidItem.sellerId,
       title: bidItem.title,
     });
 
@@ -88,7 +92,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
-    await this.delay(60000);
+    await this.delay(10000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;

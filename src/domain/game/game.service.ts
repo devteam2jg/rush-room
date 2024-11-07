@@ -18,7 +18,6 @@ import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
-import { AuctionService } from '~/src/domain/auction/auction.service';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 
 @Injectable()
@@ -31,7 +30,6 @@ export class GameService {
   constructor(
     @Inject(forwardRef(() => GameGateway))
     private readonly gameGateway: GameGateway,
-    private readonly auctionService: AuctionService,
     private readonly auctionRepository: AuctionRepository,
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
