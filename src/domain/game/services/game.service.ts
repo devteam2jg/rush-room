@@ -19,7 +19,7 @@ import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
-import { GameStatusService } from '~/src/domain/game/game.status.service';
+import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 
 @Injectable()
 export class GameService {

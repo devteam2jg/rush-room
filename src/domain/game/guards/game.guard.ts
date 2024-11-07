@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 
-import { GameStatusService } from '~/src/domain/game/game.status.service';
+import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 
 @Injectable()
 export class GameGuard implements CanActivate {

@@ -13,10 +13,10 @@ import {
   UpdateBidPriceDto,
   UserMessageDto,
 } from '~/src/domain/game/dto/game.dto';
-import { GameService } from '~/src/domain/game/game.service';
+import { GameService } from '~/src/domain/game/services/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
-import { GameStatusService } from '~/src/domain/game/game.status.service';
+import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 @Injectable()
 @WebSocketGateway({
   namespace: '/auction-execute',
