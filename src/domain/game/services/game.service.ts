@@ -190,10 +190,7 @@ export class GameService {
   private readonly socketfun = (response: ResponseDto, data: any) => {
     return this.gameGateway.sendToMany(response, data);
   };
-  private readonly saveEach = async (bidItem: BidItem): Promise<boolean> => {
-    return new Promise(async (resolve) => {
-      await this.auctionItemRepository.updateAuctionItemMany([bidItem]);
-      resolve(true);
-    });
+  private readonly saveEach = async (bidItem: BidItem) => {
+    this.auctionItemRepository.updateAuctionItemMany([bidItem]);
   };
 }
