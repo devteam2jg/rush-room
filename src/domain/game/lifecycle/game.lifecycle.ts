@@ -92,7 +92,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       title: bidItem.title,
     });
     const result: boolean = auctionContext.isAuctionEnded();
-    await this.delay(60000);
+    await this.delay(10000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
     return result;
