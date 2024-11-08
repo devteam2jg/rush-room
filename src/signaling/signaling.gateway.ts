@@ -37,15 +37,15 @@ export class SignalingGateway
   ) {}
 
   afterInit() {
-    console.log(`Server initialized`);
+    this.logger.log(`Server initialized`);
   }
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   async handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('join-room')
@@ -53,7 +53,8 @@ export class SignalingGateway
     @MessageBody() dto: JoinChannelDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const { roomId, peerId } = dto;
+    const { roomId } = dto;
+    const peerId = client.id;
 
     try {
       let room = this.roomService.getRoom(roomId);
@@ -82,15 +83,14 @@ export class SignalingGateway
 
       // 기존 Producer들의 정보 수집
       const existingProducers = [];
-      for (const [otherPeerId, peer] of room.peers) {
-        if (otherPeerId !== peerId) {
-          for (const producer of peer.producers.values()) {
-            existingProducers.push({
-              producerId: producer.producer.id,
-              peerId: otherPeerId,
-              kind: producer.producer.kind,
-            });
-          }
+      if (room.sellerSocket) {
+        const sellPeer = this.roomService.getPeer(room, room.sellerSocket.id);
+        for (const producer of sellPeer.producers.values()) {
+          existingProducers.push({
+            producerId: producer.producer.id,
+            peerId: sellPeer.id,
+            kind: producer.producer.kind,
+          });
         }
       }
 
@@ -113,44 +113,31 @@ export class SignalingGateway
   }
 
   @SubscribeMessage('leave-room')
-  async handleLeaveRoom(@ConnectedSocket() client: Socket) {
-    const rooms = Array.from(client.rooms);
+  async handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { roomId: string },
+  ) {
+    const { roomId } = data;
+    const room = this.roomService.getRoom(roomId);
+    if (!room) throw new Error('No such room');
 
-    for (const roomId of rooms) {
-      if (roomId !== client.id) {
-        const room = this.roomService.getRoom(roomId);
-        if (room) {
-          const peer = room.peers.get(client.id);
-          if (peer) {
-            // Close all producers
-            for (const producer of peer.producers.values()) {
-              producer.producer.close();
-            }
-            // Close all consumers
-            for (const consumer of peer.consumers.values()) {
-              consumer.consumer.close();
-            }
-            // Close all transports
-            for (const transport of peer.transports.values()) {
-              transport.transport.close();
-            }
-            room.peers.delete(client.id);
-          }
-          client.leave(roomId);
-          client.to(roomId).emit('peer-left', { peerId: client.id });
-          if (room.peers.size === 0) {
-            this.roomService.removeRoom(roomId);
-          }
-        }
-      }
+    const closed = this.roomService.closePeerResource(room, client.id);
+
+    if (!closed) return { success: false, error: 'peer is not in a room' };
+
+    client.leave(roomId);
+    client.to(roomId).emit('peer-left', { peerId: client.id });
+    if (room.peers.size === 0) {
+      this.roomService.removeRoom(roomId);
     }
-    return { left: true };
+    this.logger.log(`peer left a room id :${roomId}`);
+    return { success: true };
   }
 
   @SubscribeMessage('connect-transport')
   async handleConnectTransport(
-    @MessageBody() data,
     @ConnectedSocket() client: Socket,
+    @MessageBody() data,
   ) {
     const { roomId, peerId, dtlsParameters, transportId } = data;
     const room = this.roomService.getRoom(roomId);
@@ -170,16 +157,17 @@ export class SignalingGateway
 
   @SubscribeMessage('produce')
   async handleProduce(@MessageBody() data, @ConnectedSocket() client: Socket) {
-    const { roomId, peerId, kind, transportId, rtpParameters } = data;
+    const { roomId, kind, transportId, rtpParameters } = data;
+    const peerId = client.id;
     try {
       const producerId = await this.producerConsumerService.createProducer({
         roomId,
-        peerId,
+        client,
         transportId,
         kind,
         rtpParameters,
       });
-      this.logger.debug(`New producer created: ${producerId}`);
+
       // 다른 클라이언트에게 새로운 Producer 알림
       client.to(roomId).emit('new-producer', { producerId, peerId, kind });
 
@@ -192,7 +180,8 @@ export class SignalingGateway
 
   @SubscribeMessage('consume')
   async handleConsume(@MessageBody() data, @ConnectedSocket() client: Socket) {
-    const { roomId, peerId, producerId, rtpCapabilities, transportId } = data;
+    const { roomId, producerId, rtpCapabilities, transportId } = data;
+    const peerId = client.id;
     try {
       const consumerData = await this.producerConsumerService.createConsumer({
         roomId,
@@ -219,12 +208,14 @@ export class SignalingGateway
     @ConnectedSocket() client: Socket,
   ) {
     const { roomId } = data;
-    const prevSellerPeerId = this.producerConsumerService.stopSellerPeer({
+    const prevSellerPeer = this.producerConsumerService.stopSellerPeer({
       roomId,
     });
-    if (prevSellerPeerId) {
-      this.server.to(prevSellerPeerId).emit('stop-producer');
+    if (prevSellerPeer) {
+      prevSellerPeer.emit('stop-producer');
+      this.logger.debug('---stop seller producer---');
     }
-    return { prevSellerPeerId };
+    return true;
+    // return;
   }
 }

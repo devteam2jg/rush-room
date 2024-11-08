@@ -19,7 +19,7 @@ export class RoomService {
       id: roomId,
       router: { router },
       peers: new Map(),
-      sellerPeerId: null,
+      sellerSocket: null,
     };
     this.rooms.set(roomId, newRoom);
 
@@ -29,6 +29,12 @@ export class RoomService {
 
   public getRoom(roomId: string): IRoom | undefined {
     return this.rooms.get(roomId);
+  }
+
+  public getPeer(room: IRoom, peerId: string) {
+    const peer = room.peers.get(peerId);
+    if (!peer) return;
+    return peer;
   }
 
   public removeRoom(roomId: string): void {
@@ -49,6 +55,25 @@ export class RoomService {
         consumers: new Map(),
       });
     }
+  }
+
+  public closePeerResource(room: IRoom, peerId: string) {
+    const peer = room.peers.get(peerId);
+    if (!peer) return false;
+    // Close all producers
+    for (const producer of peer.producers.values()) {
+      producer.producer.close();
+    }
+    // Close all consumers
+    for (const consumer of peer.consumers.values()) {
+      consumer.consumer.close();
+    }
+    // Close all transports
+    for (const transport of peer.transports.values()) {
+      transport.transport.close();
+    }
+    room.peers.delete(peerId);
+    return true;
   }
 
   public removePeerFromRoom(roomId: string, peerId: string) {

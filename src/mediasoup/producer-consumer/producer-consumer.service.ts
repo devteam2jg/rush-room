@@ -11,7 +11,8 @@ export class ProducerConsumerService {
   constructor(private readonly roomService: RoomService) {}
 
   public async createProducer(params: IProduceParams): Promise<string> {
-    const { roomId, peerId, kind, rtpParameters, transportId } = params;
+    const { roomId, client, kind, rtpParameters, transportId } = params;
+    const peerId = client.id;
     const room = this.roomService.getRoom(roomId);
     if (!room) {
       throw new Error(`Room ${roomId} not found`);
@@ -32,7 +33,9 @@ export class ProducerConsumerService {
     });
 
     peer.producers.set(producer.id, { producer });
-    room.sellerPeerId = peerId;
+    room.sellerSocket = client;
+    this.logger.debug(`New Seller Created ${peerId}`);
+    this.logger.debug(`Created Producer Size: ${peer.producers.size}`);
     return producer.id;
   }
 
@@ -74,14 +77,23 @@ export class ProducerConsumerService {
   public stopSellerPeer(param: { roomId: string }) {
     const { roomId } = param;
     const room = this.roomService.getRoom(roomId);
-    const sellerPeerId = room.sellerPeerId;
-    if (!sellerPeerId) return;
-    const sellerPeer = room.peers.get(sellerPeerId);
+    if (!room) this.logger.error(`Room ${roomId} not found`);
+
+    const prevSellerPeer = room.sellerSocket;
+    this.logger.debug(`Stop Seller Peer ${JSON.stringify(prevSellerPeer.id)}`);
+    if (!prevSellerPeer) return;
+
+    const prevSellerPeerId = room.sellerSocket.id;
+    if (!prevSellerPeerId) return;
+
+    const sellerPeer = room.peers.get(prevSellerPeerId);
     if (!sellerPeer) return;
+
     for (const producer of sellerPeer.producers.values()) {
       producer.producer.close();
     }
-    room.sellerPeerId = null;
-    return sellerPeerId;
+    this.logger.debug(`Stop Seller Peer ${prevSellerPeerId}`);
+    room.sellerSocket = null;
+    return prevSellerPeer;
   }
 }
