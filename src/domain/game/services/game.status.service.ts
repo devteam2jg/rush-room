@@ -12,6 +12,9 @@ export class GameStatusService {
   isRunning(auctionId: string): boolean {
     return this.auctionsMap.has(auctionId);
   }
+  isReady(auctionId: string): boolean {
+    return this.auctionsForReady.has(auctionId);
+  }
   setRunning(auctionId: string, auctionContext: AuctionGameContext) {
     this.auctionsMap.set(auctionId, auctionContext);
   }
@@ -19,7 +22,7 @@ export class GameStatusService {
     this.auctionsForReady.set(auctionId, auctionId);
   }
   isRunningOrReady(auctionId: string): boolean {
-    return this.isRunning(auctionId) || this.auctionsForReady.has(auctionId);
+    return this.isRunning(auctionId) || this.isReady(auctionId);
   }
   deleteReady(auctionId: string) {
     this.auctionsForReady.delete(auctionId);

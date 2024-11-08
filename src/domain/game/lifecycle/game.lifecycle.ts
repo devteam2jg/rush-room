@@ -29,6 +29,10 @@ export class AuctionGame extends AuctionGameLifecycle {
         time: auctionContext.getTime(),
       });
     };
+    auctionContext.alertToClient({
+      type: '',
+      message: '잠시후 경매가 시작됩니다.',
+    });
     await this.delay(5000);
     auctionContext.activateBid();
     auctionContext.notifyToClient({
@@ -37,6 +41,10 @@ export class AuctionGame extends AuctionGameLifecycle {
       bidPrice: bidItem.startPrice,
       bidderId: null,
       title: bidItem.title,
+    });
+    auctionContext.alertToClient({
+      type: '',
+      message: '경매가 시작 되었습니다. ',
     });
 
     console.log('Bid Created', bidItem.title);
@@ -56,7 +64,10 @@ export class AuctionGame extends AuctionGameLifecycle {
         auctionContext.subTime(30);
       }
     });
-
+    auctionContext.alertToClient({
+      type: '',
+      message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
+    });
     if (auctionContext.getTime() > 30) {
       await this.startTimer(() => auctionContext.getTime() <= 30);
     }
@@ -72,6 +83,11 @@ export class AuctionGame extends AuctionGameLifecycle {
       else if (curtime <= 10) max = 10;
       auctionContext.setTime(max);
     });
+    auctionContext.alertToClient({
+      type: '',
+      message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
+    });
+
     await this.startTimer(() => auctionContext.getTime() <= 0);
     console.log('Bid Phase 2 Ended');
   }
@@ -90,19 +106,27 @@ export class AuctionGame extends AuctionGameLifecycle {
       name: userData ? userData.name : null,
       title: bidItem.title,
     });
-    const result: boolean = auctionContext.isAuctionEnded();
+    const user = auctionContext.getUserDataById(bidItem.bidderId);
+    if (user) {
+      user.budget -= bidItem.bidPrice;
+    }
+
     await this.delay(10000);
 
     console.log('Bid Ended', auctionContext.currentBidItem.title);
-    return result;
+    return auctionContext.isAuctionEnded();
   }
 
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
     console.log('Auction Destroyed', auctionContext.auctionTitle);
+    auctionContext.alertToClient({
+      type: '',
+      message: '경매가 종료되었습니다.',
+    });
 
     auctionContext.notifyToClient({
       type: 'AUCTION_END',
-      bidItems: auctionContext.bidItems,
+      //bidItems: auctionContext.bidItems,
     });
   }
 }

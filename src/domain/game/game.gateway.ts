@@ -9,6 +9,7 @@ import { Server, Socket } from 'socket.io';
 import { forwardRef, Inject, Injectable, UseGuards } from '@nestjs/common';
 import {
   MessageType,
+  RequestDto,
   ResponseDto,
   UpdateBidPriceDto,
   UserMessageDto,
@@ -113,17 +114,23 @@ export class GameGateway {
     @MessageBody()
     bidData: UpdateBidPriceDto,
   ): any {
+    bidData.socket = socket;
     return this.gameService.updateBidPrice(bidData);
   }
 
   @UseGuards(GameGuard)
-  @SubscribeMessage('INFO')
+  @SubscribeMessage('CONTEXT')
   handleRequestAuctionInfo(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: { auctionId: string; type?: string },
+    @MessageBody() data: RequestDto,
   ) {
-    const { auctionId } = data;
-    return this.gameService.requestAuctionInfo(socket, auctionId);
+    const { type } = data;
+    switch (type) {
+      case 'INFO':
+        return this.gameService.requestAuctionInfo(socket, data);
+      case 'MODAL':
+        return this.gameService.requestLastNotifyData(socket, data);
+    }
   }
 
   /**

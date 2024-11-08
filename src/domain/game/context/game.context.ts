@@ -1,3 +1,4 @@
+import { Socket } from 'socket.io';
 import {
   InitialDataDto,
   LoadGameDataDto,
@@ -6,6 +7,7 @@ import {
   SaveGameDataDto,
   UpdateBidPriceDto,
   AuctionUserDataDto,
+  RequestDto,
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 
@@ -38,6 +40,7 @@ export class AuctionGameContext {
 
   prevBidPrice: number;
   prevBidderId: string;
+  prevSocket: Socket;
 
   private readonly joinedUsers: Map<string, AuctionUserDataDto> = new Map();
 
@@ -62,6 +65,9 @@ export class AuctionGameContext {
   }
   getTime(): number {
     return this.currentBidItem.itemSellingLimitTime;
+  }
+  getUsers(): AuctionUserDataDto[] {
+    return Array.from(this.joinedUsers.values());
   }
   setNextBidItem(): BidItem {
     this.currentBidItem = this.bidItems[this.sequence];
@@ -89,12 +95,13 @@ export class AuctionGameContext {
   }
 
   async loadContext(data: LoadGameDataDto): Promise<boolean> {
-    const { auctionId, bidItems, auctionStartDateTime, auctionTitle } = data;
+    const { auctionId, bidItems, auctionStartDateTime, auctionTitle, budget } =
+      data;
     this.auctionId = auctionId;
     this.auctionTitle = auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
-    this.budget = data.budget;
+    this.budget = budget;
     return true;
   }
 
@@ -109,42 +116,65 @@ export class AuctionGameContext {
 
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
-    console.log(updateBidPriceDto);
-    console.log('currentTime', this.getTime());
-    console.log('try to update bid price', bidPrice, bidderId);
+    const { bidPrice, bidderId, bidderNickname, socket } = updateBidPriceDto;
 
     if (!this.currentBidItem.canBid)
       return {
         message: '입찰이 불가능한 상태입니다',
       };
-    if (bidPrice <= this.currentBidItem.bidPrice)
+    if (bidPrice <= this.currentBidItem.bidPrice) {
+      this.sendToClient(socket, MessageType.ALERT, {
+        type: 'info',
+        message: '더 높은 가격을 입력해주세요',
+      });
       return {
-        message: '현재 입찰가보다 낮은 금액입니다',
+        status: 'fail',
         bidPrice: this.currentBidItem,
       };
+    }
 
+    const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
+    console.log('user', user);
+    if (user.budget < bidPrice) {
+      this.sendToClient(socket, MessageType.ALERT, {
+        type: 'info',
+        message: '예산이 부족합니다.',
+      });
+      return {
+        status: 'fail',
+      };
+    }
+    user.bidPrice = bidPrice;
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
-
     this.updateEvent();
 
-    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
+    if (this.prevSocket && this.prevSocket != socket) {
+      this.sendToClient(this.prevSocket, MessageType.ALERT, {
+        type: 'info',
+        message: '다른 사용자가 입찰을 하였습니다',
+      });
+    }
+    this.prevSocket = socket;
+    this.sendToClient(socket, MessageType.ALERT, {
+      type: 'success',
+      message: '입찰이 완료되었습니다',
+    });
 
+    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
     this.sendToClient(null, MessageType.PRICE_UPDATE, {
       bidderNickname,
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
+      budget: user.budgetHandler.getCurrentBudget(user),
     });
-    this.sendToClient(null, MessageType.ALERT, {
-      type: '',
-      message: '입찰이 완료되었습니다',
-    });
+
     return {
-      message: '입찰이 완료되었습니다',
+      status: 'success',
       bidPrice: this.currentBidItem.bidPrice,
+      buget: user.budgetHandler.getCurrentBudget(user),
     };
   }
 
@@ -177,12 +207,14 @@ export class AuctionGameContext {
     });
   }
 
-  requestCurrentBidInfo() {
+  requestCurrentBidInfo(data: RequestDto) {
+    const user: AuctionUserDataDto = this.joinedUsers.get(data.userId);
     return {
       itemId: this.currentBidItem.itemId,
       time: this.getTime(),
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
+      budget: user.budget,
     };
   }
   private lastNotifyData: any = null;
@@ -190,11 +222,10 @@ export class AuctionGameContext {
     this.lastNotifyData = data;
     this.sendToClient(null, MessageType.NOTIFICATION, data);
   }
-  AlertToClient(message: any) {
+  alertToClient(message: any) {
     this.sendToClient(null, MessageType.ALERT, message);
   }
   requestLastNotifyData(socket) {
-    console.log('requestLastNotifyData', this.lastNotifyData);
     this.sendToClient(socket, MessageType.NOTIFICATION, this.lastNotifyData);
   }
 

@@ -120,6 +120,34 @@ export abstract class AuctionGameLifecycle {
       }, 1000);
     });
   }
+
+  protected executeWithTimer(
+    callback: () => Promise<void>,
+    seconds: number,
+  ): Promise<unknown> {
+    return new Promise((resolve) => {
+      let timerFinished = false;
+      let callbackFinished = false;
+      // 타이머 설정
+      this.timer = setTimeout(() => {
+        timerFinished = true;
+        if (callbackFinished) {
+          resolve(true);
+        }
+      }, seconds);
+
+      // 콜백 함수 실행
+      callback().then(() => {
+        callbackFinished = true;
+        if (timerFinished) {
+          resolve(true);
+        }
+      });
+    }).finally(() => {
+      this.clearTimer();
+    });
+  }
+
   delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
