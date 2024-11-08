@@ -1,7 +1,7 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { JwtAuthGuard } from '~/src/domain/auth/guards/auth.guard';
-import { GameService } from '~/src/domain/game/game.service';
+import { GameService } from '~/src/domain/game/services/game.service';
 import { GetJwtPayload } from '~/src/domain/users/get-user.decorator';
 
 @Controller('game')
