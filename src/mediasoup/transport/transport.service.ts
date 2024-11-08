@@ -2,12 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RoomService } from '../room/room.service';
 import { ITransportOptions } from './transport.interface';
 import { WebRtcTransport } from 'mediasoup/node/lib/types';
-import { webRtcTransport_options } from '../media.config';
+import { TRANSPORT_OPTIONS_KEY } from '../media.config';
+import { ConfigService } from '@nestjs/config';
+import * as mediasoup from 'mediasoup';
 
 @Injectable()
 export class TransportService {
   private logger = new Logger('TransportService', { timestamp: true });
-  constructor(private readonly roomService: RoomService) {}
+
+  constructor(
+    private readonly roomService: RoomService,
+    private readonly configService: ConfigService,
+  ) {}
 
   public async createWebRtcTransport(
     roomId: string,
@@ -18,10 +24,13 @@ export class TransportService {
     if (!room) {
       throw new Error(`Room ${roomId} not found`);
     }
-
+    const webRtcTransportOptions =
+      this.configService.get<mediasoup.types.WebRtcTransportOptions>(
+        TRANSPORT_OPTIONS_KEY,
+      );
     const transport: WebRtcTransport =
       await room.router.router.createWebRtcTransport({
-        ...webRtcTransport_options,
+        ...webRtcTransportOptions,
         appData: {
           peerId,
           clientDirection: direction,
@@ -29,7 +38,7 @@ export class TransportService {
       });
 
     this.logger.debug(
-      `WebRtc Listen and Announce Ip is ${JSON.stringify(webRtcTransport_options.listenIps)}`,
+      `WebRtc Listen and Announce Ip is ${JSON.stringify(webRtcTransportOptions.listenInfos[0])}`,
     );
 
     this.roomService.addPeerToRoom(roomId, peerId);

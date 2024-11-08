@@ -1,4 +1,5 @@
 import * as mediasoup from 'mediasoup';
+import { registerAs } from '@nestjs/config';
 
 export const mediaCodecs: mediasoup.types.RtpCodecCapability[] = [
   {
@@ -17,14 +18,30 @@ export const mediaCodecs: mediasoup.types.RtpCodecCapability[] = [
   },
 ];
 
-export const webRtcTransport_options: mediasoup.types.WebRtcTransportOptions = {
-  listenIps: [
-    {
-      ip: process.env.WEBRTC_LISTEN_IP || '127.0.0.1',
-      announcedIp: process.env.WEBRTC_ANNOUNCED_IP || '127.0.0.1',
-    },
-  ],
-  enableUdp: true,
-  enableTcp: true,
-  preferUdp: true,
-};
+export const TRANSPORT_OPTIONS_KEY = 'mediasoup.transport.options';
+
+export const transportOptions = registerAs(
+  TRANSPORT_OPTIONS_KEY,
+  (): mediasoup.types.WebRtcTransportOptions => ({
+    listenInfos: [
+      {
+        ip: process.env.WEBRTC_LISTEN_IP || '127.0.0.1',
+        announcedAddress: process.env.WEBRTC_ANNOUNCED_IP || '127.0.0.1',
+        protocol: 'udp',
+        portRange: {
+          min: +process.env.WEBRTC_PORT_MIN,
+          max: +process.env.WEBRTC_PORT_MAX,
+        },
+      },
+      {
+        ip: process.env.WEBRTC_LISTEN_IP || '127.0.0.1',
+        announcedAddress: process.env.WEBRTC_ANNOUNCED_IP || '127.0.0.1',
+        protocol: 'tcp',
+        portRange: {
+          min: +process.env.WEBRTC_PORT_MIN,
+          max: +process.env.WEBRTC_PORT_MAX,
+        },
+      },
+    ],
+  }),
+);
