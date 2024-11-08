@@ -16,12 +16,14 @@ export abstract class AuctionGameLifecycle {
       id: auctionId,
     });
   }
+
   private async onRoomCreate() {
     this.next = this.onBidCreate;
     if (!(await this.lifecycle.jobBeforeRoomCreate(this.auctionContext))) {
       this.ternimate();
       return;
     }
+    this.checkValue();
     await this.onRoomCreated(this.auctionContext);
     if (!(await this.lifecycle.jobAfterRoomCreate(this.auctionContext)))
       this.ternimate();
@@ -127,4 +129,18 @@ export abstract class AuctionGameLifecycle {
   abstract onBidPhase1(auctionContext: AuctionGameContext);
   abstract onBidPhase2(auctionContext: AuctionGameContext);
   abstract onBidEnded(auctionContext: AuctionGameContext): Promise<boolean>;
+
+  private readonly checkValue = () =>
+    [
+      !this.auctionContext.auctionId,
+      !this.auctionContext.bidItems,
+      !this.auctionContext.auctionStartDateTime,
+      !this.auctionContext.auctionStatus,
+      !this.auctionContext.auctionTitle,
+      !this.auctionContext.currentBidItem,
+      !this.auctionContext.sequence,
+      !this.auctionContext.budget,
+      !this.auctionContext.prevBidPrice,
+      !this.auctionContext.prevBidderId,
+    ].every((v) => v);
 }

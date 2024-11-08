@@ -98,11 +98,11 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
-    await auctionContext.saveToDB();
     console.log('Auction Destroyed', auctionContext.auctionTitle);
 
     auctionContext.notifyToClient({
       type: 'AUCTION_END',
+      bidItems: auctionContext.bidItems,
     });
   }
 }

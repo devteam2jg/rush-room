@@ -5,10 +5,9 @@ import {
   ResponseDto,
   SaveGameDataDto,
   UpdateBidPriceDto,
+  AuctionUserDataDto,
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
-import { UserDataDto } from '~/src/domain/users/dto/user.dto';
-import { AuctionUserDataDto } from '~/src/domain/game/dto/game.dto';
 
 export enum AuctionStatus {
   READY = 'READY',
@@ -99,14 +98,13 @@ export class AuctionGameContext {
     return true;
   }
 
-  async saveToDB(): Promise<boolean> {
+  getGameData(): SaveGameDataDto {
     const saveGameDataDto: SaveGameDataDto = {
       auctionId: this.auctionId,
       bidItems: this.bidItems,
       auctionStatus: this.auctionStatus,
     };
-    const result: boolean = await this.saveEvent(saveGameDataDto);
-    return result;
+    return saveGameDataDto;
   }
 
   /** client event */
@@ -140,12 +138,17 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
     });
+    this.sendToClient(null, MessageType.ALERT, {
+      type: '',
+      message: '입찰이 완료되었습니다',
+    });
     return {
       message: '입찰이 완료되었습니다',
       bidPrice: this.currentBidItem.bidPrice,
     };
   }
-  getUserDataById(userId: string): UserDataDto {
+
+  getUserDataById(userId: string): AuctionUserDataDto {
     return this.joinedUsers.get(userId);
   }
   /** socket function
@@ -187,10 +190,14 @@ export class AuctionGameContext {
     this.lastNotifyData = data;
     this.sendToClient(null, MessageType.NOTIFICATION, data);
   }
+  AlertToClient(message: any) {
+    this.sendToClient(null, MessageType.ALERT, message);
+  }
   requestLastNotifyData(socket) {
     console.log('requestLastNotifyData', this.lastNotifyData);
     this.sendToClient(socket, MessageType.NOTIFICATION, this.lastNotifyData);
   }
+
   /***************************************************************************
    * event listener list
    *
@@ -198,28 +205,9 @@ export class AuctionGameContext {
 
   private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 
-  private loadEvent: (auctionId: string) => Promise<LoadGameDataDto> = null;
-
-  private saveEvent: (saveGameDataDto: SaveGameDataDto) => Promise<boolean> =
-    null;
-
   private updateEvent: () => void = null;
 
   private lifeCycleFunctionDto: LifecycleFuctionDto = null;
-
-  setLoadEventListener(
-    event: (auctionId: string) => Promise<LoadGameDataDto>,
-  ): this {
-    this.loadEvent = event;
-    return this;
-  }
-
-  setSaveEventListener(
-    event: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>,
-  ): this {
-    this.saveEvent = event;
-    return this;
-  }
 
   setSocketEventListener(
     event: (response: ResponseDto, data: any) => boolean,
