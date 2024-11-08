@@ -1,8 +1,9 @@
-import { RtpParameters, RtpCapabilities } from 'mediasoup/node/lib/types';
+import { RtpCapabilities, RtpParameters } from 'mediasoup/node/lib/types';
+import { Socket } from 'socket.io';
 
 export interface IProduceParams {
   roomId: string;
-  peerId: string;
+  client: Socket;
   kind: 'audio' | 'video';
   rtpParameters: RtpParameters;
   transportId: string;
