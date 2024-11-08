@@ -7,7 +7,6 @@ import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { MessageType } from '~/src/domain/game/dto/game.dto';
 export class AuctionGame extends AuctionGameLifecycle {
   async onRoomCreated(auctionContext: AuctionGameContext) {
-    await auctionContext.loadFromDB();
     console.log('Auction Created', auctionContext.auctionTitle);
   }
 
@@ -99,9 +98,7 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
-    await auctionContext.saveToDB();
     console.log('Auction Destroyed', auctionContext.auctionTitle);
-
     auctionContext.notifyToClient({
       type: 'AUCTION_END',
     });

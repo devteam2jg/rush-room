@@ -9,15 +9,12 @@ export abstract class AuctionGameLifecycle {
   private readonly auctionContext: AuctionGameContext;
   private readonly lifecycle: LifecycleFuctionDto;
 
-  constructor(lifecycle: LifecycleFuctionDto) {
+  constructor(auctionId: string, lifecycle: LifecycleFuctionDto) {
     this.lifecycle = findNullAndsetDefaultValue(lifecycle);
 
     this.auctionContext = new AuctionGameContext({
-      id: lifecycle.auctionId,
-    })
-      .setLoadEventListener(lifecycle.loadEvent)
-      .setSaveEventListener(lifecycle.saveEvent)
-      .setSocketEventListener(lifecycle.socketEvent);
+      id: auctionId,
+    });
   }
   private async onRoomCreate() {
     this.next = this.onBidCreate;

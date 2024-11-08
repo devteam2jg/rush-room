@@ -7,7 +7,6 @@ import {
 import {
   LoadGameDataDto,
   ResponseDto,
-  SaveGameDataDto,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
@@ -66,6 +65,7 @@ export class GameService {
     const { auctionId, userId } = joinAuctionDto;
     const auctionContext = this.auctionsMap.get(auctionId);
     const user = await this.usersService.findById({ id: userId });
+    console.log('joinAuction', auctionId, userId);
     auctionContext.join(user);
   }
 
@@ -80,16 +80,13 @@ export class GameService {
     return auctionContext.updateBidPrice(updateBidPriceDto);
   }
 
-  private createGameFunction(auctionId: string): LifecycleFuctionDto {
+  private createGameFunction(): LifecycleFuctionDto {
     return {
-      auctionId,
-      saveEvent: this.save,
-      loadEvent: this.load,
-      socketEvent: this.socketfun,
-
       jobBeforeRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
         if (this.isRunning(auctionId)) return false;
+        auctionContext.loadGameData(await this.load(auctionId));
+        auctionContext.setSocketEventListener(this.socketfun);
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
@@ -131,8 +128,10 @@ export class GameService {
     }
     this.setReady(auctionId);
     console.log('경매 시작', auctionId);
-    const lifecycleDto = this.createGameFunction(auctionId);
-    return GameStarter.launch(lifecycleDto);
+    GameStarter.launch(auctionId, this.createGameFunction());
+    return {
+      message: 'success',
+    };
   }
 
   requestAuctionInfo(socket: Socket, auctionId: string) {
@@ -209,20 +208,10 @@ export class GameService {
     return loadGameDataDto;
   };
 
-  private readonly save = async (
-    saveGameDataDto: SaveGameDataDto,
-  ): Promise<boolean> => {
-    const { bidItems } = saveGameDataDto;
-    await this.auctionItemRepository.updateAuctionItemMany(bidItems);
-    return true;
-  };
   private readonly socketfun = (response: ResponseDto, data: any) => {
     return this.gameGateway.sendToMany(response, data);
   };
   private readonly saveEach = async (bidItem: BidItem): Promise<boolean> => {
-    return new Promise(async (resolve) => {
-      await this.auctionItemRepository.updateAuctionItemMany([bidItem]);
-      resolve(true);
-    });
+    return await this.auctionItemRepository.updateAuctionItemMany([bidItem]);
   };
 }
