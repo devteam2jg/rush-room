@@ -13,9 +13,9 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('start/:id')
-  startAuction(@Param('id') auctionId, @GetJwtPayload() payload) {
+  async startAuction(@Param('id') auctionId, @GetJwtPayload() payload) {
     const { userId } = payload;
-    if (this.auctionService.isOwner(auctionId, userId))
+    if (await this.auctionService.isOwner(auctionId, userId))
       return this.gameService.startAuction({ auctionId });
     return { message: 'You are not the owner of this auction' };
   }

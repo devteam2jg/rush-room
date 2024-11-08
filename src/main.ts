@@ -22,6 +22,6 @@ async function bootstrap() {
   app.useGlobalFilters(new ServiceExceptionToHttpExceptionFilter());
   app.use(cookieParser());
   setupSwagger(app);
-  await app.listen(2000);
+  await app.listen(3000);
 }
 bootstrap();

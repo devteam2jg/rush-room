@@ -5,7 +5,9 @@ import {
   BidItem,
 } from '~/src/domain/game/context/game.context';
 import {
+  BudgetHandler,
   LoadGameDataDto,
+  RequestDto,
   ResponseDto,
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
@@ -46,6 +48,8 @@ export class GameService {
     const budget = auctionContext.budget;
     const user = {
       budget,
+      bidPrice: 0,
+      budgetHandler: new BudgetHandler(),
       ...(await this.usersService.findById({ id: userId })),
     };
     auctionContext.join(user);
@@ -103,7 +107,6 @@ export class GameService {
     // 경매 시작 하면 상태 진행으로 변경
     this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
     if (this.gameStatusService.isRunningOrReady(auctionId)) {
-      console.log('이미 시작된 경매입니다');
       return {
         message: '이미 시작된 경매입니다',
       };
@@ -114,10 +117,16 @@ export class GameService {
     return GameStarter.launch(auctionId, lifecycleDto);
   }
 
-  requestAuctionInfo(socket: Socket, auctionId: string) {
+  requestAuctionInfo(socket: Socket, data: RequestDto) {
+    const { auctionId } = data;
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.requestCurrentBidInfo(data);
+  }
+
+  requestLastNotifyData(socket: Socket, data: RequestDto) {
+    const { auctionId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     auctionContext.requestLastNotifyData(socket);
-    return auctionContext.requestCurrentBidInfo();
   }
 
   async intervalAuctionCheck() {
@@ -183,7 +192,9 @@ export class GameService {
   };
 
   private readonly socketfun = (response: ResponseDto, data: any) => {
-    return this.gameGateway.sendToMany(response, data);
+    if (response.socket) {
+      return this.gameGateway.sendToOne(response, data);
+    } else return this.gameGateway.sendToMany(response, data);
   };
   private readonly saveEach = (bidItem: BidItem) => {
     this.auctionItemRepository.updateAuctionItemMany([bidItem]);
