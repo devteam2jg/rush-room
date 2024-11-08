@@ -7,6 +7,7 @@ import {
   UpdateBidPriceDto,
 } from '~/src/domain/game/dto/game.dto';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
+import { AuctionUserDataDto } from '~/src/domain/game/dto/user.dto';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export enum AuctionStatus {
@@ -34,18 +35,17 @@ export class AuctionGameContext {
   auctionTitle: string;
   currentBidItem: BidItem;
   sequence: number;
+  budget: number;
 
   prevBidPrice: number;
   prevBidderId: string;
 
-  private readonly joinedUsers: Map<string, UserDataDto> = new Map();
+  private readonly joinedUsers: Map<string, AuctionUserDataDto> = new Map();
 
-  join(userData: UserDataDto) {
+  join(userData: AuctionUserDataDto) {
     const { id } = userData;
     if (this.joinedUsers.has(id)) return false;
     this.joinedUsers.set(id, userData);
-    // TODO: 재욱과 합
-    //this.notifyToClient({ type: 'NEW_PEER', peerId: socket.id });
     return true;
   }
 
@@ -95,6 +95,7 @@ export class AuctionGameContext {
     this.auctionTitle = auctionTitle;
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
+    this.budget = data.budget;
     return true;
   }
   async saveToDB(): Promise<boolean> {

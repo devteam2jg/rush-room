@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { JwtAuthGuard } from '~/src/domain/auth/guards/auth.guard';
 import { GameService } from '~/src/domain/game/game.service';
@@ -13,10 +13,14 @@ export class GameController {
 
   @UseGuards(JwtAuthGuard)
   @Get('start/:id')
-  startAuction(@Param('id') auctionId, @GetJwtPayload() payload) {
+  async startAuction(@Param('id') auctionId, @GetJwtPayload() payload) {
     const { userId } = payload;
-    if (this.auctionService.isOwner(auctionId, userId))
+    if (await this.auctionService.isOwner(auctionId, userId))
       return this.gameService.startAuction({ auctionId });
     return { message: 'You are not the owner of this auction' };
+  }
+  @Get('start')
+  startAuction2(@Query('id') auctionId) {
+    return this.gameService.startAuction({ auctionId });
   }
 }

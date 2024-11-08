@@ -18,6 +18,7 @@ import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
+import { AuctionUserDataDto } from '~/src/domain/game/dto/user.dto';
 
 @Injectable()
 export class GameService {
@@ -64,7 +65,12 @@ export class GameService {
   async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
     const { auctionId, userId } = joinAuctionDto;
     const auctionContext = this.auctionsMap.get(auctionId);
-    const user = await this.usersService.findById({ id: userId });
+    const budget = auctionContext.budget;
+    const user: AuctionUserDataDto = {
+      budget,
+      ...(await this.usersService.findById({ id: userId })),
+    };
+
     console.log('joinAuction', auctionId, userId);
     auctionContext.join(user);
   }
@@ -204,6 +210,7 @@ export class GameService {
       bidItems: bidItems,
       auctionStartDateTime: auctionStartDateTime,
       auctionStatus: auctionStatus,
+      budget: auction.budget,
     };
     return loadGameDataDto;
   };
