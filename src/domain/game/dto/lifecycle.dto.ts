@@ -1,7 +1,3 @@
-import {
-  LoadGameDataDto,
-  SaveGameDataDto,
-} from '~/src/domain/game/dto/game.dto';
 import { AuctionGameContext } from '~/src/domain/game/context/game.context';
 
 export type JobFunction = (
@@ -9,7 +5,6 @@ export type JobFunction = (
 ) => Promise<boolean>;
 
 export class LifecycleFuctionDto {
-  auctionId: string;
   jobBeforeRoomCreate?: JobFunction;
   jobAfterRoomCreate?: JobFunction;
 
@@ -24,10 +19,6 @@ export class LifecycleFuctionDto {
 
   jobBeforeBidEnd?: JobFunction;
   jobAfterBidEnd?: JobFunction;
-
-  socketEvent?: (response: any, data: any) => boolean;
-  loadEvent?: (auctionId: string) => Promise<LoadGameDataDto>;
-  saveEvent?: (saveGameDataDto: SaveGameDataDto) => Promise<boolean>;
 }
 export function findNullAndsetDefaultValue(lifecycle: LifecycleFuctionDto) {
   if (!lifecycle.jobBeforeRoomCreate)

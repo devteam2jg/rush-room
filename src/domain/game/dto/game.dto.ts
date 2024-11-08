@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { AuctionStatus, BidItem } from '../context/game.context';
 import { Socket } from 'socket.io';
+import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export class GameDataDto {
   auctionId: string;
@@ -8,6 +9,7 @@ export class GameDataDto {
   bidItems: BidItem[];
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
+  budget: number;
 }
 
 export class LoadGameDataDto extends GameDataDto {}
@@ -61,4 +63,8 @@ export class UserMessageDto {
   userId: string;
   message: string;
   nickname: string;
+}
+
+export class AuctionUserDataDto extends UserDataDto {
+  budget: number;
 }
