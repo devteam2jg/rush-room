@@ -48,24 +48,24 @@ export class UserProfileDto extends PickType(UserDataDto, [
 
 export class FindByDto extends PartialType(UserDataDto) {}
 
-export class CreateUserDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
+export class CreateUserDto extends PartialType(UserDataDto) {
+  // @IsNotEmpty()
+  // @IsString()
+  // name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  email: string;
+  // @IsNotEmpty()
+  // @IsString()
+  // email: string;
 
-  @IsString()
-  socialId: string;
-  @IsString()
-  socialType: SocialType;
+  // @IsString()
+  // socialId: string;
+  // @IsString()
+  // socialType: SocialType;
 
-  @IsString()
-  profileUrl: string;
-  @IsString()
-  thumbnailUrl: string;
+  // @IsString()
+  // profileUrl: string;
+  // @IsString()
+  // thumbnailUrl: string;
 
   @IsString()
   @IsNotEmpty()
