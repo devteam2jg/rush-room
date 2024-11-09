@@ -103,6 +103,7 @@ export class SignalingGateway
       client.to(roomId).emit('new-peer', { peerId });
 
       return {
+        isAgreed: room.isSellerAgreed,
         sendTransportOptions,
         recvTransportOptions,
         rtpCapabilities: room.router.router.rtpCapabilities,
@@ -237,9 +238,23 @@ export class SignalingGateway
     this.logger.debug(`>> seller agreed : ${JSON.stringify(data)}`);
     const room = this.roomService.getRoom(roomId);
     if (!room) throw new Error('No such room');
-
+    this.roomService.setIsAgreed(room, isAgreed);
     this.server.to(roomId).emit('seller-agreed-response', { isAgreed });
 
     return;
+  }
+
+  @SubscribeMessage('seller-disagreed-camera')
+  handleSellerDisagreedCamera(
+    @MessageBody() data,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId } = data;
+    this.logger.debug(`>> seller disagreed camera : ${JSON.stringify(data)}`);
+    const room = this.roomService.getRoom(roomId);
+    if (!room) throw new Error('No such room');
+    this.server
+      .to(roomId)
+      .emit('seller-disagreed-camera-response', { isAgreed: false });
   }
 }

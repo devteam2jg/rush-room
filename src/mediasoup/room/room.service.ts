@@ -21,6 +21,7 @@ export class RoomService {
       id: roomId,
       router: { router },
       peers: new Map(),
+      isSellerAgreed: false,
       sellerSocket: null,
     };
     this.rooms.set(roomId, newRoom);
@@ -76,6 +77,10 @@ export class RoomService {
         consumers: new Map(),
       });
     }
+  }
+
+  public setIsAgreed(room: IRoom, isAgreed: boolean) {
+    room.isSellerAgreed = isAgreed;
   }
 
   public closePeerResource(room: IRoom, peerId: string) {
