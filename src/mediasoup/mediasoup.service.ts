@@ -1,5 +1,5 @@
 import { IWorker } from './interface/media-resources.interfaces';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as mediasoup from 'mediasoup';
 import * as os from 'os';
 
@@ -7,6 +7,7 @@ import * as os from 'os';
 export class MediasoupService implements OnModuleInit {
   private nextWorkerIndex = 0;
   private workers: IWorker[] = [];
+  private logger = new Logger(MediasoupService.name, { timestamp: true });
 
   constructor() {}
 
@@ -15,16 +16,14 @@ export class MediasoupService implements OnModuleInit {
    */
   public async onModuleInit() {
     const numWorkers = os.cpus().length;
+    this.logger.verbose(`The number of cpus is ${numWorkers}`);
     for (let i = 0; i < numWorkers; ++i) {
       await this.createWorker();
     }
   }
 
   private async createWorker() {
-    const worker = await mediasoup.createWorker({
-      rtcMinPort: 6002,
-      rtcMaxPort: 6202,
-    });
+    const worker = await mediasoup.createWorker();
 
     worker.on('died', () => {
       console.error('mediasoup worker has died');

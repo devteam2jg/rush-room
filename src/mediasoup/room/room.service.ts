@@ -1,11 +1,12 @@
 import { mediaCodecs } from './../media.config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { IRoom } from './room.interface';
 import { MediasoupService } from '../mediasoup.service';
 
 @Injectable()
 export class RoomService {
   private rooms: Map<string, IRoom> = new Map();
+  private logger = new Logger(RoomService.name, { timestamp: true });
   constructor(private readonly mediasoupService: MediasoupService) {}
 
   public async createRoom(roomId: string): Promise<IRoom> {
@@ -73,6 +74,7 @@ export class RoomService {
       transport.transport.close();
     }
     room.peers.delete(peerId);
+    this.logger.debug(`peer ${peerId} left room ${room.id}!!!!`);
     return true;
   }
 

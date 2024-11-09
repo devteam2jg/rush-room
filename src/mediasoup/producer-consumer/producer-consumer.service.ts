@@ -80,6 +80,7 @@ export class ProducerConsumerService {
     if (!room) this.logger.error(`Room ${roomId} not found`);
 
     const prevSellerPeer = room.sellerSocket;
+    if (!prevSellerPeer) return;
     this.logger.debug(`Stop Seller Peer ${JSON.stringify(prevSellerPeer.id)}`);
     if (!prevSellerPeer) return;
 
