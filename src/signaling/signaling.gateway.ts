@@ -28,7 +28,7 @@ export class SignalingGateway
   @WebSocketServer()
   server: Server;
 
-  private logger = new Logger('SignalingGateway', { timestamp: true });
+  private logger = new Logger(SignalingGateway.name, { timestamp: true });
 
   constructor(
     private readonly roomService: RoomService,
@@ -62,17 +62,20 @@ export class SignalingGateway
         room = await this.roomService.createRoom(roomId);
         this.logger.log(`New room created: ${roomId}`);
       }
+      this.logger.log(
+        `New peer joined a room: ${roomId}, roomSize: ${room.peers.size}`,
+      );
       const sendTransportOptions =
         await this.transportService.createWebRtcTransport(
           roomId,
-          peerId,
+          client,
           'send',
         );
 
       const recvTransportOptions =
         await this.transportService.createWebRtcTransport(
           roomId,
-          peerId,
+          client,
           'recv',
         );
 
@@ -125,12 +128,12 @@ export class SignalingGateway
 
     if (!closed) return { success: false, error: 'peer is not in a room' };
 
-    client.leave(roomId);
-    client.to(roomId).emit('peer-left', { peerId: client.id });
     if (room.peers.size === 0) {
       this.roomService.removeRoom(roomId);
     }
     this.logger.log(`peer left a room id :${roomId}`);
+    client.leave(roomId);
+    client.to(roomId).emit('peer-left', { peerId: client.id });
     return { success: true };
   }
 
@@ -208,6 +211,13 @@ export class SignalingGateway
     @ConnectedSocket() client: Socket,
   ) {
     const { roomId } = data;
+    console.log(
+      '==== stoped room ===: ',
+      roomId,
+      JSON.stringify(this.roomService.getPrevSeller(roomId)?.id),
+    );
+
+    this.server.to(roomId).emit('stop-consumer');
     const prevSellerPeer = this.producerConsumerService.stopSellerPeer({
       roomId,
     });
@@ -216,7 +226,6 @@ export class SignalingGateway
       this.logger.debug('---stop seller producer---');
     }
     return true;
-    // return;
   }
 
   @SubscribeMessage('seller-agreed')
@@ -225,6 +234,7 @@ export class SignalingGateway
     @ConnectedSocket() client: Socket,
   ) {
     const { roomId, isAgreed } = data;
+    this.logger.debug(`>> seller agreed : ${JSON.stringify(data)}`);
     const room = this.roomService.getRoom(roomId);
     if (!room) throw new Error('No such room');
 

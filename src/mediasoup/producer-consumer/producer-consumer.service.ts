@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RoomService } from '../room/room.service';
 import { IConsumeParams, IProduceParams } from './producer-consumer.interface';
 import { Consumer } from 'mediasoup/node/lib/types';
+import { IRoom } from '~/src/mediasoup/room/room.interface';
 
 @Injectable()
 export class ProducerConsumerService {
@@ -76,13 +77,11 @@ export class ProducerConsumerService {
 
   public stopSellerPeer(param: { roomId: string }) {
     const { roomId } = param;
-    const room = this.roomService.getRoom(roomId);
-    if (!room) this.logger.error(`Room ${roomId} not found`);
+    const room = this.roomService.getRoomOrThrow(roomId);
 
-    const prevSellerPeer = room.sellerSocket;
+    const prevSellerPeer = this.roomService.getPrevSeller(roomId);
     if (!prevSellerPeer) return;
     this.logger.debug(`Stop Seller Peer ${JSON.stringify(prevSellerPeer.id)}`);
-    if (!prevSellerPeer) return;
 
     const prevSellerPeerId = room.sellerSocket.id;
     if (!prevSellerPeerId) return;
@@ -90,11 +89,22 @@ export class ProducerConsumerService {
     const sellerPeer = room.peers.get(prevSellerPeerId);
     if (!sellerPeer) return;
 
+    this.closePrevConsumers(room);
+
     for (const producer of sellerPeer.producers.values()) {
       producer.producer.close();
     }
     this.logger.debug(`Stop Seller Peer ${prevSellerPeerId}`);
     room.sellerSocket = null;
     return prevSellerPeer;
+  }
+
+  private closePrevConsumers(room: IRoom) {
+    room.peers.forEach((peer) => {
+      peer.consumers.forEach((consumer) => {
+        consumer.consumer.close();
+      });
+      peer.consumers.clear();
+    });
   }
 }

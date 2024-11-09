@@ -2,6 +2,7 @@ import { mediaCodecs } from './../media.config';
 import { Injectable, Logger } from '@nestjs/common';
 import { IRoom } from './room.interface';
 import { MediasoupService } from '../mediasoup.service';
+import { Socket } from 'socket.io';
 
 @Injectable()
 export class RoomService {
@@ -29,7 +30,23 @@ export class RoomService {
   }
 
   public getRoom(roomId: string): IRoom | undefined {
+    console.log(`>> get room ${roomId}, ${this.rooms.size} rooms in memory`);
     return this.rooms.get(roomId);
+  }
+
+  public getRoomOrThrow(roomId: string): IRoom | undefined {
+    const room = this.getRoom(roomId);
+    if (!room) {
+      this.logger.error(`Room ${roomId} not found`);
+      throw new Error(`Room ${roomId} not found`);
+    }
+    return room;
+  }
+
+  public getPrevSeller(roomId) {
+    // const room = this.getRoomOrThrow(roomId);
+    const room = this.getRoom(roomId);
+    return room?.sellerSocket;
   }
 
   public getPeer(room: IRoom, peerId: string) {
@@ -42,15 +59,18 @@ export class RoomService {
     this.rooms.delete(roomId);
   }
 
-  public addPeerToRoom(roomId: string, peerId: string) {
+  public addPeerToRoom(roomId: string, peerSocket: Socket) {
     const room = this.rooms.get(roomId);
     if (!room) {
       throw new Error(`Room ${roomId} not found`);
     }
 
+    const peerId = peerSocket.id;
+
     if (!room.peers.has(peerId)) {
       room.peers.set(peerId, {
         id: peerId,
+        socket: peerSocket,
         transports: new Map(),
         producers: new Map(),
         consumers: new Map(),
