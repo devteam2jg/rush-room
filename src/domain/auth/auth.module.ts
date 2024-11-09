@@ -7,6 +7,8 @@ import { UsersModule } from '~/src/domain/users/users.module';
 import { JwtStrategy } from '~/src/domain/auth/strategies/jwt.strategy';
 import { KakaoStrategy } from '~/src/domain/auth/strategies/kakao.strategy';
 import { AuthController } from './auth.controller';
+import { AuthTestController } from '~/src/domain/auth/test/test-auth.controller';
+import { AuthTestService } from '~/src/domain/auth/test/test-auth.service';
 
 @Module({
   imports: [
@@ -23,7 +25,7 @@ import { AuthController } from './auth.controller';
     ConfigModule,
   ],
 
-  providers: [AuthService, KakaoStrategy, JwtStrategy],
-  controllers: [AuthController],
+  providers: [AuthService, KakaoStrategy, JwtStrategy, AuthTestService],
+  controllers: [AuthController, AuthTestController],
 })
 export class AuthModule {}
