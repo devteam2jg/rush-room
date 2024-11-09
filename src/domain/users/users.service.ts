@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '~/src/domain/users/entities/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
@@ -26,6 +26,9 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { id: id },
     });
+    if (!user) {
+      throw new NotFoundException();
+    }
     return this.makeUserDto(user);
   }
 
