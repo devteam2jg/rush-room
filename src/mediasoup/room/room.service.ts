@@ -58,6 +58,7 @@ export class RoomService {
 
   public removeRoom(roomId: string): void {
     this.rooms.delete(roomId);
+    this.logger.debug(`-----room ${roomId} removed`);
   }
 
   public addPeerToRoom(roomId: string, peerSocket: Socket) {
