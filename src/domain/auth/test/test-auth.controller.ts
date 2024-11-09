@@ -13,8 +13,9 @@ export class AuthTestController {
     return 'create test user';
   }
   @Get('login')
-  login(@Req() req, @Res() res) {
-    const accessToken = this.authTestService.testLogin();
+  async login(@Req() req, @Res() res) {
+    const accessToken = await this.authTestService.testLogin();
+    console.log(accessToken);
     res.cookie('accessToken', accessToken, { httpOnly: true });
     res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
   }

@@ -10,17 +10,20 @@ import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 export class UserTestService {
   private readonly testThumbnailUrl;
   private readonly testProfileUrl;
+  private readonly first = 1;
+  private readonly last = 200;
+
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {
     this.testProfileUrl = configService.get<string>('TEST_PROFILE_URL');
-    this.testProfileUrl = configService.get<string>('TEST_THUMBNAIL_URL');
+    this.testThumbnailUrl = configService.get<string>('TEST_THUMBNAIL_URL');
   }
 
   createTestUser() {
-    for (let i = 1; i <= 100; i++) {
+    for (let i = this.first; i <= this.last; i++) {
       const user: CreateUserDto = {
         name: `익명 사용자 ${i}`,
         email: `testuser${i}@rushroom.kr`,
@@ -37,9 +40,9 @@ export class UserTestService {
     return `1000${i}`;
   }
   getFirstNum() {
-    return 1;
+    return this.first;
   }
   getLastNum() {
-    return 100;
+    return this.last;
   }
 }
