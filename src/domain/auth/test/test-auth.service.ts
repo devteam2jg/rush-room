@@ -23,6 +23,9 @@ export class AuthTestService {
   }
   async testLogin() {
     const id = this.findReachableTestUser();
+    if (!id) {
+      return null;
+    }
     const user = await this.usersService.findBySocialId({ socialId: id });
     return this.authService.login(user);
   }
@@ -35,6 +38,7 @@ export class AuthTestService {
         return this.userTestService.makeId(i);
       }
     }
+    return null;
   }
   testLogout() {
     this.loginedUser.fill(true);

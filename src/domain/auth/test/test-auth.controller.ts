@@ -15,7 +15,7 @@ export class AuthTestController {
   @Get('login')
   async login(@Req() req, @Res() res) {
     const accessToken = await this.authTestService.testLogin();
-    console.log(accessToken);
+    if (!accessToken) return 'test user is not available';
     res.cookie('accessToken', accessToken, { httpOnly: true });
     res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
   }
