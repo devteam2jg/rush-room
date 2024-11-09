@@ -35,11 +35,12 @@ export class AuctionService {
     private readonly usersService: UsersService,
   ) {}
 
-  create(
+  async create(
     createAuctionDto: CreateAuctionDto,
     owner: JwtPayloadDto,
   ): Promise<CreateAuctionResultDto> {
     this.auctionManager.validateCreateAuctionDto(createAuctionDto);
+    await this.usersService.findById({ id: owner.id });
     return this.auctionRepository.createAuction(createAuctionDto, owner);
   }
 
@@ -197,6 +198,9 @@ export class AuctionService {
   ): Promise<CreateAuctionItemResultDto> {
     const auctionId = createAuctionServiceDto.auctionIds.auctionId;
     await this.getAuctionById(auctionId);
+    await this.usersService.findById({
+      id: createAuctionServiceDto.clientUser.id,
+    });
     const result = await this.auctionItemRepository.createAuctionItem(
       createAuctionServiceDto,
     );
