@@ -7,22 +7,9 @@ import { UsersModule } from '~/src/domain/users/users.module';
 
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
-import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports: [
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
-    }),
-    BullModule.registerQueue({
-      name: 'bid-queue', // 호출 함수가 담길 큐
-    }),
-    AuctionModule,
-    UsersModule,
-  ],
+  imports: [AuctionModule, UsersModule],
   providers: [GameGateway, GameService, GameGuard, GameStatusService],
   exports: [GameService],
   controllers: [GameController],
