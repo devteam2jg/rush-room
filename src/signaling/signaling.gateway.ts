@@ -218,4 +218,18 @@ export class SignalingGateway
     return true;
     // return;
   }
+
+  @SubscribeMessage('seller-agreed')
+  async handleSellerAgreed(
+    @MessageBody() data,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const { roomId, isAgreed } = data;
+    const room = this.roomService.getRoom(roomId);
+    if (!room) throw new Error('No such room');
+
+    this.server.to(roomId).emit('seller-agreed-response', { isAgreed });
+
+    return;
+  }
 }
