@@ -47,7 +47,7 @@ export class BidDataDto {
 }
 
 export class UpdateBidPriceDto extends PartialType(BidDataDto) {
-  auctionId: string;
+  // auctionId: string;
   bidderNickname: string;
   bidPrice: number;
   bidderId: string;

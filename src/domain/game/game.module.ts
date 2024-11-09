@@ -7,9 +7,16 @@ import { UsersModule } from '~/src/domain/users/users.module';
 
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
-  imports: [AuctionModule, UsersModule],
+  imports: [
+    BullModule.registerQueue({
+      name: 'bid-queue',
+    }),
+    AuctionModule,
+    UsersModule,
+  ],
   providers: [GameGateway, GameService, GameGuard, GameStatusService],
   exports: [GameService],
   controllers: [GameController],

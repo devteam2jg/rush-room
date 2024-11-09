@@ -21,6 +21,8 @@ import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class GameService {
@@ -33,6 +35,7 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
+    @InjectQueue('bid-queue') private readonly bidUpdateQueue: Queue,
   ) {
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
@@ -60,10 +63,14 @@ export class GameService {
    * @param updateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { auctionId } = updateBidPriceDto;
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.updateBidPrice(updateBidPriceDto);
+  async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
+    try {
+      const job = await this.bidUpdateQueue.add('bid-queue', updateBidPriceDto);
+      const result = await job.finished();
+      return result;
+    } catch (err) {
+      throw err;
+    }
   }
 
   private createGameFunction(): LifecycleFuctionDto {
