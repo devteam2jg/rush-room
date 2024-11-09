@@ -64,8 +64,15 @@ export class GameService {
    * @returns boolean
    */
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
-    await this.bidQueue.add(updateBidPriceDto);
-    return true;
+    const job = await this.bidQueue.add(
+      JSON.parse(JSON.stringify(updateBidPriceDto, this.getCircularReplacer())),
+      {
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
+    const result = await job.finished();
+    return result;
   }
 
   async updateBidPriceFromQueue(
@@ -74,6 +81,20 @@ export class GameService {
     const { auctionId } = updateBidPriceDto;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     return auctionContext.updateBidPrice(updateBidPriceDto);
+  }
+
+  // Circular reference를 제거하기 위한 함수
+  private getCircularReplacer() {
+    const seen = new WeakSet();
+    return (key: string, value: any) => {
+      if (typeof value === 'object' && value !== null) {
+        if (seen.has(value)) {
+          return;
+        }
+        seen.add(value);
+      }
+      return value;
+    };
   }
 
   private createGameFunction(): LifecycleFuctionDto {

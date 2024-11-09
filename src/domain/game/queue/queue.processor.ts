@@ -8,8 +8,12 @@ export class BidProcessor {
   constructor(private readonly gameService: GameService) {}
 
   @Process()
-  async handleBidUpdate(job: Job<UpdateBidPriceDto>) {
-    const updateBidPriceDto = job.data;
-    return this.gameService.updateBidPriceFromQueue(updateBidPriceDto);
+  async handleBidUpdate(job: Job<UpdateBidPriceDto>): Promise<boolean> {
+    try {
+      const result = await this.gameService.updateBidPriceFromQueue(job.data);
+      return result;
+    } catch (error) {
+      throw new Error(`입찰 queue 오류 발생: ${error.message}`);
+    }
   }
 }
