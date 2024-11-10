@@ -68,7 +68,7 @@ export class AuctionService {
     );
 
     return new ReadAuctionDtoBuilder()
-      .setAuctionDto(auction)
+      .mapAuctionToDto(auction)
       .setOwnerProfile(auction.user)
       .setReadUser(auction.user, clientUser, true)
       .setItems(readAuctionItems)
@@ -107,9 +107,8 @@ export class AuctionService {
     );
     const readAuctionDtos = paginatedResult.data.map((auctionDto) => {
       return new ReadAuctionDtoBuilder()
-        .setAuctionDto(auctionDto as Auction)
+        .setAuctionDto(auctionDto)
         .setOwnerProfile(auctionDto.user)
-        .removeUser()
         .setItems(auctionDto.auctionItems)
         .build();
     });
