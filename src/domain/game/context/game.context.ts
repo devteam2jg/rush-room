@@ -105,7 +105,9 @@ export class AuctionGameContext {
   isBidActivated(): boolean {
     return this.currentBidItem.canBid;
   }
-
+  isSeller(userId: string): boolean {
+    return this.currentBidItem.sellerId == userId;
+  }
   async loadContext(data: LoadGameDataDto): Promise<boolean> {
     const { auctionId, bidItems, auctionStartDateTime, auctionTitle, budget } =
       data;

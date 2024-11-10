@@ -7,6 +7,7 @@ import {
 import {
   BudgetHandler,
   LoadGameDataDto,
+  MessageType,
   RequestDto,
   ResponseDto,
   UpdateBidPriceDto,
@@ -21,6 +22,7 @@ import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { AuctionService } from '~/src/domain/auction/auction.service';
 
 @Injectable()
 export class GameService {
@@ -33,6 +35,7 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
+    private readonly auctionService: AuctionService,
   ) {
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
@@ -42,7 +45,7 @@ export class GameService {
    * 경매
    */
   async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
-    const { auctionId, userId } = joinAuctionDto;
+    const { auctionId, userId, socket } = joinAuctionDto;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
 
     const budget = auctionContext.budget;
@@ -53,6 +56,12 @@ export class GameService {
       ...(await this.usersService.findById({ id: userId })),
     };
     auctionContext.join(user);
+    if (auctionContext.isSeller(userId)) {
+      auctionContext.sendToClient(socket, MessageType.NOTIFICATION, {
+        type: 'CAMERA_REQUEST',
+        message: '카메라를 켜 주세요',
+      });
+    }
   }
 
   /**
@@ -81,9 +90,14 @@ export class GameService {
         this.gameStatusService.setRunning(auctionId, auctionContext);
         return true;
       },
-      jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
+      jobBeforeRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
         this.gameStatusService.deleteRunning(auctionId);
+        return true;
+      },
+      jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
+        const { auctionId } = auctionContext;
+        this.auctionService.update(auctionId, { status: Status.END }, {});
         return true;
       },
       jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {

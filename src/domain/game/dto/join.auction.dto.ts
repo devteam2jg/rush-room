@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
+import { Socket } from 'socket.io';
 
 export class JoinAuctionDto {
   @IsNotEmpty()
@@ -8,4 +9,6 @@ export class JoinAuctionDto {
   @IsNotEmpty()
   @IsString()
   userId: string;
+
+  socket?: Socket;
 }

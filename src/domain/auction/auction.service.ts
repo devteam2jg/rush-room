@@ -165,7 +165,7 @@ export class AuctionService {
     owner: JwtPayloadDto,
   ): Promise<UpdateResult> {
     const result = await this.auctionRepository.update(
-      { id: id, user: { id: owner.id } },
+      { id: id },
       updateAuctionDto,
     );
     this.auctionManager.checkAffected(result);
