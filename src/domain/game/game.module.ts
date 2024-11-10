@@ -7,6 +7,7 @@ import { UsersModule } from '~/src/domain/users/users.module';
 
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { GameTestController } from '~/src/domain/game/test/game-test.controller';
 import { BullModule } from '@nestjs/bull';
 import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
 
@@ -26,6 +27,6 @@ import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
     BidUpdateProcessor,
   ],
   exports: [GameService],
-  controllers: [GameController],
+  controllers: [GameController, GameTestController],
 })
 export class GameModule {}

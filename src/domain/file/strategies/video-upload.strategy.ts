@@ -32,7 +32,6 @@ export class VideoUploadStrategy implements UploadStrategy {
       throw new InternalServerErrorException('Failed to upload file to S3');
 
     await this.mediaConvertService.makeHlsFileByS3Key(key);
-    console.log(this.makeS3Url(uuid));
     return this.makeS3Url(uuid);
   }
 

@@ -8,6 +8,7 @@ export enum Status {
   WAIT = 'WAIT',
   PROGRESS = 'PROGRESS',
   END = 'END',
+  TERMINATED = 'TERMINATED',
 }
 
 @Entity('auction')

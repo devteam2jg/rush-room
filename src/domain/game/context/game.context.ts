@@ -15,6 +15,7 @@ export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
   ENDED = 'ENDED',
+  TERMINATED = 'TERMINATED',
 }
 export class BidItem {
   itemId: string;
@@ -60,6 +61,17 @@ export class AuctionGameContext {
     this.prevBidPrice = 0;
     this.sequence = 0;
   }
+  // -----------------------------------------------------------------------
+  /*
+    Auction Status 관리
+   */
+  isRunning(): boolean {
+    return this.auctionStatus == AuctionStatus.ONGOING;
+  }
+  terminate() {
+    this.auctionStatus = AuctionStatus.TERMINATED;
+  }
+  // -----------------------------------------------------------------------
   timerInterrupt() {
     return --this.currentBidItem.itemSellingLimitTime;
   }
@@ -93,7 +105,10 @@ export class AuctionGameContext {
   isBidActivated(): boolean {
     return this.currentBidItem.canBid;
   }
-
+  isSeller(userId: string): boolean {
+    console.log('판매자 인가요? ', userId, this.currentBidItem.sellerId);
+    return this.currentBidItem.sellerId == userId;
+  }
   async loadContext(data: LoadGameDataDto): Promise<boolean> {
     const { auctionId, bidItems, auctionStartDateTime, auctionTitle, budget } =
       data;
@@ -116,17 +131,17 @@ export class AuctionGameContext {
 
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
+    const { bidPrice, bidderId, bidderNickname, socket } = updateBidPriceDto;
 
     if (!this.currentBidItem.canBid)
       return {
         message: '입찰이 불가능한 상태입니다',
       };
     if (bidPrice <= this.currentBidItem.bidPrice) {
-      // this.sendToClient(socket, MessageType.ALERT, {
-      //   type: 'info',
-      //   message: '더 높은 가격을 입력해주세요',
-      // });
+      this.sendToClient(socket, MessageType.ALERT, {
+        type: 'RED',
+        message: '더 높은 가격을 입력해주세요',
+      });
       return {
         status: 'fail',
         bidPrice: this.currentBidItem,
@@ -136,10 +151,10 @@ export class AuctionGameContext {
     const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
     console.log('user', user);
     if (user.budget < bidPrice) {
-      // this.sendToClient(socket, MessageType.ALERT, {
-      //   type: 'info',
-      //   message: '예산이 부족합니다.',
-      // });
+      this.sendToClient(socket, MessageType.ALERT, {
+        type: 'RED',
+        message: '예산이 부족합니다.',
+      });
       return {
         status: 'fail',
       };
@@ -151,17 +166,17 @@ export class AuctionGameContext {
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
 
-    // if (this.prevSocket && this.prevSocket != socket) {
-    //   this.sendToClient(this.prevSocket, MessageType.ALERT, {
-    //     type: 'info',
-    //     message: '다른 사용자가 입찰을 하였습니다',
-    //   });
-    // }
-    // this.prevSocket = socket;
-    // this.sendToClient(socket, MessageType.ALERT, {
-    //   type: 'success',
-    //   message: '입찰이 완료되었습니다',
-    // });
+    if (this.prevSocket && this.prevSocket != socket) {
+      this.sendToClient(this.prevSocket, MessageType.ALERT, {
+        type: 'YELLOW',
+        message: '다른 사용자가 입찰을 하였습니다',
+      });
+    }
+    this.prevSocket = socket;
+    this.sendToClient(socket, MessageType.ALERT, {
+      type: 'GREEN',
+      message: '입찰이 완료되었습니다',
+    });
 
     this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
     this.sendToClient(null, MessageType.PRICE_UPDATE, {
@@ -176,6 +191,12 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
       buget: user.budgetHandler.getCurrentBudget(user),
     };
+  }
+
+  reduceTime(time: number) {
+    if (this.currentBidItem.itemSellingLimitTime <= time) return;
+    this.subTime(time);
+    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
   }
 
   getUserDataById(userId: string): AuctionUserDataDto {

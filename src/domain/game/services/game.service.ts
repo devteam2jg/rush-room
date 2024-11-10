@@ -7,6 +7,7 @@ import {
 import {
   BudgetHandler,
   LoadGameDataDto,
+  MessageType,
   RequestDto,
   ResponseDto,
   UpdateBidPriceDto,
@@ -21,6 +22,7 @@ import { Socket } from 'socket.io';
 import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { AuctionService } from '~/src/domain/auction/auction.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
@@ -49,6 +51,7 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
+    private readonly auctionService: AuctionService,
     @InjectQueue('update-bid-queue')
     private updateBidQueue: Queue,
   ) {
@@ -60,7 +63,10 @@ export class GameService {
   /**
    * 경매
    */
-  async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
+  async joinAuction(
+    socket: Socket,
+    joinAuctionDto: JoinAuctionDto,
+  ): Promise<void> {
     const { auctionId, userId } = joinAuctionDto;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
 
@@ -116,9 +122,14 @@ export class GameService {
         this.gameStatusService.setRunning(auctionId, auctionContext);
         return true;
       },
-      jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
+      jobBeforeRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
         this.gameStatusService.deleteRunning(auctionId);
+        return true;
+      },
+      jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
+        const { auctionId } = auctionContext;
+        this.auctionService.update(auctionId, { status: Status.END }, {});
         return true;
       },
       jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
@@ -163,6 +174,17 @@ export class GameService {
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     auctionContext.requestLastNotifyData(socket);
   }
+  requestCamera(socket: Socket, data: RequestDto) {
+    const { auctionId, userId } = data;
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    if (auctionContext.isSeller(userId)) {
+      auctionContext.sendToClient(socket, MessageType.NOTIFICATION, {
+        type: 'CAMERA_REQUEST',
+        message: '카메라를 켜 주세요',
+      });
+    }
+    return true;
+  }
 
   async intervalAuctionCheck() {
     await this.startAuctionTimers();
@@ -204,7 +226,7 @@ export class GameService {
         bidderId: null,
         startPrice: item.startPrice,
         bidPrice: item.startPrice,
-        itemSellingLimitTime: auction.sellingLimitTime * 4,
+        itemSellingLimitTime: auction.sellingLimitTime * 60,
         title: item.title,
         description: item.description,
         picture: item.imageUrls,
@@ -225,6 +247,15 @@ export class GameService {
     };
     return loadGameDataDto;
   };
+
+  async reduceTime(auctionId: string, userId: string, time: number) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.reduceTime(time);
+  }
+  async terminateAuction(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.terminate();
+  }
 
   private readonly socketfun = (response: ResponseDto, data: any) => {
     if (response.socket) {

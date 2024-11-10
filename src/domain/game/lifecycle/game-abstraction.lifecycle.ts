@@ -1,4 +1,7 @@
-import { AuctionGameContext } from '~/src/domain/game/context/game.context';
+import {
+  AuctionGameContext,
+  AuctionStatus,
+} from '~/src/domain/game/context/game.context';
 import {
   findNullAndsetDefaultValue,
   LifecycleFuctionDto,
@@ -24,6 +27,7 @@ export abstract class AuctionGameLifecycle {
       return;
     }
     this.checkValue();
+    this.auctionContext.auctionStatus = AuctionStatus.ONGOING;
     await this.onRoomCreated(this.auctionContext);
     if (!(await this.lifecycle.jobAfterRoomCreate(this.auctionContext)))
       this.ternimate();
@@ -34,6 +38,7 @@ export abstract class AuctionGameLifecycle {
       this.ternimate();
       return;
     }
+    this.auctionContext.auctionStatus = AuctionStatus.ENDED;
     await this.onRoomDestroyed(this.auctionContext);
     if (!(await this.lifecycle.jobAfterRoomDestroy(this.auctionContext)))
       this.ternimate();
@@ -76,6 +81,7 @@ export abstract class AuctionGameLifecycle {
 
   protected ternimate() {
     this.next = null;
+    this.auctionContext.auctionStatus = AuctionStatus.TERMINATED;
     console.log('Ternimated');
   }
 
@@ -107,7 +113,6 @@ export abstract class AuctionGameLifecycle {
     }
   }
   protected startTimer2(callback: () => boolean, time?: number): Promise<void> {
-    console.log(time);
     return new Promise((resolve) => {
       this.clearTimer();
       this.timer = setInterval(() => {

@@ -18,9 +18,11 @@ import { GameService } from '~/src/domain/game/services/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+
 @Injectable()
 @WebSocketGateway({
-  namespace: '/auction-execute',
+  namespace: 'game',
+  path: '/game/socket.io',
   cors: { origin: true, credentials: true },
 })
 export class GameGateway {
@@ -57,7 +59,7 @@ export class GameGateway {
     const { auctionId } = joinData;
     if (this.gameStatusService.isRunning(auctionId)) {
       socket.join(auctionId);
-      await this.gameService.joinAuction(joinData);
+      await this.gameService.joinAuction(socket, joinData);
       return {
         message: 'success',
       };
@@ -95,7 +97,6 @@ export class GameGateway {
       messageType,
       socket,
     };
-    console.log('messageData', messageData);
     this.sendToMany(response, data);
     return true;
   }
@@ -125,11 +126,15 @@ export class GameGateway {
     @MessageBody() data: RequestDto,
   ) {
     const { type } = data;
+    console.log('Context 요청', data);
     switch (type) {
       case 'INFO':
         return this.gameService.requestAuctionInfo(socket, data);
       case 'MODAL':
         return this.gameService.requestLastNotifyData(socket, data);
+      case 'CAMERA':
+        console.log('카메라 요청');
+        return this.gameService.requestCamera(socket, data);
     }
   }
 

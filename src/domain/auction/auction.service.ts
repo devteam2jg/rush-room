@@ -35,11 +35,12 @@ export class AuctionService {
     private readonly usersService: UsersService,
   ) {}
 
-  create(
+  async create(
     createAuctionDto: CreateAuctionDto,
     owner: JwtPayloadDto,
   ): Promise<CreateAuctionResultDto> {
     this.auctionManager.validateCreateAuctionDto(createAuctionDto);
+    await this.usersService.findById({ id: owner.id });
     return this.auctionRepository.createAuction(createAuctionDto, owner);
   }
 
@@ -67,7 +68,7 @@ export class AuctionService {
     );
 
     return new ReadAuctionDtoBuilder()
-      .setAuctionDto(auction)
+      .mapAuctionToDto(auction)
       .setOwnerProfile(auction.user)
       .setReadUser(auction.user, clientUser, true)
       .setItems(readAuctionItems)
@@ -106,7 +107,9 @@ export class AuctionService {
     );
     const readAuctionDtos = paginatedResult.data.map((auctionDto) => {
       return new ReadAuctionDtoBuilder()
-        .setAuctionDto(auctionDto as Auction)
+        .setAuctionDto(auctionDto)
+        .setOwnerProfile(auctionDto.user)
+        .setItems(auctionDto.auctionItems)
         .build();
     });
     return {
@@ -164,7 +167,7 @@ export class AuctionService {
     owner: JwtPayloadDto,
   ): Promise<UpdateResult> {
     const result = await this.auctionRepository.update(
-      { id: id, user: { id: owner.id } },
+      { id: id },
       updateAuctionDto,
     );
     this.auctionManager.checkAffected(result);
@@ -197,6 +200,9 @@ export class AuctionService {
   ): Promise<CreateAuctionItemResultDto> {
     const auctionId = createAuctionServiceDto.auctionIds.auctionId;
     await this.getAuctionById(auctionId);
+    await this.usersService.findById({
+      id: createAuctionServiceDto.clientUser.id,
+    });
     const result = await this.auctionItemRepository.createAuctionItem(
       createAuctionServiceDto,
     );
@@ -225,7 +231,14 @@ export class AuctionService {
   }
 
   private async getAuctionById(id: string) {
-    const auction = await this.auctionRepository.findOneBy({ id });
+    const auction = await this.auctionRepository
+      .find({
+        where: { id },
+        relations: ['user', 'auctionItems'],
+        order: { auctionItems: { createdAt: 'ASC' } },
+      })
+      .then((auctions) => auctions[0]);
+
     this.auctionManager.validateId(auction);
     return auction;
   }
@@ -246,6 +259,6 @@ export class AuctionService {
 
   async isOwner(auctionId: string, userId: string): Promise<boolean> {
     const auction = await this.auctionRepository.findOneBy({ id: auctionId });
-    return auction.user.id === userId;
+    return auction.user.id == userId;
   }
 }
