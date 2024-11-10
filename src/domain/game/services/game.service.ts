@@ -44,8 +44,11 @@ export class GameService {
   /**
    * 경매
    */
-  async joinAuction(joinAuctionDto: JoinAuctionDto): Promise<void> {
-    const { auctionId, userId, socket } = joinAuctionDto;
+  async joinAuction(
+    socket: Socket,
+    joinAuctionDto: JoinAuctionDto,
+  ): Promise<void> {
+    const { auctionId, userId } = joinAuctionDto;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
 
     const budget = auctionContext.budget;

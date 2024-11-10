@@ -59,7 +59,7 @@ export class GameGateway {
     const { auctionId } = joinData;
     if (this.gameStatusService.isRunning(auctionId)) {
       socket.join(auctionId);
-      await this.gameService.joinAuction(joinData);
+      await this.gameService.joinAuction(socket, joinData);
       return {
         message: 'success',
       };
