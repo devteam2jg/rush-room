@@ -19,8 +19,17 @@ export class GameController {
       return this.gameService.startAuction({ auctionId });
     return { message: 'You are not the owner of this auction' };
   }
-  @Get('start')
-  startAuct12ion2(@Query('id') auctionId) {
-    return this.gameService.startAuction({ auctionId });
+
+  @UseGuards(JwtAuthGuard)
+  @Get('reduce')
+  async reduceTime(
+    @Query('id') auctionId,
+    @Query('time') time,
+    @GetJwtPayload() payload,
+  ) {
+    const { id } = payload;
+    if (await this.auctionService.isOwner(auctionId, id))
+      return this.gameService.reduceTime(auctionId, id, time);
+    return { message: 'You are not the owner of this auction' };
   }
 }

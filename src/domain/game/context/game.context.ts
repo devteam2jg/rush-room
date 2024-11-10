@@ -15,6 +15,7 @@ export enum AuctionStatus {
   READY = 'READY',
   ONGOING = 'ONGOING',
   ENDED = 'ENDED',
+  TERMINATED = 'TERMINATED',
 }
 export class BidItem {
   itemId: string;
@@ -60,6 +61,17 @@ export class AuctionGameContext {
     this.prevBidPrice = 0;
     this.sequence = 0;
   }
+  // -----------------------------------------------------------------------
+  /*
+    Auction Status 관리
+   */
+  isRunning(): boolean {
+    return this.auctionStatus == AuctionStatus.ONGOING;
+  }
+  terminate() {
+    this.auctionStatus = AuctionStatus.TERMINATED;
+  }
+  // -----------------------------------------------------------------------
   timerInterrupt() {
     return --this.currentBidItem.itemSellingLimitTime;
   }
@@ -176,6 +188,12 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
       buget: user.budgetHandler.getCurrentBudget(user),
     };
+  }
+
+  reduceTime(time: number) {
+    if (this.currentBidItem.itemSellingLimitTime <= time) return;
+    this.subTime(time);
+    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
   }
 
   getUserDataById(userId: string): AuctionUserDataDto {

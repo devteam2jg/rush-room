@@ -191,6 +191,15 @@ export class GameService {
     return loadGameDataDto;
   };
 
+  async reduceTime(auctionId: string, userId: string, time: number) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.reduceTime(time);
+  }
+  async terminateAuction(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.terminate();
+  }
+
   private readonly socketfun = (response: ResponseDto, data: any) => {
     if (response.socket) {
       return this.gameGateway.sendToOne(response, data);
