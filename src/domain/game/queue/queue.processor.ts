@@ -2,9 +2,7 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { UpdateBidPriceDto } from '~/src/domain/game/dto/game.dto';
-import { Injectable } from '@nestjs/common';
 
-@Injectable()
 @Processor('update-bid-queue')
 export class BidUpdateProcessor {
   constructor(private readonly gameStatusService: GameStatusService) {}
