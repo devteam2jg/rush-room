@@ -92,7 +92,7 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
-    if (auction?.auctionItems.length > 0)
+    if (auction?.auctionItems?.length > 0)
       this.auctionItems = [auction.auctionItems[0]];
 
     if (!notEndorsed) {
