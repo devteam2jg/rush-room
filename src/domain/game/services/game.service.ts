@@ -24,6 +24,20 @@ import { GameStatusService } from '~/src/domain/game/services/game.status.servic
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
+// 순환 참조 방지용 안전 직렬화 함수
+function safeStringify(obj: any) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  });
+}
+
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name, { timestamp: true });
@@ -35,8 +49,9 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
-    @InjectQueue('bid-queue') private readonly bidUpdateQueue: Queue,
+    @InjectQueue('update-bid') private readonly bidUpdateQueue: Queue,
   ) {
+    this.bidUpdateQueue.setMaxListeners(20);
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
   }
@@ -65,7 +80,17 @@ export class GameService {
    */
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
     try {
-      const job = await this.bidUpdateQueue.add('bid-queue', updateBidPriceDto);
+      // 순환 참조가 필요한 경우에만 안전 직렬화
+      //const serializedData = safeStringify(updateBidPriceDto);
+      // 큐에 작업 추가, 완료 및 실패 시 자동 삭제
+      const job = await this.bidUpdateQueue.add(
+        'update-bid',
+        updateBidPriceDto,
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
       const result = await job.finished();
       return result;
     } catch (err) {

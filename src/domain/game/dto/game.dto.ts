@@ -33,7 +33,7 @@ export enum MessageType {
   ALERT = 'ALERT',
 }
 export class BidDataDto {
-  socket: Socket;
+  // socket: Socket;
   auctionId: string;
   MessageType: MessageType;
 
@@ -47,7 +47,7 @@ export class BidDataDto {
 }
 
 export class UpdateBidPriceDto extends PartialType(BidDataDto) {
-  // auctionId: string;
+  auctionId: string;
   bidderNickname: string;
   bidPrice: number;
   bidderId: string;

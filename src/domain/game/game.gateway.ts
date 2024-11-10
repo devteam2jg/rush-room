@@ -114,7 +114,7 @@ export class GameGateway {
     @MessageBody()
     bidData: UpdateBidPriceDto,
   ): any {
-    bidData.socket = socket;
+    //bidData.socket = socket;
     return this.gameService.updateBidPrice(bidData);
   }
 
