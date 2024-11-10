@@ -139,7 +139,7 @@ export class AuctionGameContext {
       };
     if (bidPrice <= this.currentBidItem.bidPrice) {
       this.sendToClient(socket, MessageType.ALERT, {
-        type: 'info',
+        type: 'RED',
         message: '더 높은 가격을 입력해주세요',
       });
       return {
@@ -152,7 +152,7 @@ export class AuctionGameContext {
     console.log('user', user);
     if (user.budget < bidPrice) {
       this.sendToClient(socket, MessageType.ALERT, {
-        type: 'info',
+        type: 'RED',
         message: '예산이 부족합니다.',
       });
       return {
@@ -168,13 +168,13 @@ export class AuctionGameContext {
 
     if (this.prevSocket && this.prevSocket != socket) {
       this.sendToClient(this.prevSocket, MessageType.ALERT, {
-        type: 'info',
+        type: 'YELLOW',
         message: '다른 사용자가 입찰을 하였습니다',
       });
     }
     this.prevSocket = socket;
     this.sendToClient(socket, MessageType.ALERT, {
-      type: 'success',
+      type: 'GREEN',
       message: '입찰이 완료되었습니다',
     });
 
