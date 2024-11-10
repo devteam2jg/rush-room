@@ -4,7 +4,6 @@ import { User } from '~/src/domain/users/entities/user.entity';
 import { ReadAuctionItemDto } from '~/src/domain/auction/dto/auction-item/read.auction.item.dto';
 import { UserProfileDto } from '~/src/domain/users/dto/user.dto';
 import { JwtPayloadDto } from '~/src/domain/auth/dto/jwt.dto';
-import { AuctionItem } from '../entities/auction-item.entity';
 
 export class ReadUser {
   isOwner: boolean;
@@ -83,9 +82,9 @@ export class AuctionDto extends PickType(Auction, [
   'status',
   'isPrivate',
   'budget',
+  'auctionItems',
 ] as const) {
   user: User;
-  auctionItems?: AuctionItem[];
 
   constructor(auction: Auction, notEndorsed?: boolean) {
     super();
@@ -95,9 +94,7 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
-    if (auction?.auctionItems?.length > 0)
-      this.auctionItems = [auction.auctionItems[0]];
-    else this.auctionItems = [];
+    this.auctionItems = auction.auctionItems;
 
     if (!notEndorsed) {
       this.sellingLimitTime = auction.sellingLimitTime;
