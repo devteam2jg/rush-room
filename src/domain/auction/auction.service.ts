@@ -108,6 +108,8 @@ export class AuctionService {
     const readAuctionDtos = paginatedResult.data.map((auctionDto) => {
       return new ReadAuctionDtoBuilder()
         .setAuctionDto(auctionDto as Auction)
+        .setOwnerProfile(auctionDto.user)
+        .setItems(auctionDto.auctionItems)
         .build();
     });
     return {
