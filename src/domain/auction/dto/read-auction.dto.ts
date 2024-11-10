@@ -36,8 +36,13 @@ export class ReadAuctionDtoBuilder {
   _items: ReadAuctionItemDto[];
   _readUser: ReadUser;
 
-  setAuctionDto(auction: Auction) {
+  mapAuctionToDto(auction: Auction) {
     this._auctionDto = new AuctionDto(auction);
+    return this;
+  }
+
+  setAuctionDto(auctionDto: AuctionDto) {
+    this._auctionDto = auctionDto;
     return this;
   }
 
@@ -48,11 +53,14 @@ export class ReadAuctionDtoBuilder {
 
   setOwnerProfile(owner: User) {
     this._ownerProfile = new UserProfileDto(owner);
+    if (this._auctionDto?.user) this._auctionDto.user = undefined;
     return this;
   }
 
   setItems(items: ReadAuctionItemDto[]) {
     this._items = items;
+    if (this._auctionDto?.auctionItems)
+      this._auctionDto.auctionItems = undefined;
     return this;
   }
 
@@ -87,8 +95,9 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
-    if (auction?.auctionItems.length > 0)
+    if (auction?.auctionItems?.length > 0)
       this.auctionItems = [auction.auctionItems[0]];
+    else this.auctionItems = [];
 
     if (!notEndorsed) {
       this.sellingLimitTime = auction.sellingLimitTime;
