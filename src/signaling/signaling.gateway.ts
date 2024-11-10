@@ -136,7 +136,9 @@ export class SignalingGateway
     if (room.peers.size === 0) {
       this.roomService.removeRoom(roomId);
     }
-    this.logger.log(`peer left a room id :${roomId}`);
+    this.logger.log(
+      `peer left a room id :${roomId}, roomSize: ${room.peers.size}`,
+    );
     client.leave(roomId);
     client.to(roomId).emit('peer-left', { peerId: client.id });
     return { success: true };
