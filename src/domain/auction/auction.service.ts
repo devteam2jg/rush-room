@@ -231,7 +231,14 @@ export class AuctionService {
   }
 
   private async getAuctionById(id: string) {
-    const auction = await this.auctionRepository.findOneBy({ id });
+    const auction = await this.auctionRepository
+      .find({
+        where: { id },
+        relations: ['user', 'auctionItems'],
+        order: { auctionItems: { createdAt: 'ASC' } },
+      })
+      .then((auctions) => auctions[0]);
+
     this.auctionManager.validateId(auction);
     return auction;
   }
