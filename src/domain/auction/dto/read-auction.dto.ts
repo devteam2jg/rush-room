@@ -61,6 +61,11 @@ export class ReadAuctionDtoBuilder {
     return this;
   }
 
+  removeUser() {
+    if (this._auctionDto?.user) this._auctionDto.user = undefined;
+    return this;
+  }
+
   build() {
     return new ReadAuctionDto(this);
   }

@@ -109,6 +109,7 @@ export class AuctionService {
       return new ReadAuctionDtoBuilder()
         .setAuctionDto(auctionDto as Auction)
         .setOwnerProfile(auctionDto.user)
+        .removeUser()
         .setItems(auctionDto.auctionItems)
         .build();
     });
