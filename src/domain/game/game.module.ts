@@ -8,6 +8,7 @@ import { UsersModule } from '~/src/domain/users/users.module';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { BullModule } from '@nestjs/bull';
+import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
 
 @Module({
   imports: [
@@ -17,7 +18,13 @@ import { BullModule } from '@nestjs/bull';
     AuctionModule,
     UsersModule,
   ],
-  providers: [GameGateway, GameService, GameGuard, GameStatusService],
+  providers: [
+    GameGateway,
+    GameService,
+    GameGuard,
+    GameStatusService,
+    BidUpdateProcessor,
+  ],
   exports: [GameService],
   controllers: [GameController],
 })
