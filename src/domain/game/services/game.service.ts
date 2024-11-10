@@ -49,9 +49,10 @@ export class GameService {
     private readonly auctionItemRepository: AuctionItemRepository,
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
-    @InjectQueue('update-bid') private readonly bidUpdateQueue: Queue,
+    @InjectQueue('update-bid-queue')
+    private updateBidQueue: Queue,
   ) {
-    this.bidUpdateQueue.setMaxListeners(20);
+    // this.updateBidQueue.setMaxListeners(20);
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
   }
@@ -78,19 +79,21 @@ export class GameService {
    * @param updateBidPriceDto
    * @returns boolean
    */
+
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
     try {
-      // 순환 참조가 필요한 경우에만 안전 직렬화
       //const serializedData = safeStringify(updateBidPriceDto);
       // 큐에 작업 추가, 완료 및 실패 시 자동 삭제
-      const job = await this.bidUpdateQueue.add(
-        'update-bid',
+      console.log('요청updateBidPriceDto:', updateBidPriceDto);
+      const job = await this.updateBidQueue.add(
+        'updateBid',
         updateBidPriceDto,
         {
           removeOnComplete: true,
           removeOnFail: true,
         },
       );
+      console.log('Job added:', job.id);
       const result = await job.finished();
       return result;
     } catch (err) {

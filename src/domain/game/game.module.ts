@@ -12,7 +12,7 @@ import { BullModule } from '@nestjs/bull';
 @Module({
   imports: [
     BullModule.registerQueue({
-      name: 'update-bid',
+      name: 'update-bid-queue',
     }),
     AuctionModule,
     UsersModule,
