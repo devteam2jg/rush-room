@@ -132,6 +132,8 @@ export class GameGateway {
         return this.gameService.requestAuctionInfo(socket, data);
       case 'MODAL':
         return this.gameService.requestLastNotifyData(socket, data);
+      case 'CAMERA':
+        return this.gameService.requestCamera(socket, data);
     }
   }
 

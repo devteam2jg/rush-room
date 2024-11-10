@@ -59,12 +59,6 @@ export class GameService {
       ...(await this.usersService.findById({ id: userId })),
     };
     auctionContext.join(user);
-    if (auctionContext.isSeller(userId)) {
-      auctionContext.sendToClient(socket, MessageType.NOTIFICATION, {
-        type: 'CAMERA_REQUEST',
-        message: '카메라를 켜 주세요',
-      });
-    }
   }
 
   /**
@@ -144,6 +138,17 @@ export class GameService {
     const { auctionId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     auctionContext.requestLastNotifyData(socket);
+  }
+  requestCamera(socket: Socket, data: RequestDto) {
+    const { auctionId, userId } = data;
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    if (auctionContext.isSeller(userId)) {
+      auctionContext.sendToClient(socket, MessageType.NOTIFICATION, {
+        type: 'CAMERA_REQUEST',
+        message: '카메라를 켜 주세요',
+      });
+    }
+    return true;
   }
 
   async intervalAuctionCheck() {
