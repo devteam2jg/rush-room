@@ -18,9 +18,11 @@ import { GameService } from '~/src/domain/game/services/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+
 @Injectable()
 @WebSocketGateway({
-  namespace: '/auction-execute',
+  namespace: 'GAME',
+  path: '/game/socket.io',
   cors: { origin: true, credentials: true },
 })
 export class GameGateway {
