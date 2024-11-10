@@ -21,7 +21,7 @@ import { GameStatusService } from '~/src/domain/game/services/game.status.servic
 
 @Injectable()
 @WebSocketGateway({
-  namespace: 'GAME',
+  namespace: 'game',
   path: '/game/socket.io',
   cors: { origin: true, credentials: true },
 })
