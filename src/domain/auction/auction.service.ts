@@ -250,6 +250,6 @@ export class AuctionService {
 
   async isOwner(auctionId: string, userId: string): Promise<boolean> {
     const auction = await this.auctionRepository.findOneBy({ id: auctionId });
-    return auction.user.id === userId;
+    return auction.user.id == userId;
   }
 }
