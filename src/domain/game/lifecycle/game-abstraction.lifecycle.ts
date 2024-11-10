@@ -113,7 +113,6 @@ export abstract class AuctionGameLifecycle {
     }
   }
   protected startTimer2(callback: () => boolean, time?: number): Promise<void> {
-    console.log(time);
     return new Promise((resolve) => {
       this.clearTimer();
       this.timer = setInterval(() => {

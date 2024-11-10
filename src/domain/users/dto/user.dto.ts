@@ -38,7 +38,6 @@ export class UserProfileDto extends PickType(UserDataDto, [
 
   constructor(user: User) {
     super();
-    console.log(JSON.stringify(user));
     this.id = user.id;
     this.nickname = user.name ? user.name : '아무개';
     this.email = user.email;

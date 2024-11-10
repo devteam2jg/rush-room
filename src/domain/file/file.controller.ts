@@ -8,7 +8,6 @@ export class FileController {
   @Post('video/upload')
   @UseInterceptors(FileInterceptor('video'))
   uploadFile(@UploadedFile() file: Express.Multer.File) {
-    console.log(file);
     return this.fileService.uploadFile(file);
   }
 }

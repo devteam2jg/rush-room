@@ -97,7 +97,6 @@ export class GameGateway {
       messageType,
       socket,
     };
-    console.log('messageData', messageData);
     this.sendToMany(response, data);
     return true;
   }
@@ -127,12 +126,14 @@ export class GameGateway {
     @MessageBody() data: RequestDto,
   ) {
     const { type } = data;
+    console.log('Context 요청', data);
     switch (type) {
       case 'INFO':
         return this.gameService.requestAuctionInfo(socket, data);
       case 'MODAL':
         return this.gameService.requestLastNotifyData(socket, data);
       case 'CAMERA':
+        console.log('카메라 요청');
         return this.gameService.requestCamera(socket, data);
     }
   }
