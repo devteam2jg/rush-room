@@ -40,7 +40,9 @@ export class TransportService {
       });
 
     transport.on('@close', () => {
-      this.logger.debug(`WebRtcTransport closed`);
+      this.logger.debug(
+        `Transport on event close listener: ${direction} WebRtcTransport closed. peerId: ${peerId} roomId: ${roomId} `,
+      );
       this.roomService.closePeerResource(room, peerId);
     });
 

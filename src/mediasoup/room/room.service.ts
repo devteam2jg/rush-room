@@ -31,7 +31,6 @@ export class RoomService {
   }
 
   public getRoom(roomId: string): IRoom | undefined {
-    console.log(`>> get room ${roomId}, ${this.rooms.size} rooms in memory`);
     return this.rooms.get(roomId);
   }
 
@@ -45,7 +44,6 @@ export class RoomService {
   }
 
   public getPrevSeller(roomId) {
-    // const room = this.getRoomOrThrow(roomId);
     const room = this.getRoom(roomId);
     return room?.sellerSocket;
   }
@@ -100,7 +98,6 @@ export class RoomService {
       transport.transport.close();
     }
     room.peers.delete(peerId);
-    this.logger.debug(`peer ${peerId} left room ${room.id}!!!!`);
     return true;
   }
 

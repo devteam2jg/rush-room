@@ -124,7 +124,10 @@ export class SignalingGateway
   ) {
     const { roomId } = data;
     const room = this.roomService.getRoom(roomId);
-    if (!room) throw new Error('No such room');
+    if (!room) {
+      this.logger.log(`Try to leave a room id :${roomId} already closed`);
+      return;
+    }
 
     const closed = this.roomService.closePeerResource(room, client.id);
 
