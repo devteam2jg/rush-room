@@ -183,7 +183,7 @@ export class GameService {
         bidderId: null,
         startPrice: item.startPrice,
         bidPrice: item.startPrice,
-        itemSellingLimitTime: auction.sellingLimitTime * 4,
+        itemSellingLimitTime: auction.sellingLimitTime * 60,
         title: item.title,
         description: item.description,
         picture: item.imageUrls,
