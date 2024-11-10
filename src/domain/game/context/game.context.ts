@@ -106,6 +106,7 @@ export class AuctionGameContext {
     return this.currentBidItem.canBid;
   }
   isSeller(userId: string): boolean {
+    console.log(userId, this.currentBidItem.sellerId);
     return this.currentBidItem.sellerId == userId;
   }
   async loadContext(data: LoadGameDataDto): Promise<boolean> {
