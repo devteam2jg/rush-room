@@ -16,7 +16,8 @@ import { ProducerConsumerService } from 'src/mediasoup/producer-consumer/produce
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
-  namespace: 'sfu',
+  namespace: 'media',
+  path: '/media/socket.io',
   cors: {
     origin: '*',
     credentials: true,
