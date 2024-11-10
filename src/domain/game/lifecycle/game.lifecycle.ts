@@ -30,7 +30,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       });
     };
     auctionContext.alertToClient({
-      type: '',
+      type: 'YELLOW',
       message: '잠시후 경매가 시작됩니다.',
     });
     await this.delay(5000);
@@ -43,7 +43,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       title: bidItem.title,
     });
     auctionContext.alertToClient({
-      type: '',
+      type: 'GREEN',
       message: '경매가 시작 되었습니다. ',
     });
 
@@ -65,7 +65,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       }
     });
     auctionContext.alertToClient({
-      type: '',
+      type: 'YELLOW',
       message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
     });
     if (auctionContext.getTime() > 30) {
@@ -84,7 +84,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       auctionContext.setTime(max);
     });
     auctionContext.alertToClient({
-      type: '',
+      type: 'YELLOW',
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
     });
 
@@ -120,7 +120,7 @@ export class AuctionGame extends AuctionGameLifecycle {
   async onRoomDestroyed(auctionContext: AuctionGameContext) {
     console.log('Auction Destroyed', auctionContext.auctionTitle);
     auctionContext.alertToClient({
-      type: '',
+      type: 'YELLOW',
       message: '경매가 종료되었습니다.',
     });
 
