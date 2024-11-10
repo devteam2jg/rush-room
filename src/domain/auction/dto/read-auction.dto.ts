@@ -59,7 +59,8 @@ export class ReadAuctionDtoBuilder {
 
   setItems(items: ReadAuctionItemDto[]) {
     this._items = items;
-    console.log(this._items);
+    if (this._auctionDto?.auctionItems)
+      this._auctionDto.auctionItems = undefined;
     return this;
   }
 
@@ -94,9 +95,9 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
-    console.log('auction dto------', auction.auctionItems);
     if (auction?.auctionItems?.length > 0)
       this.auctionItems = [auction.auctionItems[0]];
+    else this.auctionItems = [];
 
     if (!notEndorsed) {
       this.sellingLimitTime = auction.sellingLimitTime;
