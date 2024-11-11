@@ -31,6 +31,8 @@ export enum MessageType {
   VOICE_MESSAGE = 'VOICE_MESSAGE',
   ALERT = 'ALERT',
   FINAL_TIME = 'FINAL_TIME',
+  TIME_ADD = 'TIME_ADD',
+  TIME_SUB = 'TIME_SUB',
 }
 export class BidDataDto {
   socketId: string;
