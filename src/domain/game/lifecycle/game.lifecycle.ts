@@ -66,7 +66,8 @@ export class AuctionGame extends AuctionGameLifecycle {
       }
       auctionContext.subTime(subTime);
 
-      auctionContext.sendToClient(null, MessageType.TIME_SUB, {
+      auctionContext.sendToClient(null, MessageType.TIME, {
+        type: 'SUB',
         time: subTime,
       });
     });
@@ -89,7 +90,8 @@ export class AuctionGame extends AuctionGameLifecycle {
       else if (curtime <= 10) max = 10;
       auctionContext.setTime(max);
 
-      auctionContext.sendToClient(null, MessageType.TIME_ADD, {
+      auctionContext.sendToClient(null, MessageType.TIME, {
+        type: 'ADD',
         time: max - curtime,
       });
     });
