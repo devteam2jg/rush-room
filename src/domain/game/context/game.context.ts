@@ -165,13 +165,14 @@ export class AuctionGameContext {
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
 
-    // if (this.prevSocket && this.prevSocket != socket) {
-    //   this.sendToClient(this.prevSocket, MessageType.ALERT, {
-    //     type: 'YELLOW',
-    //     message: '다른 사용자가 입찰을 하였습니다',
-    //   });
-    // }
-    // this.prevSocket = socketId;
+    if (this.prevSocketId && this.prevSocketId != socketId) {
+      this.sendToClient(this.prevSocketId, MessageType.ALERT, {
+        type: 'YELLOW',
+        message: '다른 사용자가 입찰을 하였습니다',
+      });
+    }
+    this.prevSocketId = socketId;
+
     this.sendToClient(socketId, MessageType.ALERT, {
       type: 'GREEN',
       message: '입찰이 완료되었습니다',
