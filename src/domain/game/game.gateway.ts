@@ -40,8 +40,8 @@ export class GameGateway {
     return true;
   }
   sendToOne(response: ResponseDto, data: any): boolean {
-    const { messageType, socket } = response;
-    socket.emit(messageType, data);
+    const { messageType, socketId } = response;
+    this.server.to(socketId).emit(messageType, data);
     return true;
   }
 
@@ -85,6 +85,7 @@ export class GameGateway {
     messageData: UserMessageDto,
   ): boolean {
     const { auctionId, userId, message, nickname } = messageData;
+    const socketId = socket.id;
     const messageType = MessageType.USER_MESSAGE;
     const data = {
       auctionId,
@@ -95,7 +96,7 @@ export class GameGateway {
     const response: ResponseDto = {
       auctionId,
       messageType,
-      socket,
+      socketId,
     };
     this.sendToMany(response, data);
     return true;
@@ -115,7 +116,7 @@ export class GameGateway {
     @MessageBody()
     bidData: UpdateBidPriceDto,
   ): any {
-    bidData.socket = socket;
+    bidData.socketId = socket.id;
     return this.gameService.updateBidPrice(bidData);
   }
 
@@ -126,15 +127,16 @@ export class GameGateway {
     @MessageBody() data: RequestDto,
   ) {
     const { type } = data;
+    if (!data.socketId) data.socketId = socket.id;
     console.log('Context 요청', data);
     switch (type) {
       case 'INFO':
-        return this.gameService.requestAuctionInfo(socket, data);
+        return this.gameService.requestAuctionInfo(data);
       case 'MODAL':
-        return this.gameService.requestLastNotifyData(socket, data);
+        return this.gameService.requestLastNotifyData(data);
       case 'CAMERA':
         console.log('카메라 요청');
-        return this.gameService.requestCamera(socket, data);
+        return this.gameService.requestCamera(data);
     }
   }
 
@@ -145,26 +147,26 @@ export class GameGateway {
    * @param voiceData
    */
 
-  @UseGuards(GameGuard)
-  @SubscribeMessage('audio')
-  handleAudio(
-    socket: Socket,
-    @MessageBody()
-    voiceData: {
-      data: Blob;
-      userId: string;
-      auctionId: string;
-      nickname: string;
-    },
-  ) {
-    const { data, auctionId, userId, nickname } = voiceData;
-    const message = `${nickname}님이 음성메세지를 보냈습니다.`;
-    const type = MessageType.USER_MESSAGE;
-    const messageData = { auctionId, type, userId, nickname, message };
-    this.sendToMany({ auctionId, messageType: type, socket }, { data });
-    this.sendToMany(
-      { auctionId, messageType: MessageType.VOICE_MESSAGE, socket },
-      messageData,
-    );
-  }
+  // @UseGuards(GameGuard)
+  // @SubscribeMessage('audio')
+  // handleAudio(
+  //   socket: Socket,
+  //   @MessageBody()
+  //   voiceData: {
+  //     data: Blob;
+  //     userId: string;
+  //     auctionId: string;
+  //     nickname: string;
+  //   },
+  // ) {
+  //   const { data, auctionId, userId, nickname } = voiceData;
+  //   const message = `${nickname}님이 음성메세지를 보냈습니다.`;
+  //   const type = MessageType.USER_MESSAGE;
+  //   const messageData = { auctionId, type, userId, nickname, message };
+  //   this.sendToMany({ auctionId, messageType: type, socket }, { data });
+  //   this.sendToMany(
+  //     { auctionId, messageType: MessageType.VOICE_MESSAGE, socket },
+  //     messageData,
+  //   );
+  // }
 }
