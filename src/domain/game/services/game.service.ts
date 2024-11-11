@@ -26,20 +26,6 @@ import { AuctionService } from '~/src/domain/auction/auction.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
-// 순환 참조 방지용 안전 직렬화 함수
-function safeStringify(obj: any) {
-  const seen = new WeakSet();
-  return JSON.stringify(obj, (key, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (seen.has(value)) {
-        return;
-      }
-      seen.add(value);
-    }
-    return value;
-  });
-}
-
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name, { timestamp: true });
