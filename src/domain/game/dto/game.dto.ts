@@ -31,6 +31,7 @@ export enum MessageType {
   USER_MESSAGE = 'USER_MESSAGE',
   VOICE_MESSAGE = 'VOICE_MESSAGE',
   ALERT = 'ALERT',
+  FINAL_TIME = 'FINAL_TIME',
 }
 export class BidDataDto {
   socket: Socket;

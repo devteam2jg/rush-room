@@ -178,6 +178,7 @@ export class GameService {
     auctionId: string,
   ): Promise<LoadGameDataDto> => {
     const auction = await this.auctionRepository.findOneBy({ id: auctionId });
+
     if (!auction) throw new Error('not found auction');
     const bidItems: BidItem[] = (
       await this.auctionItemRepository.getAuctionItemsByAuctionIdAndItemId(

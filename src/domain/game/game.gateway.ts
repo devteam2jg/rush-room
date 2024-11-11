@@ -41,7 +41,7 @@ export class GameGateway {
   }
   sendToOne(response: ResponseDto, data: any): boolean {
     const { messageType, socket } = response;
-    socket.emit(messageType, data);
+    this.server.to(socket.id).emit(messageType, data);
     return true;
   }
 
