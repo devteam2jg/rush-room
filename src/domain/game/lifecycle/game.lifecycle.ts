@@ -68,7 +68,8 @@ export class AuctionGame extends AuctionGameLifecycle {
 
       auctionContext.sendToClient(null, MessageType.TIME, {
         type: 'SUB',
-        time: subTime,
+        time: auctionContext.getTime(),
+        differ: subTime,
       });
     });
     auctionContext.alertToClient({
@@ -92,7 +93,8 @@ export class AuctionGame extends AuctionGameLifecycle {
 
       auctionContext.sendToClient(null, MessageType.TIME, {
         type: 'ADD',
-        time: max - curtime,
+        time: auctionContext.getTime(),
+        differ: max - curtime,
       });
     });
     auctionContext.alertToClient({

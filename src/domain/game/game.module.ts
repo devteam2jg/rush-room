@@ -10,7 +10,6 @@ import { GameStatusService } from '~/src/domain/game/services/game.status.servic
 import { GameTestController } from '~/src/domain/game/test/game-test.controller';
 import { BullModule } from '@nestjs/bull';
 import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
-import { RedisTestService } from '~/src/domain/game/test/redis-test.service';
 
 @Module({
   imports: [
@@ -25,7 +24,6 @@ import { RedisTestService } from '~/src/domain/game/test/redis-test.service';
     GameService,
     GameGuard,
     GameStatusService,
-    RedisTestService,
     BidUpdateProcessor,
   ],
   exports: [GameService],
