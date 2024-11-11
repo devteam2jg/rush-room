@@ -56,13 +56,19 @@ export class AuctionGame extends AuctionGameLifecycle {
       const currentPrice = auctionContext.currentBidItem.bidPrice;
       const subPrice = currentPrice - prevPrice;
 
+      let subTime = 0;
       if (subPrice >= 20000) {
-        auctionContext.subTime(5);
+        subTime = 5;
       } else if (subPrice > 30000) {
-        auctionContext.subTime(10);
+        subTime = 10;
       } else if (subPrice > 50000) {
-        auctionContext.subTime(30);
+        subTime = 30;
       }
+      auctionContext.subTime(subTime);
+
+      auctionContext.sendToClient(null, MessageType.TIME_SUB, {
+        time: subTime,
+      });
     });
     auctionContext.alertToClient({
       type: 'YELLOW',
@@ -82,12 +88,25 @@ export class AuctionGame extends AuctionGameLifecycle {
       if (curtime <= 20 && curtime > 10) max = 20;
       else if (curtime <= 10) max = 10;
       auctionContext.setTime(max);
+
+      auctionContext.sendToClient(null, MessageType.TIME_ADD, {
+        time: max - curtime,
+      });
     });
     auctionContext.alertToClient({
       type: 'YELLOW',
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
     });
 
+    await this.startTimer(() => auctionContext.getTime() <= 5);
+    this.timerEvent = () => {
+      auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
+        time: auctionContext.getTime(),
+      });
+      auctionContext.sendToClient(null, MessageType.FINAL_TIME, {
+        time: auctionContext.getTime(),
+      });
+    };
     await this.startTimer(() => auctionContext.getTime() <= 0);
     console.log('Bid Phase 2 Ended');
   }
@@ -126,7 +145,6 @@ export class AuctionGame extends AuctionGameLifecycle {
 
     auctionContext.notifyToClient({
       type: 'AUCTION_END',
-      //bidItems: auctionContext.bidItems,
     });
   }
 }

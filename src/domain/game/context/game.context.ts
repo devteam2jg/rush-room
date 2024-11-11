@@ -1,4 +1,3 @@
-import { Socket } from 'socket.io';
 import {
   InitialDataDto,
   LoadGameDataDto,
@@ -41,7 +40,7 @@ export class AuctionGameContext {
 
   prevBidPrice: number;
   prevBidderId: string;
-  prevSocket: Socket;
+  prevSocketId: string;
 
   private readonly joinedUsers: Map<string, AuctionUserDataDto> = new Map();
 
@@ -131,17 +130,17 @@ export class AuctionGameContext {
 
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { bidPrice, bidderId, bidderNickname } = updateBidPriceDto;
+    const { bidPrice, bidderId, bidderNickname, socketId } = updateBidPriceDto;
 
     if (!this.currentBidItem.canBid)
       return {
         message: '입찰이 불가능한 상태입니다',
       };
     if (bidPrice <= this.currentBidItem.bidPrice) {
-      // this.sendToClient(socket, MessageType.ALERT, {
-      //   type: 'RED',
-      //   message: '더 높은 가격을 입력해주세요',
-      // });
+      this.sendToClient(socketId, MessageType.ALERT, {
+        type: 'RED',
+        message: '더 높은 가격을 입력해주세요',
+      });
       return {
         status: 'fail',
         bidPrice: this.currentBidItem,
@@ -151,10 +150,10 @@ export class AuctionGameContext {
     const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
     console.log('user', user);
     if (user.budget < bidPrice) {
-      // this.sendToClient(socket, MessageType.ALERT, {
-      //   type: 'RED',
-      //   message: '예산이 부족합니다.',
-      // });
+      this.sendToClient(socketId, MessageType.ALERT, {
+        type: 'RED',
+        message: '예산이 부족합니다.',
+      });
       return {
         status: 'fail',
       };
@@ -166,17 +165,18 @@ export class AuctionGameContext {
     this.currentBidItem.bidderId = bidderId;
     this.updateEvent();
 
-    // if (this.prevSocket && this.prevSocket != socket) {
-    //   this.sendToClient(this.prevSocket, MessageType.ALERT, {
-    //     type: 'YELLOW',
-    //     message: '다른 사용자가 입찰을 하였습니다',
-    //   });
-    // }
-    // this.prevSocket = socket;
-    // this.sendToClient(socket, MessageType.ALERT, {
-    //   type: 'GREEN',
-    //   message: '입찰이 완료되었습니다',
-    // });
+    if (this.prevSocketId && this.prevSocketId != socketId) {
+      this.sendToClient(this.prevSocketId, MessageType.ALERT, {
+        type: 'YELLOW',
+        message: '다른 사용자가 입찰을 하였습니다',
+      });
+    }
+    this.prevSocketId = socketId;
+
+    this.sendToClient(socketId, MessageType.ALERT, {
+      type: 'GREEN',
+      message: '입찰이 완료되었습니다',
+    });
 
     this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
     this.sendToClient(null, MessageType.PRICE_UPDATE, {
@@ -210,7 +210,7 @@ export class AuctionGameContext {
    *
    * 비동기로 동작함
    */
-  sendToClient(socket, messageType: MessageType, data?: any) {
+  sendToClient(socketId: string, messageType: MessageType, data?: any) {
     return new Promise(() => {
       if (!data)
         data = {
@@ -222,7 +222,7 @@ export class AuctionGameContext {
       const response: ResponseDto = {
         auctionId: this.auctionId,
         messageType,
-        socket,
+        socketId,
       };
       this.socketEvent(response, data);
     });
@@ -246,8 +246,8 @@ export class AuctionGameContext {
   alertToClient(message: any) {
     this.sendToClient(null, MessageType.ALERT, message);
   }
-  requestLastNotifyData(socket) {
-    this.sendToClient(socket, MessageType.NOTIFICATION, this.lastNotifyData);
+  requestLastNotifyData(socketId) {
+    this.sendToClient(socketId, MessageType.NOTIFICATION, this.lastNotifyData);
   }
 
   /***************************************************************************

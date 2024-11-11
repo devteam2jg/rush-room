@@ -30,7 +30,10 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
   ): Promise<AuctionItem[]> {
     const query = this.createQueryBuilder('auction_item')
       .leftJoinAndSelect('auction_item.user', 'user')
-      .where('auction_item.auction.id = :auctionId', { auctionId });
+      .where('auction_item.auction.id = :auctionId', { auctionId })
+      .orderBy({
+        'auction_item.createdAt': 'ASC',
+      });
 
     if (auctionItemId) {
       query.andWhere('auction_item.id = :auctionItemId', { auctionItemId });
