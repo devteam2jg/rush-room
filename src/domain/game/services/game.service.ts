@@ -128,22 +128,22 @@ export class GameService {
     return GameStarter.launch(auctionId, lifecycleDto);
   }
 
-  requestAuctionInfo(socket: Socket, data: RequestDto) {
+  requestAuctionInfo(data: RequestDto) {
     const { auctionId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     return auctionContext.requestCurrentBidInfo(data);
   }
 
-  requestLastNotifyData(socket: Socket, data: RequestDto) {
-    const { auctionId } = data;
+  requestLastNotifyData(data: RequestDto) {
+    const { auctionId, socketId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    auctionContext.requestLastNotifyData(socket);
+    auctionContext.requestLastNotifyData(socketId);
   }
-  requestCamera(socket: Socket, data: RequestDto) {
-    const { auctionId, userId } = data;
+  requestCamera(data: RequestDto) {
+    const { auctionId, userId, socketId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     if (auctionContext.isSeller(userId)) {
-      auctionContext.sendToClient(socket, MessageType.NOTIFICATION, {
+      auctionContext.sendToClient(socketId, MessageType.NOTIFICATION, {
         type: 'CAMERA_REQUEST',
         message: '카메라를 켜 주세요',
       });
@@ -224,7 +224,7 @@ export class GameService {
   }
 
   private readonly socketfun = (response: ResponseDto, data: any) => {
-    if (response.socket) {
+    if (response.socketId) {
       return this.gameGateway.sendToOne(response, data);
     } else return this.gameGateway.sendToMany(response, data);
   };

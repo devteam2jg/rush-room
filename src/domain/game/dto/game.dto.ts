@@ -1,6 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { AuctionStatus, BidItem } from '../context/game.context';
-import { Socket } from 'socket.io';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 
 export class GameDataDto {
@@ -34,7 +33,7 @@ export enum MessageType {
   FINAL_TIME = 'FINAL_TIME',
 }
 export class BidDataDto {
-  socket: Socket;
+  socketId: string;
   auctionId: string;
   MessageType: MessageType;
 
@@ -57,7 +56,7 @@ export class UpdateBidPriceDto extends PartialType(BidDataDto) {
 export class ResponseDto {
   auctionId: string;
   messageType: MessageType;
-  socket?: Socket;
+  socketId?: string;
 }
 
 export class UserMessageDto {
@@ -84,4 +83,5 @@ export class RequestDto {
   auctionId: string;
   type: string;
   userId?: string;
+  socketId?: string;
 }
