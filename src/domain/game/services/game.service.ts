@@ -66,6 +66,17 @@ export class GameService {
     auctionContext.join(user);
   }
 
+  skip(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    auctionContext.skipBidItem();
+  }
+
+  terminate(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    auctionContext.setTime(0);
+    auctionContext.terminate();
+  }
+
   /**
    * 경매 입찰
    * @param updateBidPriceDto

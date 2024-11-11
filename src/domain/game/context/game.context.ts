@@ -128,6 +128,12 @@ export class AuctionGameContext {
     return saveGameDataDto;
   }
 
+  isTerminated(): boolean {
+    return this.auctionStatus == AuctionStatus.TERMINATED;
+  }
+  skipBidItem() {
+    this.setTime(6);
+  }
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { bidPrice, bidderId, bidderNickname, socketId } = updateBidPriceDto;

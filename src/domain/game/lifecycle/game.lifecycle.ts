@@ -77,18 +77,18 @@ export class AuctionGame extends AuctionGameLifecycle {
       message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
     });
     if (auctionContext.getTime() > 30) {
-      await this.startTimer(() => auctionContext.getTime() <= 30);
+      await this.startTimer(() => auctionContext.getTime() <= 15);
     }
 
     console.log('Bid Phase 1 Ended');
   }
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
-    let max = 30;
+    let max = 15;
     auctionContext.setUpdateBidEventListener(() => {
       const curtime = auctionContext.getTime();
-      if (curtime <= 20 && curtime > 10) max = 20;
-      else if (curtime <= 10) max = 10;
+      if (curtime <= 15 && curtime > 5) max = 15;
+      else if (curtime <= 5) max = 5;
       auctionContext.setTime(max);
 
       auctionContext.sendToClient(null, MessageType.TIME, {
