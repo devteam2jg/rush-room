@@ -102,7 +102,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
     });
 
-    await this.startTimer(() => auctionContext.getTime() <= 5);
+    await this.startTimer(() => auctionContext.getTime() <= 6);
     this.timerEvent = () => {
       auctionContext.sendToClient(null, MessageType.TIME_UPDATE, {
         time: auctionContext.getTime(),
