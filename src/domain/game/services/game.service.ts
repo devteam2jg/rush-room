@@ -23,6 +23,22 @@ import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { AuctionService } from '~/src/domain/auction/auction.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+
+// 순환 참조 방지용 안전 직렬화 함수
+function safeStringify(obj: any) {
+  const seen = new WeakSet();
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  });
+}
 
 @Injectable()
 export class GameService {
@@ -36,7 +52,10 @@ export class GameService {
     private readonly usersService: UsersService,
     private readonly gameStatusService: GameStatusService,
     private readonly auctionService: AuctionService,
+    @InjectQueue('update-bid-queue')
+    private updateBidQueue: Queue,
   ) {
+    // this.updateBidQueue.setMaxListeners(20);
     // 생성자로 경매 타이머 실행
     this.intervalAuctionCheck();
   }
@@ -66,10 +85,26 @@ export class GameService {
    * @param updateBidPriceDto
    * @returns boolean
    */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { auctionId } = updateBidPriceDto;
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.updateBidPrice(updateBidPriceDto);
+
+  async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
+    try {
+      //const serializedData = safeStringify(updateBidPriceDto);
+      // 큐에 작업 추가, 완료 및 실패 시 자동 삭제
+      console.log('요청updateBidPriceDto:', updateBidPriceDto);
+      const job = await this.updateBidQueue.add(
+        'updateBid',
+        updateBidPriceDto,
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+      console.log('Job added:', job.id);
+      const result = await job.finished();
+      return result;
+    } catch (err) {
+      throw err;
+    }
   }
 
   private createGameFunction(): LifecycleFuctionDto {
