@@ -137,6 +137,8 @@ export class GameGateway {
       case 'CAMERA':
         console.log('카메라 요청');
         return this.gameService.requestCamera(data);
+      case 'OWNER':
+        return this.gameService.requestOwnerInfo(data);
     }
   }
 

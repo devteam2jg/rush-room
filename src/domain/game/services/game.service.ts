@@ -182,7 +182,11 @@ export class GameService {
     }
     return true;
   }
-
+  requestOwnerInfo(data: RequestDto) {
+    const { auctionId, userId } = data;
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.isOwner(userId);
+  }
   async intervalAuctionCheck() {
     await this.startAuctionTimers();
     setInterval(async () => {
@@ -238,6 +242,7 @@ export class GameService {
     const loadGameDataDto: LoadGameDataDto = {
       auctionId: auctionId,
       auctionTitle: auction.title,
+      ownerId: auction.user.id,
       bidItems: bidItems,
       auctionStartDateTime: auctionStartDateTime,
       auctionStatus: auctionStatus,

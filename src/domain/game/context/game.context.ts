@@ -37,6 +37,7 @@ export class AuctionGameContext {
   currentBidItem: BidItem;
   sequence: number;
   budget: number;
+  ownerId: string;
 
   prevBidPrice: number;
   prevBidderId: string;
@@ -66,6 +67,9 @@ export class AuctionGameContext {
    */
   isRunning(): boolean {
     return this.auctionStatus == AuctionStatus.ONGOING;
+  }
+  isOwner(userId: string): boolean {
+    return this.ownerId == userId;
   }
   // terminate() {
   //   this.auctionStatus = AuctionStatus.TERMINATED;
@@ -116,6 +120,7 @@ export class AuctionGameContext {
     this.bidItems = bidItems;
     this.auctionStartDateTime = auctionStartDateTime;
     this.budget = budget;
+    this.ownerId = data.ownerId;
     return true;
   }
 

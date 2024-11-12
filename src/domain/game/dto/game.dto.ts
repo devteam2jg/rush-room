@@ -9,6 +9,7 @@ export class GameDataDto {
   auctionStartDateTime: Date;
   auctionStatus: AuctionStatus;
   budget: number;
+  ownerId: string;
 }
 
 export class LoadGameDataDto extends GameDataDto {}
