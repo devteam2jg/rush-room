@@ -18,6 +18,7 @@ import { GameService } from '~/src/domain/game/services/game.service';
 import { GameGuard } from '~/src/domain/game/guards/game.guard';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
+import { AnonymousGuard } from '~/src/domain/game/guards/anonymous.guard';
 
 @Injectable()
 @WebSocketGateway({
@@ -109,6 +110,7 @@ export class GameGateway {
    */
 
   @UseGuards(GameGuard)
+  @UseGuards(AnonymousGuard)
   @SubscribeMessage('new_bid')
   handleNewBid(
     @ConnectedSocket()

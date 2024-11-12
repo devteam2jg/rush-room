@@ -5,6 +5,7 @@ import {
   BidItem,
 } from '~/src/domain/game/context/game.context';
 import {
+  AuctionUserDataDto,
   BudgetHandler,
   LoadGameDataDto,
   MessageType,
@@ -39,7 +40,7 @@ export class GameService {
     private readonly gameStatusService: GameStatusService,
     private readonly auctionService: AuctionService,
     @InjectQueue('update-bid-queue')
-    private updateBidQueue: Queue,
+    private readonly updateBidQueue: Queue,
   ) {
     // this.updateBidQueue.setMaxListeners(20);
     // 생성자로 경매 타이머 실행
@@ -57,25 +58,19 @@ export class GameService {
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
 
     const budget = auctionContext.budget;
-    const user = {
+    const userData = await this.usersService.findById({ id: userId });
+    const user: AuctionUserDataDto = {
       budget,
       bidPrice: 0,
       budgetHandler: new BudgetHandler(),
-      ...(await this.usersService.findById({ id: userId })),
+      ...userData,
     };
     auctionContext.join(user);
   }
-
   skip(auctionId: string) {
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     auctionContext.skipBidItem();
   }
-
-  // terminate(auctionId: string) {
-  //   const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-  //   auctionContext.setTime(0);
-  //   auctionContext.terminate();
-  // }
 
   /**
    * 경매 입찰
@@ -235,6 +230,7 @@ export class GameService {
         description: item.description,
         picture: item.imageUrls,
         canBid: false,
+        canBidAnonymous: item.isBidAccessableForAnon,
       };
     });
 
