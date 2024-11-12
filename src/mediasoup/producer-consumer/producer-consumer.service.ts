@@ -66,7 +66,7 @@ export class ProducerConsumerService {
     });
 
     peer.consumers.set(consumer.id, { consumer });
-    this.logger.debug(`Created Consumer Size: ${peer.consumers.size}`);
+
     return {
       id: consumer.id,
       producerId,

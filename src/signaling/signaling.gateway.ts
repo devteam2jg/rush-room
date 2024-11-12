@@ -63,8 +63,8 @@ export class SignalingGateway
         room = await this.roomService.createRoom(roomId);
         this.logger.log(`New room created: ${roomId}`);
       }
-      this.logger.log(
-        `New peer joined a room: ${roomId}, roomSize: ${room.peers.size}`,
+      this.logger.verbose(
+        `New peer joined a room: ${roomId.slice(6)}, roomSize: ${room.peers.size}`,
       );
       const sendTransportOptions =
         await this.transportService.createWebRtcTransport(
@@ -200,9 +200,6 @@ export class SignalingGateway
         producerId,
         rtpCapabilities,
       });
-      this.logger.log(
-        `New consumer created and consuming producerId: ${consumerData.producerId}`,
-      );
       return {
         consumerData,
       };
@@ -218,11 +215,6 @@ export class SignalingGateway
     @ConnectedSocket() client: Socket,
   ) {
     const { roomId } = data;
-    console.log(
-      '==== stoped room ===: ',
-      roomId,
-      JSON.stringify(this.roomService.getPrevSeller(roomId)?.id),
-    );
 
     this.server.to(roomId).emit('stop-consumer');
     const prevSellerPeer = this.producerConsumerService.stopSellerPeer({
