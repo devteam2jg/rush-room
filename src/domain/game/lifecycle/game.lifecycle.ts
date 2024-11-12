@@ -41,6 +41,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       bidPrice: bidItem.startPrice,
       bidderId: null,
       title: bidItem.title,
+      anon: bidItem.canBidAnonymous,
     });
     auctionContext.alertToClient({
       type: 'GREEN',
