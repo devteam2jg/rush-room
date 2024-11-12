@@ -67,9 +67,9 @@ export class AuctionGameContext {
   isRunning(): boolean {
     return this.auctionStatus == AuctionStatus.ONGOING;
   }
-  terminate() {
-    this.auctionStatus = AuctionStatus.TERMINATED;
-  }
+  // terminate() {
+  //   this.auctionStatus = AuctionStatus.TERMINATED;
+  // }
   // -----------------------------------------------------------------------
   timerInterrupt() {
     return --this.currentBidItem.itemSellingLimitTime;
@@ -128,10 +128,11 @@ export class AuctionGameContext {
     return saveGameDataDto;
   }
 
-  isTerminated(): boolean {
-    return this.auctionStatus == AuctionStatus.TERMINATED;
-  }
+  // isTerminated(): boolean {
+  //   return this.auctionStatus == AuctionStatus.TERMINATED;
+  // }
   skipBidItem() {
+    this.currentBidItem.canBid = false;
     this.setTime(6);
   }
   /** client event */

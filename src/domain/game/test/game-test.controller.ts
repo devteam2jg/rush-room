@@ -12,10 +12,10 @@ export class GameTestController {
   startAuction(@Query('id') auctionId) {
     return this.gameService.startAuction({ auctionId });
   }
-  @Get('terminate')
-  terminateAuction(@Query('id') auction) {
-    return this.gameService.terminateAuction(auction);
-  }
+  // @Get('terminate')
+  // terminateAuction(@Query('id') auction) {
+  //   return this.gameService.terminateAuction(auction);
+  // }
   // @Get('redisTest')
   // redisTest() {
   //   return this.RedisTestService.testConnection();

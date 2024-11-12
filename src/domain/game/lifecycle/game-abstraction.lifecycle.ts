@@ -27,10 +27,6 @@ export abstract class AuctionGameLifecycle {
       return;
     }
     this.checkValue();
-    if (this.auctionContext.isTerminated()) {
-      this.ternimate();
-      return;
-    }
     this.auctionContext.auctionStatus = AuctionStatus.ONGOING;
     await this.onRoomCreated(this.auctionContext);
     if (!(await this.lifecycle.jobAfterRoomCreate(this.auctionContext)))
@@ -54,10 +50,6 @@ export abstract class AuctionGameLifecycle {
       this.ternimate();
       return;
     }
-    if (this.auctionContext.isTerminated()) {
-      this.ternimate();
-      return;
-    }
     await this.onBidCreated(this.auctionContext);
     if (!(await this.lifecycle.jobAfterBidCreate(this.auctionContext)))
       this.ternimate();
@@ -69,15 +61,7 @@ export abstract class AuctionGameLifecycle {
       this.ternimate();
       return;
     }
-    if (this.auctionContext.isTerminated()) {
-      this.ternimate();
-      return;
-    }
     await this.onBidPhase1(this.auctionContext);
-    if (this.auctionContext.isTerminated()) {
-      this.ternimate();
-      return;
-    }
     await this.onBidPhase2(this.auctionContext);
     if (!(await this.lifecycle.jobAfterBidRunning(this.auctionContext)))
       this.ternimate();
@@ -86,10 +70,6 @@ export abstract class AuctionGameLifecycle {
   private async onBidEnd() {
     this.next = this.onRoomDestroy;
     if (!(await this.lifecycle.jobBeforeBidEnd(this.auctionContext))) {
-      this.ternimate();
-      return;
-    }
-    if (this.auctionContext.isTerminated()) {
       this.ternimate();
       return;
     }

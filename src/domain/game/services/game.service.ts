@@ -71,11 +71,11 @@ export class GameService {
     auctionContext.skipBidItem();
   }
 
-  terminate(auctionId: string) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    auctionContext.setTime(0);
-    auctionContext.terminate();
-  }
+  // terminate(auctionId: string) {
+  //   const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+  //   auctionContext.setTime(0);
+  //   auctionContext.terminate();
+  // }
 
   /**
    * 경매 입찰
@@ -250,10 +250,10 @@ export class GameService {
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     return auctionContext.reduceTime(time);
   }
-  async terminateAuction(auctionId: string) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.terminate();
-  }
+  // async terminateAuction(auctionId: string) {
+  //   const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+  //   return auctionContext.terminate();
+  // }
 
   private readonly socketfun = (response: ResponseDto, data: any) => {
     if (response.socketId) {
