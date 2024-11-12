@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateBidPriceDto } from '~/src/domain/game/dto/game.dto';
+import { UpdateBidPriceDto, MessageType } from '~/src/domain/game/dto/game.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { SocialType } from '~/src/domain/users/enum/social-type.enum';
+
 @Injectable()
 export class AnonymousGuard {
   constructor(private readonly gameStatusService: GameStatusService) {}
@@ -28,6 +29,10 @@ export class AnonymousGuard {
     }
     if (!auctionContext.currentBidItem.canBidAnonymous) {
       if (userData.socialType == SocialType.TEST) {
+        auctionContext.sendToClient(userId, MessageType.ALERT, {
+          type: 'RED',
+          message: 'Anonymous user is not allowed',
+        });
         client.emit('ERROR', 'Anonymous user is not allowed');
         console.log('Anonymous user is not allowed');
         return false;
