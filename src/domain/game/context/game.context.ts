@@ -139,10 +139,16 @@ export class AuctionGameContext {
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { bidPrice, bidderId, bidderNickname, socketId } = updateBidPriceDto;
 
-    if (!this.currentBidItem.canBid)
+    if (!this.currentBidItem.canBid) {
+      this.sendToClient(socketId, MessageType.ALERT, {
+        type: 'RED',
+        message: '입찰이 불가능한 상태입니다',
+      });
       return {
         message: '입찰이 불가능한 상태입니다',
       };
+    }
+
     if (bidPrice <= this.currentBidItem.bidPrice) {
       this.sendToClient(socketId, MessageType.ALERT, {
         type: 'RED',
