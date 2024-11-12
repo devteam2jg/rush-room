@@ -29,7 +29,7 @@ export class AnonymousGuard {
     }
     if (!auctionContext.currentBidItem.canBidAnonymous) {
       if (userData.socialType == SocialType.TEST) {
-        auctionContext.sendToClient(userId, MessageType.ALERT, {
+        client.emit(MessageType.ALERT, {
           type: 'RED',
           message: 'Anonymous user is not allowed',
         });
