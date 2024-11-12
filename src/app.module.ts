@@ -6,22 +6,9 @@ import { AuthModule } from '~/src/domain/auth/auth.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
-import { GameModule } from './domain/game/game.module';
-import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          password: configService.get<string>('REDIS_PASSWORD'),
-        },
-      }),
-      inject: [ConfigService],
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -44,7 +31,6 @@ import { BullModule } from '@nestjs/bull';
     AuctionModule,
     FileModule,
     AwsModule,
-    GameModule,
   ],
 })
 export class AppModule {}
