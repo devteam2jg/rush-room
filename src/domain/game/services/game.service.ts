@@ -185,7 +185,9 @@ export class GameService {
   requestOwnerInfo(data: RequestDto) {
     const { auctionId, userId } = data;
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.isOwner(userId);
+    return {
+      isOwner: auctionContext.isOwner(userId),
+    };
   }
   async intervalAuctionCheck() {
     await this.startAuctionTimers();
