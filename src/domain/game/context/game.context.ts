@@ -138,7 +138,7 @@ export class AuctionGameContext {
   // }
   skipBidItem() {
     this.currentBidItem.canBid = false;
-    this.setTime(6);
+    this.setTime(8);
   }
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
