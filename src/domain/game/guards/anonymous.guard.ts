@@ -8,7 +8,7 @@ export class AnonymousGuard {
   canActivate(context) {
     const client = context.switchToWs().getClient();
     const data: UpdateBidPriceDto = context.switchToWs().getData();
-    const { auctionId, userId } = data;
+    const { auctionId, bidderId: userId } = data;
     if (!auctionId) {
       client.emit('ERROR', 'Auction ID is required');
       console.log('Auction ID is required');
