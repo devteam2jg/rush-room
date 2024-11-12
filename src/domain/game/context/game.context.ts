@@ -27,6 +27,7 @@ export class BidItem {
   description: string;
   picture: string[];
   canBid: boolean; // 기본값은 false
+  canBidAnonymous: boolean; // 기본값은 true
 }
 export class AuctionGameContext {
   auctionId: string;
@@ -83,6 +84,9 @@ export class AuctionGameContext {
   }
   getUsers(): AuctionUserDataDto[] {
     return Array.from(this.joinedUsers.values());
+  }
+  getUserData(userId: string): AuctionUserDataDto {
+    return this.joinedUsers.get(userId);
   }
   setNextBidItem(): BidItem {
     this.currentBidItem = this.bidItems[this.sequence];

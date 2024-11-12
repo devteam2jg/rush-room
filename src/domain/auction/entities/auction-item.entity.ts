@@ -39,4 +39,7 @@ export class AuctionItem extends CommonEntity {
     createForeignKeyConstraints: false,
   })
   auction: Auction;
+
+  @Column({ type: 'boolean', default: true })
+  isBidAccessableForAnon: boolean;
 }
