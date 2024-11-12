@@ -258,6 +258,7 @@ export class AuctionGameContext {
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
       budget: user.budget,
+      Anon: this.currentBidItem.canBidAnonymous,
     };
   }
   private lastNotifyData: any = null;

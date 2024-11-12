@@ -97,6 +97,9 @@ export class AuctionGame extends AuctionGameLifecycle {
         differ: max - curtime,
       });
     });
+    auctionContext.sendToClient(null, MessageType.NOTIFICATION, {
+      type: 'RUSH_TIME',
+    });
     auctionContext.alertToClient({
       type: 'YELLOW',
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
