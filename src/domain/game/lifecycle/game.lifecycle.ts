@@ -87,9 +87,10 @@ export class AuctionGame extends AuctionGameLifecycle {
           currentPrice,
           auctionContext.getTime(),
         );
-        console.log(newTime);
+
         const currentT = auctionContext.getTime();
         auctionContext.setTime(newTime);
+        console.log(prevPrice, currentPrice, currentT, newTime);
         auctionContext.sendToClient(null, MessageType.TIME, {
           type: 'SUB',
           time: auctionContext.getTime(),
