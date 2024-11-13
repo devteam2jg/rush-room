@@ -70,6 +70,7 @@ export class AuctionGame extends AuctionGameLifecycle {
     auctionContext.setUpdateBidEventListener(async () => {
       const prevPrice = auctionContext.prevBidPrice;
       const currentPrice = auctionContext.currentBidItem.bidPrice;
+
       // const subPrice = currentPrice - prevPrice;
 
       // let subTime = 0;
@@ -87,12 +88,12 @@ export class AuctionGame extends AuctionGameLifecycle {
         auctionContext.getTime(),
       );
       console.log(newTime);
+      const currentT = auctionContext.getTime();
       auctionContext.setTime(newTime);
-
       auctionContext.sendToClient(null, MessageType.TIME, {
         type: 'SUB',
         time: auctionContext.getTime(),
-        differ: newTime,
+        differ: currentT - newTime,
       });
     });
     auctionContext.alertToClient({
