@@ -27,4 +27,15 @@ export class AuthTestController {
   logout() {
     this.authTestService.testLogout();
   }
+  @Get('login-master')
+  async loginMaster(@Query('url') url, @Res() res) {
+    const accessToken = await this.authTestService.loginMaster();
+    if (!accessToken) return 'master user is not available';
+    res.cookie('accessToken', accessToken, { httpOnly: true });
+    if (url) {
+      res.redirect(url);
+      return;
+    }
+    res.redirect(this.configService.get<string>('LOGIN_REDIRECT_URL'));
+  }
 }

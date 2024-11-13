@@ -39,6 +39,19 @@ export class UserTestService {
   makeId(i: number) {
     return `1000${i}`;
   }
+  createMasterUser() {
+    const user: CreateUserDto = {
+      name: `마스터 사용자`,
+      email: `master@rushroom.kr`,
+      password: 'meanninglessoption',
+      socialId: '1',
+      socialType: SocialType.Master,
+      profileUrl: this.testProfileUrl,
+      thumbnailUrl: this.testThumbnailUrl,
+    };
+    this.usersRepository.save(user);
+  }
+
   getFirstNum() {
     return this.first;
   }
