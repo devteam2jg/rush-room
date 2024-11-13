@@ -17,9 +17,9 @@ import { RedisModule } from '@nestjs-modules/ioredis';
       useFactory: async (configService: ConfigService) => ({
         type: 'single',
         config: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get<string>('REDIS_PASSWORD', ''),
+          host: configService.get<string>('REDIS_HOST'),
+          port: configService.get<number>('REDIS_PORT'),
+          password: configService.get<string>('REDIS_PASSWORD'),
           db: configService.get<number>('REDIS_DB', 0),
           keyPrefix: configService.get<string>('REDIS_PREFIX', 'auction:'),
           retryStrategy(times: number): number | null {
