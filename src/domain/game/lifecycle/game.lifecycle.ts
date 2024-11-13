@@ -80,7 +80,9 @@ export class AuctionGame extends AuctionGameLifecycle {
           if (percent == 10 && subPrice < 20000) return;
           if (percent == 20 && subPrice < 50000) return;
         } else if (currentPrice < 10000) return;
-
+        if (!percent) {
+          return;
+        }
         const newTime = await this.auctionTimeService.calculateNewRemainingTime(
           auctionContext.auctionId,
           prevPrice,
