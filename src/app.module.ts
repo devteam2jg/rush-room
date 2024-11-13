@@ -30,30 +30,36 @@ const validateEnvVariables = (config: Record<string, any>) => {
     }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        type: 'single',
-        config: {
-          host: configService.getOrThrow<string>('REDIS_HOST'),
-          port: configService.getOrThrow<number>('REDIS_PORT'),
-          password: configService.getOrThrow<string>('REDIS_PASSWORD'),
-          username: 'default',
-          db: configService.getOrThrow<number>('REDIS_DB', 0),
-          keyPrefix: configService.getOrThrow<string>(
-            'REDIS_PREFIX',
-            'auction:',
-          ),
-          retryStrategy(times: number): number | null {
-            if (times > 5) {
-              return null;
-            }
-            return Math.min(times * 2000, 10000);
+      useFactory: async (configService: ConfigService) => (
+        console.log(
+          'configService.getOrThrow<string>(REDIS_HOST): ',
+          configService.getOrThrow<string>('REDIS_HOST'),
+        ),
+        {
+          type: 'single',
+          config: {
+            host: configService.getOrThrow<string>('REDIS_HOST'),
+            port: configService.getOrThrow<number>('REDIS_PORT'),
+            password: configService.getOrThrow<string>('REDIS_PASSWORD'),
+            username: 'default',
+            db: configService.getOrThrow<number>('REDIS_DB', 0),
+            keyPrefix: configService.getOrThrow<string>(
+              'REDIS_PREFIX',
+              'auction:',
+            ),
+            retryStrategy(times: number): number | null {
+              if (times > 5) {
+                return null;
+              }
+              return Math.min(times * 2000, 10000);
+            },
+            connectTimeout: 10000,
+            commandTimeout: 5000,
+            enableReadyCheck: true,
+            enableAutoPipelining: true,
           },
-          connectTimeout: 10000,
-          commandTimeout: 5000,
-          enableReadyCheck: true,
-          enableAutoPipelining: true,
-        },
-      }),
+        }
+      ),
       inject: [ConfigService],
     }),
     BullModule.forRootAsync({
