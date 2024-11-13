@@ -5,6 +5,22 @@ import {
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
 import { MessageType } from '~/src/domain/game/dto/game.dto';
+import { Injectable } from '@nestjs/common';
+import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
+import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
+
+@Injectable()
+export class AuctionGameFactory {
+  constructor(private readonly auctionTimeService: AuctionTimeService) {}
+
+  launch(auctionId: string, lifecycle: LifecycleFuctionDto) {
+    new AuctionGame(auctionId, lifecycle, this.auctionTimeService).run();
+    return {
+      message: 'Auction Started',
+    };
+  }
+}
+
 export class AuctionGame extends AuctionGameLifecycle {
   async onRoomCreated(auctionContext: AuctionGameContext) {
     console.log('Auction Created', auctionContext.auctionTitle);
@@ -52,25 +68,33 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
-    auctionContext.setUpdateBidEventListener(() => {
+    auctionContext.setUpdateBidEventListener(async () => {
       const prevPrice = auctionContext.prevBidPrice;
       const currentPrice = auctionContext.currentBidItem.bidPrice;
-      const subPrice = currentPrice - prevPrice;
 
-      let subTime = 0;
-      if (subPrice >= 20000) {
-        subTime = 5;
-      } else if (subPrice > 30000) {
-        subTime = 10;
-      } else if (subPrice > 50000) {
-        subTime = 30;
-      }
-      auctionContext.subTime(subTime);
+      // const subPrice = currentPrice - prevPrice;
 
+      // let subTime = 0;
+      // if (subPrice >= 20000) {
+      //   subTime = 5;
+      // } else if (subPrice > 30000) {
+      //   subTime = 10;
+      // } else if (subPrice > 50000) {
+      //   subTime = 30;
+      // }
+      const newTime = await this.auctionTimeService.calculateNewRemainingTime(
+        auctionContext.auctionId,
+        prevPrice,
+        currentPrice,
+        auctionContext.getTime(),
+      );
+      console.log(newTime);
+      const currentT = auctionContext.getTime();
+      auctionContext.setTime(newTime);
       auctionContext.sendToClient(null, MessageType.TIME, {
         type: 'SUB',
         time: auctionContext.getTime(),
-        differ: subTime,
+        differ: currentT - newTime,
       });
     });
     auctionContext.alertToClient({

@@ -6,13 +6,18 @@ import {
   findNullAndsetDefaultValue,
   LifecycleFuctionDto,
 } from '~/src/domain/game/dto/lifecycle.dto';
+import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
 
 export abstract class AuctionGameLifecycle {
   private next: () => Promise<void>;
   private readonly auctionContext: AuctionGameContext;
   private readonly lifecycle: LifecycleFuctionDto;
 
-  constructor(auctionId: string, lifecycle: LifecycleFuctionDto) {
+  constructor(
+    auctionId: string,
+    lifecycle: LifecycleFuctionDto,
+    protected readonly auctionTimeService: AuctionTimeService,
+  ) {
     this.lifecycle = findNullAndsetDefaultValue(lifecycle);
 
     this.auctionContext = new AuctionGameContext({
