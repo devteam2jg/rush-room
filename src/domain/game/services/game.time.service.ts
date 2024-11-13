@@ -142,7 +142,7 @@ export class AuctionTimeService {
     const trimmedHistory = history.slice(-100);
     await this.saveTimeReductionHistory(auctionId, trimmedHistory);
 
-    return Math.max(currentTimeRemaining - timeReduction, 0);
+    return Math.floor(Math.max(currentTimeRemaining - timeReduction, 0));
   }
 
   /**
