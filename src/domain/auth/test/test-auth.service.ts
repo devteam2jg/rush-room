@@ -46,7 +46,7 @@ export class AuthTestService {
   }
   async loginMaster() {
     const user = await this.usersService.findBySocialId({
-      socialType: SocialType.Master,
+      socialId: '1',
     });
     return this.authService.login(user);
   }
