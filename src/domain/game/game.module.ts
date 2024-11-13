@@ -10,6 +10,8 @@ import { GameStatusService } from '~/src/domain/game/services/game.status.servic
 import { GameTestController } from '~/src/domain/game/test/game-test.controller';
 import { BullModule } from '@nestjs/bull';
 import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
+import { AuctionGameFactory } from '~/src/domain/game/lifecycle/game.lifecycle';
+import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
     GameGuard,
     GameStatusService,
     BidUpdateProcessor,
+    AuctionGameFactory,
+    AuctionTimeService,
   ],
   exports: [GameService],
   controllers: [GameController, GameTestController],

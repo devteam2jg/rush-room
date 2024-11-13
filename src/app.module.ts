@@ -8,9 +8,34 @@ import { FileModule } from './domain/file/file.module';
 import { AwsModule } from './domain/aws/aws.module';
 import { GameModule } from './domain/game/game.module';
 import { BullModule } from '@nestjs/bull';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        type: 'single',
+        config: {
+          host: configService.get<string>('REDIS_HOST', 'localhost'),
+          port: configService.get<number>('REDIS_PORT', 6379),
+          password: configService.get<string>('REDIS_PASSWORD', ''),
+          db: configService.get<number>('REDIS_DB', 0),
+          keyPrefix: configService.get<string>('REDIS_PREFIX', 'auction:'),
+          retryStrategy(times: number): number | null {
+            if (times > 5) {
+              return null;
+            }
+            return Math.min(times * 2000, 10000);
+          },
+          connectTimeout: 10000,
+          commandTimeout: 5000,
+          enableReadyCheck: true,
+          enableAutoPipelining: true,
+        },
+      }),
+      inject: [ConfigService],
+    }),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

@@ -26,7 +26,7 @@ import { GameStatusService } from '~/src/domain/game/services/game.status.servic
 import { AuctionService } from '~/src/domain/auction/auction.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
-
+import { AuctionGameFactory } from '~/src/domain/game/lifecycle/game.lifecycle';
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name, { timestamp: true });
@@ -41,6 +41,7 @@ export class GameService {
     private readonly auctionService: AuctionService,
     @InjectQueue('update-bid-queue')
     private readonly updateBidQueue: Queue,
+    private readonly auctionGameFactory: AuctionGameFactory,
   ) {
     // this.updateBidQueue.setMaxListeners(20);
     // 생성자로 경매 타이머 실행
@@ -152,7 +153,7 @@ export class GameService {
     this.gameStatusService.setReady(auctionId);
     console.log('경매 시작', auctionId);
     const lifecycleDto = this.createGameFunction();
-    return GameStarter.launch(auctionId, lifecycleDto);
+    return this.auctionGameFactory.launch(auctionId, lifecycleDto);
   }
 
   requestAuctionInfo(data: RequestDto) {
