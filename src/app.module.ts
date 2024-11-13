@@ -33,12 +33,15 @@ const validateEnvVariables = (config: Record<string, any>) => {
       useFactory: async (configService: ConfigService) => ({
         type: 'single',
         config: {
-          host: configService.get<string>('REDIS_HOST'),
-          port: configService.get<number>('REDIS_PORT'),
-          password: configService.get<string>('REDIS_PASSWORD'),
+          host: configService.getOrThrow<string>('REDIS_HOST'),
+          port: configService.getOrThrow<number>('REDIS_PORT'),
+          password: configService.getOrThrow<string>('REDIS_PASSWORD'),
           username: 'default',
-          db: configService.get<number>('REDIS_DB', 0),
-          keyPrefix: configService.get<string>('REDIS_PREFIX', 'auction:'),
+          db: configService.getOrThrow<number>('REDIS_DB', 0),
+          keyPrefix: configService.getOrThrow<string>(
+            'REDIS_PREFIX',
+            'auction:',
+          ),
           retryStrategy(times: number): number | null {
             if (times > 5) {
               return null;
