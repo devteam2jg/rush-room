@@ -10,10 +10,23 @@ import { GameModule } from './domain/game/game.module';
 import { BullModule } from '@nestjs/bull';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
+// 환경변수 유효성 검사 함수
+const validateEnvVariables = (config: Record<string, any>) => {
+  const requiredVars = ['REDIS_HOST', 'REDIS_PORT', 'REDIS_PASSWORD'];
+  const missing = requiredVars.filter((key) => !config[key]);
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(', ')}`,
+    );
+  }
+  return config;
+};
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate: validateEnvVariables,
     }),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
@@ -23,6 +36,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
           host: configService.get<string>('REDIS_HOST'),
           port: configService.get<number>('REDIS_PORT'),
           password: configService.get<string>('REDIS_PASSWORD'),
+          username: 'default',
           db: configService.get<number>('REDIS_DB', 0),
           keyPrefix: configService.get<string>('REDIS_PREFIX', 'auction:'),
           retryStrategy(times: number): number | null {
