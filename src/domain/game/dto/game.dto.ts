@@ -53,6 +53,7 @@ export class UpdateBidPriceDto extends PartialType(BidDataDto) {
   bidderNickname: string;
   bidPrice: number;
   bidderId: string;
+  percent?: number;
 }
 
 export class ResponseDto {

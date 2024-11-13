@@ -4,7 +4,7 @@ import {
 } from '~/src/domain/game/context/game.context';
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
-import { MessageType } from '~/src/domain/game/dto/game.dto';
+import { MessageType, UpdateBidPriceDto } from '~/src/domain/game/dto/game.dto';
 import { Injectable } from '@nestjs/common';
 import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
@@ -68,35 +68,35 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidPhase1(auctionContext: AuctionGameContext) {
-    auctionContext.setUpdateBidEventListener(async () => {
-      const prevPrice = auctionContext.prevBidPrice;
-      const currentPrice = auctionContext.currentBidItem.bidPrice;
+    auctionContext.setUpdateBidEventListener(
+      async (updateDto: UpdateBidPriceDto) => {
+        const prevPrice = auctionContext.prevBidPrice;
+        const currentPrice = auctionContext.currentBidItem.bidPrice;
+        const subPrice = currentPrice - prevPrice;
+        const { percent } = updateDto;
 
-      // const subPrice = currentPrice - prevPrice;
+        if (percent) {
+          if (percent == 5 && subPrice < 10000) return;
+          if (percent == 10 && subPrice < 20000) return;
+          if (percent == 20 && subPrice < 50000) return;
+        } else if (currentPrice < 10000) return;
 
-      // let subTime = 0;
-      // if (subPrice >= 20000) {
-      //   subTime = 5;
-      // } else if (subPrice > 30000) {
-      //   subTime = 10;
-      // } else if (subPrice > 50000) {
-      //   subTime = 30;
-      // }
-      const newTime = await this.auctionTimeService.calculateNewRemainingTime(
-        auctionContext.auctionId,
-        prevPrice,
-        currentPrice,
-        auctionContext.getTime(),
-      );
-      console.log(newTime);
-      const currentT = auctionContext.getTime();
-      auctionContext.setTime(newTime);
-      auctionContext.sendToClient(null, MessageType.TIME, {
-        type: 'SUB',
-        time: auctionContext.getTime(),
-        differ: currentT - newTime,
-      });
-    });
+        const newTime = await this.auctionTimeService.calculateNewRemainingTime(
+          auctionContext.auctionId,
+          prevPrice,
+          currentPrice,
+          auctionContext.getTime(),
+        );
+        console.log(newTime);
+        const currentT = auctionContext.getTime();
+        auctionContext.setTime(newTime);
+        auctionContext.sendToClient(null, MessageType.TIME, {
+          type: 'SUB',
+          time: auctionContext.getTime(),
+          differ: currentT - newTime,
+        });
+      },
+    );
     auctionContext.alertToClient({
       type: 'YELLOW',
       message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
@@ -110,7 +110,7 @@ export class AuctionGame extends AuctionGameLifecycle {
 
   async onBidPhase2(auctionContext: AuctionGameContext) {
     let max = 15;
-    auctionContext.setUpdateBidEventListener(() => {
+    auctionContext.setUpdateBidEventListener((updateDto: UpdateBidPriceDto) => {
       const curtime = auctionContext.getTime();
       if (curtime <= 15 && curtime > 5) max = 15;
       else if (curtime <= 5) max = 5;
