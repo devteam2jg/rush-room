@@ -89,7 +89,8 @@ export class SignalingGateway
       const existingProducers = [];
       if (room.sellerSocket) {
         const sellPeer = this.roomService.getPeer(room, room.sellerSocket.id);
-        for (const producer of sellPeer.producers.values()) {
+        this.logger.verbose(`sellerPeer is: ${JSON.stringify(sellPeer)}`);
+        for (const producer of sellPeer?.producers.values()) {
           existingProducers.push({
             producerId: producer.producer.id,
             peerId: sellPeer.id,
