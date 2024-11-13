@@ -185,7 +185,7 @@ export class AuctionGameContext {
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
-    this.updateEvent();
+    this.updateEvent(updateBidPriceDto);
 
     if (this.prevSocketId && this.prevSocketId != socketId) {
       this.sendToClient(this.prevSocketId, MessageType.ALERT, {
@@ -280,7 +280,7 @@ export class AuctionGameContext {
 
   private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 
-  private updateEvent: () => void = null;
+  private updateEvent: (updateDto: UpdateBidPriceDto) => void = null;
 
   private lifeCycleFunctionDto: LifecycleFuctionDto = null;
 
@@ -291,7 +291,9 @@ export class AuctionGameContext {
     return this;
   }
 
-  setUpdateBidEventListener(event: () => void): this {
+  setUpdateBidEventListener(
+    event: (updateDto: UpdateBidPriceDto) => void,
+  ): this {
     this.updateEvent = event;
     return this;
   }
