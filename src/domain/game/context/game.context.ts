@@ -211,7 +211,7 @@ export class AuctionGameContext {
     return {
       status: 'success',
       bidPrice: this.currentBidItem.bidPrice,
-      buget: user.budget,
+      budget: user.budget,
     };
   }
 
