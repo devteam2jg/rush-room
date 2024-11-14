@@ -1,6 +1,5 @@
 import { RedisModuleOptions } from '@nestjs-modules/ioredis';
 import { ConfigService } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const redisConfig = (
   configService: ConfigService,
@@ -24,25 +23,4 @@ export const redisConfig = (
     enableReadyCheck: true,
     enableAutoPipelining: true,
   },
-});
-
-export const bullqConfig = (configService: ConfigService) => ({
-  redis: {
-    host: configService.get<string>('REDIS_HOST', 'localhost'),
-    port: configService.get<number>('REDIS_PORT', 6379),
-    password: configService.get<string>('REDIS_PASSWORD'),
-  },
-});
-
-export const typeormConfig = (
-  configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres',
-  host: configService.get<string>('DB_HOST'),
-  port: configService.get<number>('DB_PORT'),
-  username: configService.get<string>('DB_USERNAME'),
-  password: configService.get<string>('DB_PASSWORD'),
-  database: configService.get<string>('DB_NAME'),
-  autoLoadEntities: true,
-  synchronize: true,
 });

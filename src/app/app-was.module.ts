@@ -6,7 +6,7 @@ import { AuthModule } from '~/src/domain/auth/auth.module';
 import { AuctionModule } from '~/src/domain/auction/auction.module';
 import { FileModule } from '../domain/file/file.module';
 import { AwsModule } from '../domain/aws/aws.module';
-import { typeormConfig } from '~/src/app/config';
+import { typeormConfig } from '~/src/app/configs/redis.config';
 
 @Module({
   imports: [
