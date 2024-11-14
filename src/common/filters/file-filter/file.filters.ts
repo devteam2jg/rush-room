@@ -18,4 +18,4 @@ const isImage = (file: Express.Multer.File) =>
   RegExp(/\/(jpeg|png|gif)$/).exec(file.mimetype);
 
 const isVideo = (file: Express.Multer.File) =>
-  RegExp(/\/(mp4|avi|mov|MOV|wmv)$/).exec(file.mimetype);
+  RegExp(/\/(mp4|avi|mov|wmv)$/).exec(file.mimetype);
