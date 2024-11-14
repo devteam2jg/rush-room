@@ -112,6 +112,7 @@ export class AuctionService {
         .setItems(auctionDto.auctionItems)
         .build();
     });
+
     return {
       ...paginatedResult,
       data: readAuctionDtos,

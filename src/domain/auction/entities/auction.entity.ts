@@ -44,7 +44,7 @@ export class Auction extends CommonEntity {
   })
   user: User;
 
-  @OneToMany(() => AuctionItem, (auctionItem) => auctionItem.user, {
+  @OneToMany(() => AuctionItem, (auctionItem) => auctionItem.auction, {
     eager: true,
   })
   auctionItems: AuctionItem[];
