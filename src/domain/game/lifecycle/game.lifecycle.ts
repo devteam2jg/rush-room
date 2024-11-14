@@ -83,13 +83,13 @@ export class AuctionGame extends AuctionGameLifecycle {
         if (!percent) {
           return;
         }
-        const newTime = await this.auctionTimeService.calculateNewRemainingTime(
+        let newTime = await this.auctionTimeService.calculateNewRemainingTime(
           auctionContext.auctionId,
           prevPrice,
           currentPrice,
           auctionContext.getTime(),
         );
-
+        if (newTime < 15) newTime = 15;
         const currentT = auctionContext.getTime();
         auctionContext.setTime(newTime);
         console.log(prevPrice, currentPrice, currentT, newTime);
