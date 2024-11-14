@@ -256,4 +256,21 @@ export class SignalingGateway
       .to(roomId)
       .emit('seller-disagreed-camera-response', { isAgreed: false });
   }
+
+  @SubscribeMessage('resume-consumer')
+  handleConsumerResume(@MessageBody() data, @ConnectedSocket() client: Socket) {
+    this.logger.debug(`>> resume consumer : ${JSON.stringify(data)}`);
+    const { roomId } = data;
+    this.logger.debug(`>> consumer resume : ${JSON.stringify(data)}`);
+    const room = this.roomService.getRoom(roomId);
+    if (!room) throw new Error('No such room');
+    const peer = this.roomService.getPeer(room, client.id);
+    if (!peer) throw new Error('No such peer');
+    peer.consumers.forEach((consumer) => {
+      if (consumer.consumer.paused) {
+        console.log('---consumer resume---', client.id);
+        consumer.consumer.resume();
+      }
+    });
+  }
 }
