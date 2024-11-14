@@ -85,6 +85,7 @@ export class AuctionDto extends PickType(Auction, [
   'auctionItems',
 ] as const) {
   user: User;
+  firstItem: { id: string; imageUrl: string[] } | null;
 
   constructor(auction: Auction, notEndorsed?: boolean) {
     super();
@@ -94,7 +95,13 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
-    this.auctionItems = auction.auctionItems;
+    this.firstItem =
+      auction.auctionItems.length > 0
+        ? {
+            id: auction.auctionItems[0].id,
+            imageUrl: auction.auctionItems[0].imageUrls,
+          }
+        : null;
 
     if (!notEndorsed) {
       this.sellingLimitTime = auction.sellingLimitTime;
