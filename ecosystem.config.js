@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'rush-room-bid',
-      script: '~/rush-room/dist/src/main.js',
+      script: './dist/src/main.js',
       env: {
         NODE_ENV: 'development',
         MODE: 'BID',
@@ -14,7 +14,7 @@ module.exports = {
     },
     {
       name: 'rush-room-media',
-      script: '~/rush-room/dist/src/main.js',
+      script: './dist/src/main.js',
       env: {
         NODE_ENV: 'development',
         MODE: 'MEDIA',
@@ -26,7 +26,7 @@ module.exports = {
     },
     {
       name: 'rush-room-was',
-      script: '~/rush-room/dist/src/main.js',
+      script: './dist/src/main.js',
       env: {
         NODE_ENV: 'development',
         MODE: 'WAS',
