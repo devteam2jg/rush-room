@@ -317,8 +317,8 @@ export class AuctionGameContext {
         title: item.title,
         bidPrice: item.bidPrice,
         bidder: {
-          name: item.bidder.name,
-          profileUrl: item.bidder.profileUrl,
+          name: item.bidder ? item.bidder.name : '익명',
+          profileUrl: item.bidder ? item.bidder.profileUrl : null,
         },
       };
     });
