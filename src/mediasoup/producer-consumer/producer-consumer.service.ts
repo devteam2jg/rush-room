@@ -62,7 +62,7 @@ export class ProducerConsumerService {
     const consumer: Consumer = await transportData.transport.consume({
       producerId,
       rtpCapabilities,
-      paused: false,
+      paused: true,
     });
 
     peer.consumers.set(consumer.id, { consumer });
