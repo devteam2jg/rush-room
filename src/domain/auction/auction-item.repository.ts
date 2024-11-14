@@ -65,7 +65,6 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
             startPrice: item.startPrice,
             lastPrice: item.bidPrice,
             user: { id: item.sellerId },
-            buyer: { id: item.bidderId },
           },
         );
       }

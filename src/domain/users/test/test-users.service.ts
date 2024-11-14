@@ -25,7 +25,7 @@ export class UserTestService {
   createTestUser() {
     for (let i = this.first; i <= this.last; i++) {
       const user: CreateUserDto = {
-        name: `익명 사용자 ${i}`,
+        name: `익명 ${i}`,
         email: `testuser${i}@rushroom.kr`,
         password: 'meanninglessoption',
         socialId: this.makeId(i),
