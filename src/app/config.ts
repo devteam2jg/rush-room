@@ -7,10 +7,10 @@ export const redisConfig = (
 ): RedisModuleOptions => ({
   type: 'single',
   options: {
-    host: configService.getOrThrow<string>('REDIS_HOST'),
-    port: configService.getOrThrow<number>('REDIS_PORT'),
+    host: configService.getOrThrow<string>('REDIS_HOST', 'localhost'),
+    port: configService.getOrThrow<number>('REDIS_PORT', 6379),
     password: configService.getOrThrow<string>('REDIS_PASSWORD'),
-    username: 'default',
+    username: configService.get<string>('REDIS_USERNAME', 'default'),
     db: configService.getOrThrow<number>('REDIS_DB', 0),
     keyPrefix: configService.getOrThrow<string>('REDIS_PREFIX', 'auction:'),
     retryStrategy(times: number): number | null {
@@ -28,8 +28,8 @@ export const redisConfig = (
 
 export const bullqConfig = (configService: ConfigService) => ({
   redis: {
-    host: configService.get<string>('REDIS_HOST'),
-    port: configService.get<number>('REDIS_PORT'),
+    host: configService.get<string>('REDIS_HOST', 'localhost'),
+    port: configService.get<number>('REDIS_PORT', 6379),
     password: configService.get<string>('REDIS_PASSWORD'),
   },
 });
