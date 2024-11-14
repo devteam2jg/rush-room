@@ -9,8 +9,9 @@ import { AwsModule } from '../domain/aws/aws.module';
 import { GameModule } from '../domain/game/game.module';
 import { BullModule } from '@nestjs/bull';
 import { RedisModule } from '@nestjs-modules/ioredis';
-import { bullqConfig, redisConfig, typeormConfig } from '~/src/app/configs/redis.config';
-
+import { redisConfig } from '~/src/app/configs/redis.config';
+import { bullqConfig } from '~/src/app/configs/bullq.config';
+import { typeormConfig } from '~/src/app/configs/typeorm.config';
 @Module({
   imports: [
     ConfigModule.forRoot({
