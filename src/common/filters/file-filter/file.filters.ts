@@ -5,6 +5,8 @@ export const imageVideoFileFilter = (
   file: Express.Multer.File,
   callback: (error: Error | null, acceptFile: boolean) => void,
 ) => {
+  console.log('isImage, isVideo', isImage(file), isVideo(file));
+  console.log('file:', file);
   if (!(isImage(file) || isVideo(file))) {
     return callback(
       new BadRequestException('Only image and video files are allowed!'),
