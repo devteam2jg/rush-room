@@ -184,8 +184,8 @@ export class AuctionGameContext {
         status: 'fail',
       };
     }
+    user.budget -= bidPrice - user.bidPrice;
     user.bidPrice = bidPrice;
-    user.budget -= bidPrice;
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
