@@ -29,6 +29,11 @@
     "start:dev:was": "NODE_ENV=development MODE=WAS nest start --watch",
     "start:dev:game": "NODE_ENV=development MODE=GAME nest start --watch",
     "start:dev:media": "NODE_ENV=development MODE=MEDIA nest start --watch",
+    
+    "start:local": "NODE_ENV=local nest start --watch",
+    "start:local:was": "NODE_ENV=local MODE=WAS nest start --watch",
+    "start:local:game": "NODE_ENV=local MODE=GAME nest start --watch",
+    "start:local:media": "NODE_ENV=local MODE=MEDIA nest start --watch",
 
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main",

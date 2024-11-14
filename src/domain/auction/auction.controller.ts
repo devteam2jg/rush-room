@@ -237,11 +237,11 @@ export class AuctionController {
       required: ['title', 'description', 'startPrice', 'images'],
     },
   })
-  @UseInterceptors(
-    FilesInterceptor('images', 5, {
-      fileFilter: imageVideoFileFilter,
-    }),
-  )
+  // @UseInterceptors(
+  //   FilesInterceptor('images', 5, {
+  //     fileFilter: imageVideoFileFilter,
+  //   }),
+  // )
   @Patch(':auctionId/item/:itemId')
   updateAuctionItem(
     @Param('auctionId', new ParseUUIDPipe()) auctionId: string,
