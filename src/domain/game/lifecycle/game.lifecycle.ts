@@ -153,14 +153,15 @@ export class AuctionGame extends AuctionGameLifecycle {
       bidItem.bidderId,
     );
     console.log('Bid Ended', userData);
+    const user = auctionContext.getUserDataById(bidItem.bidderId);
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
       name: userData ? userData.name : null,
       title: bidItem.title,
+      profileUrl: user.profileUrl,
     });
-    const user = auctionContext.getUserDataById(bidItem.bidderId);
     if (user) {
       user.budget -= bidItem.bidPrice;
     }
@@ -180,6 +181,7 @@ export class AuctionGame extends AuctionGameLifecycle {
 
     auctionContext.notifyToClient({
       type: 'AUCTION_END',
+      data: auctionContext.getResults(),
     });
   }
 }

@@ -224,6 +224,7 @@ export class GameService {
         itemId: item.id,
         sellerId: item.user.id,
         bidderId: null,
+        bidder: null,
         startPrice: item.startPrice,
         bidPrice: item.startPrice,
         itemSellingLimitTime: auction.sellingLimitTime * 60,

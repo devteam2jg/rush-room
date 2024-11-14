@@ -20,6 +20,7 @@ export class BidItem {
   itemId: string;
   sellerId: string;
   bidderId: string;
+  bidder: AuctionUserDataDto;
   startPrice: number;
   bidPrice: number;
   itemSellingLimitTime: number;
@@ -190,6 +191,7 @@ export class AuctionGameContext {
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
     this.currentBidItem.bidderId = bidderId;
+    this.currentBidItem.bidder = user;
     this.updateEvent(updateBidPriceDto);
 
     if (this.prevSocketId && this.prevSocketId != socketId) {
@@ -307,5 +309,18 @@ export class AuctionGameContext {
   }
   getLifeCycleFunctionDto(): LifecycleFuctionDto {
     return this.lifeCycleFunctionDto;
+  }
+
+  getResults(): any[] {
+    return this.bidItems.map((item) => {
+      return {
+        title: item.title,
+        bidPrice: item.bidPrice,
+        bidder: {
+          name: item.bidder.name,
+          profileUrl: item.bidder.profileUrl,
+        },
+      };
+    });
   }
 }
