@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import { GameAppModule } from '~/src/app/app-game.module';
+import { BidAppModule } from '~/src/app/app-bid.module';
 import { WasAppModule } from '~/src/app/app-was.module';
 import { MediaAppModule } from '~/src/app/app-media.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
@@ -16,9 +16,9 @@ async function bootstrap() {
       console.log('Was App Start');
       app = await NestFactory.create(WasAppModule);
       break;
-    case 'GAME':
-      console.log('Game App Start');
-      app = await NestFactory.create(GameAppModule);
+    case 'BID':
+      console.log('BID App Start');
+      app = await NestFactory.create(BidAppModule);
       break;
     case 'MEDIA':
       console.log('Media App Start');

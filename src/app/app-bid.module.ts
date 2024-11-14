@@ -40,4 +40,4 @@ import { typeormConfig } from '~/src/app/configs/typeorm.config';
     GameModule,
   ],
 })
-export class GameAppModule {}
+export class BidAppModule {}

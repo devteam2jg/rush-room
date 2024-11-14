@@ -38,7 +38,15 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+
+    "prod:was": "NODE_ENV=production MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env production", 
+    "prod:bid": "NODE_ENV=production MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env production",
+    "prid:media": "NODE_ENV=production MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env production",
+
+    "dev:was": "NODE_ENV=development MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env development",  
+    "dev:bid": "NODE_ENV=development MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env development",
+    "dev:media": "NODE_ENV=development MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env development"
   },
   "dependencies": {
     "@aws-sdk/client-mediaconvert": "^3.682.0",
