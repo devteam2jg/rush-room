@@ -3,8 +3,8 @@
 module.exports = {
   apps: [
     {
-      name: 'rush room was',
-      script: '~/rush-room/dist/src/main.js',
+      name: 'main.js',
+      script: '~/rush-room/dist/src/',
       env: {
         NODE_ENV: 'development',
         MODE: 'WAS',
