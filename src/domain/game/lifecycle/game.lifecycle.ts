@@ -4,7 +4,11 @@ import {
 } from '~/src/domain/game/context/game.context';
 import { AuctionGameLifecycle } from '~/src/domain/game/lifecycle/game-abstraction.lifecycle';
 import { UserDataDto } from '~/src/domain/users/dto/user.dto';
-import { MessageType, UpdateBidPriceDto } from '~/src/domain/game/dto/game.dto';
+import {
+  AuctionUserDataDto,
+  MessageType,
+  UpdateBidPriceDto,
+} from '~/src/domain/game/dto/game.dto';
 import { Injectable } from '@nestjs/common';
 import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
 import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
@@ -149,21 +153,22 @@ export class AuctionGame extends AuctionGameLifecycle {
   async onBidEnded(auctionContext: AuctionGameContext): Promise<boolean> {
     auctionContext.deactivateBid();
     const bidItem = auctionContext.currentBidItem;
-    const userData: UserDataDto = auctionContext.getUserDataById(
+    const userData: AuctionUserDataDto = auctionContext.getUserDataById(
       bidItem.bidderId,
     );
     console.log('Bid Ended', userData);
-    const user = auctionContext.getUserDataById(bidItem.bidderId);
+    const { profileUrl } = userData;
     auctionContext.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
       name: userData ? userData.name : null,
       title: bidItem.title,
-      profileUrl: user.profileUrl,
+      profileUrl: profileUrl,
     });
-    if (user) {
-      user.budget -= bidItem.bidPrice;
+
+    if (userData) {
+      userData.budget -= bidItem.bidPrice;
     }
 
     await this.delay(10000);
@@ -184,4 +189,8 @@ export class AuctionGame extends AuctionGameLifecycle {
       data: auctionContext.getResults(),
     });
   }
+
+  private updateEvent = async (updateDto: UpdateBidPriceDto) => {
+    console.log('Update Event', updateDto);
+  };
 }

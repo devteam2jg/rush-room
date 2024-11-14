@@ -312,7 +312,7 @@ export class AuctionGameContext {
   }
 
   getResults(): any[] {
-    return this.bidItems.map((item) => {
+    const result = this.bidItems.map((item) => {
       return {
         title: item.title,
         bidPrice: item.bidPrice,
@@ -322,5 +322,7 @@ export class AuctionGameContext {
         },
       };
     });
+    console.log(result);
+    return result;
   }
 }
