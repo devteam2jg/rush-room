@@ -181,6 +181,7 @@ export class AuctionGameContext {
       };
     }
     user.bidPrice = bidPrice;
+    user.budget -= bidPrice;
     this.prevBidPrice = this.currentBidItem.bidPrice;
     this.prevBidderId = this.currentBidItem.bidderId;
     this.currentBidItem.bidPrice = bidPrice;
@@ -205,13 +206,12 @@ export class AuctionGameContext {
       bidderNickname,
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
-      budget: user.budgetHandler.getCurrentBudget(user),
     });
 
     return {
       status: 'success',
       bidPrice: this.currentBidItem.bidPrice,
-      buget: user.budgetHandler.getCurrentBudget(user),
+      buget: user.budget,
     };
   }
 

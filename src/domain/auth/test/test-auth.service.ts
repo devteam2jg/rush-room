@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AuthService } from '~/src/domain/auth/auth.service';
-import { SocialType } from '~/src/domain/users/enum/social-type.enum';
 import { UserTestService } from '~/src/domain/users/test/test-users.service';
 import { UsersService } from '~/src/domain/users/users.service';
 
