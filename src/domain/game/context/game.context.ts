@@ -147,14 +147,16 @@ export class AuctionGameContext {
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
     const { bidPrice, bidderId, bidderNickname, socketId } = updateBidPriceDto;
-
+    const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
     if (!this.currentBidItem.canBid) {
       this.sendToClient(socketId, MessageType.ALERT, {
         type: 'RED',
         message: '입찰이 불가능한 상태입니다',
       });
       return {
-        message: '입찰이 불가능한 상태입니다',
+        status: 'fail',
+        bidPrice: this.currentBidItem.bidPrice,
+        budget: user.budget,
       };
     }
 
@@ -165,11 +167,11 @@ export class AuctionGameContext {
       });
       return {
         status: 'fail',
-        bidPrice: this.currentBidItem,
+        bidPrice: this.currentBidItem.bidPrice,
+        budget: user.budget,
       };
     }
 
-    const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
     console.log('user', user);
     if (user.budget < bidPrice) {
       this.sendToClient(socketId, MessageType.ALERT, {
@@ -177,6 +179,8 @@ export class AuctionGameContext {
         message: '예산이 부족합니다.',
       });
       return {
+        budget: user.budget,
+        bidPrice: this.currentBidItem.bidPrice,
         status: 'fail',
       };
     }
