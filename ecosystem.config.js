@@ -36,5 +36,17 @@ module.exports = {
         MODE: 'WAS',
       },
     },
+    {
+      name: 'rush-room',
+      script: './dist/src/main.js',
+      env: {
+        NODE_ENV: 'development',
+        MODE: 'APP',
+      },
+      env_production: {
+        NODE_ENV: 'production',
+        MODE: 'APP',
+      },
+    },
   ],
 };
