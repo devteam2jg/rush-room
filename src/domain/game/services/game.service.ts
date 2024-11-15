@@ -20,7 +20,6 @@ import { AuctionItemRepository } from '~/src/domain/auction/auction-item.reposit
 import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
-import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { AuctionService } from '~/src/domain/auction/auction.service';
@@ -221,16 +220,21 @@ export class GameService {
       )
     ).map((item) => {
       return {
+        title: item.title,
+        description: item.description,
+        picture: item.imageUrls,
+
         itemId: item.id,
         sellerId: item.user.id,
         bidderId: null,
         bidder: null,
+        buyerId: item.buyerId,
+        isSold: item.isSold,
         startPrice: item.startPrice,
         bidPrice: item.startPrice,
+
         itemSellingLimitTime: auction.sellingLimitTime * 60,
-        title: item.title,
-        description: item.description,
-        picture: item.imageUrls,
+
         canBid: false,
         canBidAnonymous: item.isBidAccessableForAnon,
       };
@@ -266,6 +270,6 @@ export class GameService {
     } else return this.gameGateway.sendToMany(response, data);
   };
   private readonly saveEach = (bidItem: BidItem) => {
-    this.auctionItemRepository.updateAuctionItemMany([bidItem]);
+    this.auctionItemRepository.updateAuctionItem(bidItem);
   };
 }

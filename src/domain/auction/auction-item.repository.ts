@@ -79,4 +79,15 @@ export class AuctionItemRepository extends Repository<AuctionItem> {
       await queryRunner.release();
     }
   }
+  async updateAuctionItem(bidItem: BidItem) {
+    const { bidPrice, buyerId, itemId, isSold } = bidItem;
+    return await this.update(
+      { id: itemId },
+      {
+        lastPrice: bidPrice,
+        buyerId: buyerId,
+        isSold: isSold,
+      },
+    );
+  }
 }
