@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { RoomService } from '../room/room.service';
 import { IConsumeParams, IProduceParams } from './producer-consumer.interface';
 import { Consumer } from 'mediasoup/node/lib/types';
-import { IRoom } from '~/src/mediasoup/room/room.interface';
+import { IRoom } from '~/src/domain/media/mediasoup/room/room.interface';
 
 @Injectable()
 export class ProducerConsumerService {

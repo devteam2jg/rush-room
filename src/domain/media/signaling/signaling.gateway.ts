@@ -10,9 +10,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { JoinChannelDto } from './dto/join-channel.dto';
-import { RoomService } from 'src/mediasoup/room/room.service';
-import { TransportService } from 'src/mediasoup/transport/transport.service';
-import { ProducerConsumerService } from 'src/mediasoup/producer-consumer/producer-consumer.service';
+import { RoomService } from '~/src/domain/media/mediasoup/room/room.service';
+import { TransportService } from '~/src/domain/media/mediasoup/transport/transport.service';
+import { ProducerConsumerService } from '~/src/domain/media/mediasoup/producer-consumer/producer-consumer.service';
 import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({
@@ -29,7 +29,9 @@ export class SignalingGateway
   @WebSocketServer()
   server: Server;
 
-  private logger = new Logger(SignalingGateway.name, { timestamp: true });
+  private readonly logger = new Logger(SignalingGateway.name, {
+    timestamp: true,
+  });
 
   constructor(
     private readonly roomService: RoomService,

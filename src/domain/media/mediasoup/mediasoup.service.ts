@@ -6,8 +6,10 @@ import * as os from 'os';
 @Injectable()
 export class MediasoupService implements OnModuleInit {
   private nextWorkerIndex = 0;
-  private workers: IWorker[] = [];
-  private logger = new Logger(MediasoupService.name, { timestamp: true });
+  private readonly workers: IWorker[] = [];
+  private readonly logger = new Logger(MediasoupService.name, {
+    timestamp: true,
+  });
 
   constructor() {}
 

@@ -12,6 +12,8 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 import { redisConfig } from '~/src/app/configs/redis.config';
 import { typeormConfig } from '~/src/app/configs/typeorm.config';
 import { bullqConfig } from '~/src/app/configs/bullq.config';
+import { MediasoupModule } from '~/src/domain/media/mediasoup/mediasoup.module';
+import { SignalingModule } from '~/src/domain/media/signaling/signaling.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -38,6 +40,8 @@ import { bullqConfig } from '~/src/app/configs/bullq.config';
     FileModule,
     AwsModule,
     GameModule,
+    MediasoupModule,
+    SignalingModule,
   ],
 })
 export class AppModule {}

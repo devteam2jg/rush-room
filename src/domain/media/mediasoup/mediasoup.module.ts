@@ -1,9 +1,8 @@
-import { RoomModule } from '~/src/mediasoup/room/room.module';
-import { TransportModule } from '~/src/mediasoup/transport/transport.module';
-import { ProducerConsumerModule } from '~/src/mediasoup/producer-consumer/producer-consumer.module';
+import { RoomModule } from '~/src/domain/media/mediasoup/room/room.module';
+import { TransportModule } from '~/src/domain/media/mediasoup/transport/transport.module';
+import { ProducerConsumerModule } from '~/src/domain/media/mediasoup/producer-consumer/producer-consumer.module';
 import { Module } from '@nestjs/common';
-import { MediasoupService } from '~/src/mediasoup/mediasoup.service';
-
+import { MediasoupService } from '~/src/domain/media/mediasoup/mediasoup.service';
 
 @Module({
   imports: [RoomModule, TransportModule, ProducerConsumerModule],

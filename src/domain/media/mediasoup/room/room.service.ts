@@ -6,8 +6,8 @@ import { Socket } from 'socket.io';
 
 @Injectable()
 export class RoomService {
-  private rooms: Map<string, IRoom> = new Map();
-  private logger = new Logger(RoomService.name, { timestamp: true });
+  private readonly rooms: Map<string, IRoom> = new Map();
+  private readonly logger = new Logger(RoomService.name, { timestamp: true });
   constructor(private readonly mediasoupService: MediasoupService) {}
 
   public async createRoom(roomId: string): Promise<IRoom> {
