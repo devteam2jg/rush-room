@@ -6,7 +6,6 @@ import {
 } from '~/src/domain/game/context/game.context';
 import {
   AuctionUserDataDto,
-  BudgetHandler,
   LoadGameDataDto,
   MessageType,
   RequestDto,
@@ -41,11 +40,7 @@ export class GameService {
     @InjectQueue('update-bid-queue')
     private readonly updateBidQueue: Queue,
     private readonly auctionGameFactory: AuctionGameFactory,
-  ) {
-    // this.updateBidQueue.setMaxListeners(20);
-    // 생성자로 경매 타이머 실행
-    this.intervalAuctionCheck();
-  }
+  ) {}
 
   /**
    * 경매
@@ -62,14 +57,9 @@ export class GameService {
     const user: AuctionUserDataDto = {
       budget,
       bidPrice: 0,
-      budgetHandler: new BudgetHandler(),
       ...userData,
     };
     auctionContext.join(user);
-  }
-  skip(auctionId: string) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    auctionContext.skipBidItem();
   }
 
   /**
@@ -80,9 +70,6 @@ export class GameService {
 
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
     try {
-      //const serializedData = safeStringify(updateBidPriceDto);
-      // 큐에 작업 추가, 완료 및 실패 시 자동 삭제
-      console.log('요청updateBidPriceDto:', updateBidPriceDto);
       const job = await this.updateBidQueue.add(
         'updateBid',
         updateBidPriceDto,
@@ -115,6 +102,11 @@ export class GameService {
         this.gameStatusService.setRunning(auctionId, auctionContext);
         return true;
       },
+      jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
+        const bidItem = auctionContext.currentBidItem;
+        this.saveEach(bidItem);
+        return true;
+      },
       jobBeforeRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
         this.gameStatusService.deleteRunning(auctionId);
@@ -123,11 +115,6 @@ export class GameService {
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const { auctionId } = auctionContext;
         this.auctionRepository.update(auctionId, { status: Status.END });
-        return true;
-      },
-      jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
-        const bidItem = auctionContext.currentBidItem;
-        this.saveEach(bidItem);
         return true;
       },
     };
@@ -215,7 +202,10 @@ export class GameService {
   }
   /*----------------------------------------------------------------------------------------------*/
   /* console */
-
+  skip(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    auctionContext.skipBidItem();
+  }
   activateAutoStartAuctionTimer() {
     if (!this.timer) {
       this.intervalAuctionCheck();
@@ -283,7 +273,15 @@ export class GameService {
       message: '경매가 종료되었습니다',
     };
   }
-
+  terminateAllAuctions() {
+    const auctions = this.gameStatusService.getAllRunningContexts();
+    for (const auction of auctions) {
+      auction.terminate();
+    }
+    return {
+      message: '모든 경매가 종료되었습니다',
+    };
+  }
   /*----------------------------------------------------------------------------------------------*/
   /* auction Event */
 
