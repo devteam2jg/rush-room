@@ -21,6 +21,10 @@ export class BidItem {
   sellerId: string;
   bidderId: string;
   bidder: AuctionUserDataDto;
+
+  isSold: boolean;
+  buyerId: string;
+
   startPrice: number;
   bidPrice: number;
   itemSellingLimitTime: number;
@@ -89,6 +93,11 @@ export class AuctionGameContext {
   getUserData(userId: string): AuctionUserDataDto {
     return this.joinedUsers.get(userId);
   }
+  resetUsersBidPrice() {
+    this.joinedUsers.forEach((user) => {
+      user.bidPrice = 0;
+    });
+  }
   setNextBidItem(): BidItem {
     this.currentBidItem = this.bidItems[this.sequence];
     if (!this.currentBidItem) return null;
@@ -137,88 +146,32 @@ export class AuctionGameContext {
     };
     return saveGameDataDto;
   }
-
-  // isTerminated(): boolean {
-  //   return this.auctionStatus == AuctionStatus.TERMINATED;
-  // }
+  terminate() {
+    this.auctionStatus = AuctionStatus.TERMINATED;
+  }
+  isTerminated(): boolean {
+    return this.auctionStatus == AuctionStatus.TERMINATED;
+  }
   skipBidItem() {
     this.currentBidItem.canBid = false;
     this.setTime(8);
   }
+  private updateEvent: (
+    updateData: UpdateBidPriceDto,
+    context: AuctionGameContext,
+  ) => void = null;
+
+  private timeEvent: (updateData: UpdateBidPriceDto) => void = null;
+
+  setTimeEventListener(event: (updateData: UpdateBidPriceDto) => void): this {
+    this.timeEvent = event;
+    return this;
+  }
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const { bidPrice, bidderId, bidderNickname, socketId } = updateBidPriceDto;
-    const user: AuctionUserDataDto = this.joinedUsers.get(bidderId);
-    if (!this.currentBidItem.canBid) {
-      this.sendToClient(socketId, MessageType.ALERT, {
-        type: 'RED',
-        message: '입찰이 불가능한 상태입니다',
-      });
-      return {
-        status: 'fail',
-        bidPrice: this.currentBidItem.bidPrice,
-        budget: user.budget,
-      };
-    }
-
-    if (bidPrice <= this.currentBidItem.bidPrice) {
-      this.sendToClient(socketId, MessageType.ALERT, {
-        type: 'RED',
-        message: '더 높은 가격을 입력해주세요',
-      });
-      return {
-        status: 'fail',
-        bidPrice: this.currentBidItem.bidPrice,
-        budget: user.budget,
-      };
-    }
-
-    console.log('user', user);
-    if (user.budget < bidPrice) {
-      this.sendToClient(socketId, MessageType.ALERT, {
-        type: 'RED',
-        message: '예산이 부족합니다.',
-      });
-      return {
-        budget: user.budget,
-        bidPrice: this.currentBidItem.bidPrice,
-        status: 'fail',
-      };
-    }
-    user.budget -= bidPrice - user.bidPrice;
-    user.bidPrice = bidPrice;
-    this.prevBidPrice = this.currentBidItem.bidPrice;
-    this.prevBidderId = this.currentBidItem.bidderId;
-    this.currentBidItem.bidPrice = bidPrice;
-    this.currentBidItem.bidderId = bidderId;
-    this.currentBidItem.bidder = user;
-    this.updateEvent(updateBidPriceDto);
-
-    if (this.prevSocketId && this.prevSocketId != socketId) {
-      this.sendToClient(this.prevSocketId, MessageType.ALERT, {
-        type: 'YELLOW',
-        message: '다른 사용자가 입찰을 하였습니다',
-      });
-    }
-    this.prevSocketId = socketId;
-
-    this.sendToClient(socketId, MessageType.ALERT, {
-      type: 'GREEN',
-      message: '입찰이 완료되었습니다',
-    });
-
-    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
-    this.sendToClient(null, MessageType.PRICE_UPDATE, {
-      bidderNickname,
-      bidPrice: this.currentBidItem.bidPrice,
-      bidderId: this.currentBidItem.bidderId,
-    });
-
-    return {
-      status: 'success',
-      bidPrice: this.currentBidItem.bidPrice,
-      budget: user.budget,
-    };
+    const result = this.updateEvent(updateBidPriceDto, this);
+    this.timeEvent(updateBidPriceDto);
+    return result;
   }
 
   reduceTime(time: number) {
@@ -286,8 +239,6 @@ export class AuctionGameContext {
 
   private socketEvent: (response: ResponseDto, data: any) => boolean = null;
 
-  private updateEvent: (updateDto: UpdateBidPriceDto) => void = null;
-
   private lifeCycleFunctionDto: LifecycleFuctionDto = null;
 
   setSocketEventListener(
@@ -298,7 +249,7 @@ export class AuctionGameContext {
   }
 
   setUpdateBidEventListener(
-    event: (updateDto: UpdateBidPriceDto) => void,
+    event: (updateDto: UpdateBidPriceDto, context: AuctionGameContext) => void,
   ): this {
     this.updateEvent = event;
     return this;
@@ -320,6 +271,7 @@ export class AuctionGameContext {
           name: item.bidder ? item.bidder.name : '익명',
           profileUrl: item.bidder ? item.bidder.profileUrl : null,
         },
+        picture: item.picture[0],
       };
     });
     console.log(result);
