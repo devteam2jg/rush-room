@@ -267,9 +267,13 @@ export class SignalingGateway
     const peer = this.roomService.getPeer(room, client.id);
     if (!peer) throw new Error('No such peer');
     peer.consumers.forEach((consumer) => {
-      if (consumer.consumer.paused) {
+      if (consumer.consumer?.id && consumer.consumer.paused) {
         console.log('---consumer resume---', client.id);
-        consumer.consumer.resume();
+        try {
+          consumer.consumer?.resume();
+        } catch (error) {
+          this.logger.error(error);
+        }
       }
     });
   }
