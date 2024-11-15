@@ -10,7 +10,7 @@ export class ImageUploadStrategy implements UploadStrategy {
     private readonly client: S3Client,
     private readonly s3_bucket: string,
   ) {
-    this.uploadDirectory = 'images';
+    this.uploadDirectory = 'imagesource';
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
@@ -29,6 +29,6 @@ export class ImageUploadStrategy implements UploadStrategy {
   }
 
   private makeS3Url(key: string): string {
-    return `https://${this.s3_bucket}.s3.amazonaws.com/${key}`;
+    return `https://rushroom.kr/${key}`;
   }
 }
