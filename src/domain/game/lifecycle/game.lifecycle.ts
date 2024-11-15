@@ -102,7 +102,7 @@ export class AuctionGame extends AuctionGameLifecycle {
         message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
       });
       await this.startTimer(
-        () => context.getTime() <= 15 && context.isTerminated(),
+        () => context.getTime() <= 15 || context.isTerminated(),
       );
     }
   }
@@ -130,7 +130,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
     });
     await this.startTimer(
-      () => context.getTime() <= 6 && context.isTerminated(),
+      () => context.getTime() <= 6 || context.isTerminated(),
     );
     this.timerEvent = () => {
       context.sendToClient(null, MessageType.TIME_UPDATE, {
@@ -141,7 +141,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       });
     };
     await this.startTimer(
-      () => context.getTime() <= 0 && context.isTerminated(),
+      () => context.getTime() <= 0 || context.isTerminated(),
     );
   }
 
