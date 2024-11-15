@@ -109,7 +109,7 @@ export class AuctionDto extends PickType(Auction, [
         : null;
 
     this.firstItem =
-      auction.auctionItems.length > 0
+      auction.auctionItems.length > 0 && items.length > 0
         ? {
             id: items[0].id,
             imageUrl: items[0].imageUrls,
