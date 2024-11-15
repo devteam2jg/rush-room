@@ -95,6 +95,7 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
+
     const items =
       auction.auctionItems.length > 0
         ? auction.auctionItems
@@ -105,12 +106,7 @@ export class AuctionDto extends PickType(Auction, [
               id: item.id,
               imageUrls: item.imageUrls,
             }))
-        : [
-            {
-              id: '',
-              imageUrls: [],
-            },
-          ];
+        : null;
 
     this.firstItem =
       auction.auctionItems.length > 0
