@@ -6,7 +6,6 @@ import {
 } from '~/src/domain/game/context/game.context';
 import {
   AuctionUserDataDto,
-  BudgetHandler,
   LoadGameDataDto,
   MessageType,
   RequestDto,
@@ -20,7 +19,6 @@ import { AuctionItemRepository } from '~/src/domain/auction/auction-item.reposit
 import { UsersService } from '~/src/domain/users/users.service';
 import { Status } from '~/src/domain/auction/entities/auction.entity';
 import { Socket } from 'socket.io';
-import { GameStarter } from '~/src/domain/game/lifecycle/game.builder';
 import { JoinAuctionDto } from '~/src/domain/game/dto/join.auction.dto';
 import { GameStatusService } from '~/src/domain/game/services/game.status.service';
 import { AuctionService } from '~/src/domain/auction/auction.service';
@@ -42,11 +40,7 @@ export class GameService {
     @InjectQueue('update-bid-queue')
     private readonly updateBidQueue: Queue,
     private readonly auctionGameFactory: AuctionGameFactory,
-  ) {
-    // this.updateBidQueue.setMaxListeners(20);
-    // 생성자로 경매 타이머 실행
-    this.intervalAuctionCheck();
-  }
+  ) {}
 
   /**
    * 경매
@@ -63,14 +57,9 @@ export class GameService {
     const user: AuctionUserDataDto = {
       budget,
       bidPrice: 0,
-      budgetHandler: new BudgetHandler(),
       ...userData,
     };
     auctionContext.join(user);
-  }
-  skip(auctionId: string) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    auctionContext.skipBidItem();
   }
 
   /**
@@ -81,9 +70,6 @@ export class GameService {
 
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
     try {
-      //const serializedData = safeStringify(updateBidPriceDto);
-      // 큐에 작업 추가, 완료 및 실패 시 자동 삭제
-      console.log('요청updateBidPriceDto:', updateBidPriceDto);
       const job = await this.updateBidQueue.add(
         'updateBid',
         updateBidPriceDto,
@@ -107,12 +93,18 @@ export class GameService {
         if (this.gameStatusService.isRunning(auctionId)) return false;
         auctionContext.loadContext(await this.load(auctionId));
         auctionContext.setSocketEventListener(this.socketfun);
+        this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
         const auctionId = auctionContext.auctionId;
         this.gameStatusService.deleteReady(auctionId);
         this.gameStatusService.setRunning(auctionId, auctionContext);
+        return true;
+      },
+      jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
+        const bidItem = auctionContext.currentBidItem;
+        this.saveEach(bidItem);
         return true;
       },
       jobBeforeRoomDestroy: async (auctionContext: AuctionGameContext) => {
@@ -122,17 +114,13 @@ export class GameService {
       },
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const { auctionId } = auctionContext;
-        this.auctionService.update(auctionId, { status: Status.END }, {});
-        return true;
-      },
-      jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
-        const bidItem = auctionContext.currentBidItem;
-        this.saveEach(bidItem);
+        this.auctionRepository.update(auctionId, { status: Status.END });
         return true;
       },
     };
   }
 
+  /*----------------------------------------------------------------------------------------------*/
   /**
    * 경매 시작
    * @param startAuctionDto
@@ -151,7 +139,6 @@ export class GameService {
       };
     }
     this.gameStatusService.setReady(auctionId);
-    console.log('경매 시작', auctionId);
     const lifecycleDto = this.createGameFunction();
     return this.auctionGameFactory.launch(auctionId, lifecycleDto);
   }
@@ -185,9 +172,15 @@ export class GameService {
       isOwner: auctionContext.isOwner(userId),
     };
   }
+
+  /*----------------------------------------------------------------------------------------------*/
+  /* auction timer */
+
+  private timer: NodeJS.Timeout | null = null;
+
   async intervalAuctionCheck() {
     await this.startAuctionTimers();
-    setInterval(async () => {
+    this.timer = setInterval(async () => {
       await this.startAuctionTimers();
     }, 600000);
   }
@@ -207,6 +200,90 @@ export class GameService {
       }
     }
   }
+  /*----------------------------------------------------------------------------------------------*/
+  /* console */
+  skip(auctionId: string) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    auctionContext.skipBidItem();
+  }
+  activateAutoStartAuctionTimer() {
+    if (!this.timer) {
+      this.intervalAuctionCheck();
+      return {
+        message: '경매 타이머가 활성화되었습니다',
+      };
+    }
+    return {
+      message: '경매 타이머가 이미 활성화되어 있습니다',
+    };
+  }
+  deactivateAutoStartAuctionTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+      return {
+        message: '경매 타이머가 중지되었습니다',
+      };
+    }
+    return {
+      message: '경매 타이머가 이미 중지되었습니다',
+    };
+  }
+
+  private autoRepeatAuctionTimer: NodeJS.Timeout | null = null;
+  startAutoRepeatAuctions(auctionIds: string[]) {
+    const auctions = auctionIds.map((auctionId) => {
+      this.startAuction({ auctionId });
+    });
+    Promise.all(auctions);
+    this.autoRepeatAuctionTimer = setInterval(async () => {
+      const auctions = auctionIds.map((auctionId) => {
+        this.startAuction({ auctionId });
+      });
+      Promise.all(auctions);
+    }, 300000);
+  }
+  stopAutoRepeatAuctions() {
+    if (this.autoRepeatAuctionTimer) {
+      clearInterval(this.autoRepeatAuctionTimer);
+      this.autoRepeatAuctionTimer = null;
+      return {
+        message: '자동 반복 경매가 중지되었습니다',
+      };
+    }
+    return {
+      message: '자동 반복 경매가 이미 중지되어 있습니다',
+    };
+  }
+
+  async reduceTime(auctionId: string, userId: string, time: number) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.reduceTime(time);
+  }
+
+  async terminateAuction(auctionId: string) {
+    const context = this.gameStatusService.getRunningContext(auctionId);
+    if (!context) {
+      return {
+        message: '경매가 시작되지 않았습니다',
+      };
+    }
+    context.terminate();
+    return {
+      message: '경매가 종료되었습니다',
+    };
+  }
+  terminateAllAuctions() {
+    const auctions = this.gameStatusService.getAllRunningContexts();
+    for (const auction of auctions) {
+      auction.terminate();
+    }
+    return {
+      message: '모든 경매가 종료되었습니다',
+    };
+  }
+  /*----------------------------------------------------------------------------------------------*/
+  /* auction Event */
 
   private readonly load = async (
     auctionId: string,
@@ -221,16 +298,21 @@ export class GameService {
       )
     ).map((item) => {
       return {
+        title: item.title,
+        description: item.description,
+        picture: item.imageUrls,
+
         itemId: item.id,
         sellerId: item.user.id,
         bidderId: null,
         bidder: null,
+        buyerId: item.buyerId,
+        isSold: item.isSold,
         startPrice: item.startPrice,
         bidPrice: item.startPrice,
+
         itemSellingLimitTime: auction.sellingLimitTime * 60,
-        title: item.title,
-        description: item.description,
-        picture: item.imageUrls,
+
         canBid: false,
         canBidAnonymous: item.isBidAccessableForAnon,
       };
@@ -251,21 +333,12 @@ export class GameService {
     return loadGameDataDto;
   };
 
-  async reduceTime(auctionId: string, userId: string, time: number) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.reduceTime(time);
-  }
-  // async terminateAuction(auctionId: string) {
-  //   const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-  //   return auctionContext.terminate();
-  // }
-
   private readonly socketfun = (response: ResponseDto, data: any) => {
     if (response.socketId) {
       return this.gameGateway.sendToOne(response, data);
     } else return this.gameGateway.sendToMany(response, data);
   };
   private readonly saveEach = (bidItem: BidItem) => {
-    this.auctionItemRepository.updateAuctionItemMany([bidItem]);
+    this.auctionItemRepository.updateAuctionItem(bidItem);
   };
 }

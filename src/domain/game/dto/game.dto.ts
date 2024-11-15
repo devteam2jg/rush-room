@@ -72,16 +72,8 @@ export class UserMessageDto {
 export class AuctionUserDataDto extends UserDataDto {
   budget: number;
   bidPrice: number;
-  budgetHandler: BudgetHandler;
 }
-export class BudgetHandler {
-  Reset(user: AuctionUserDataDto) {
-    user.bidPrice = 0;
-  }
-  getCurrentBudget(user: AuctionUserDataDto) {
-    return user.budget - user.bidPrice;
-  }
-}
+
 export class RequestDto {
   auctionId: string;
   type: string;

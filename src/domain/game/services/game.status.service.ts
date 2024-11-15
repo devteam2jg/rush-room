@@ -30,4 +30,7 @@ export class GameStatusService {
   deleteRunning(auctionId: string) {
     this.auctionsMap.delete(auctionId);
   }
+  getAllRunningContexts(): AuctionGameContext[] {
+    return Array.from(this.auctionsMap.values());
+  }
 }

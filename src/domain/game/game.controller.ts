@@ -41,12 +41,23 @@ export class GameController {
       return this.gameService.skip(auctionId);
     return { message: 'You are not the owner of this auction' };
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Get('terminate/:id')
-  // async terminateAuction(@Param('id') auctionId, @GetJwtPayload() payload) {
-  //   const { id } = payload;
-  //   if (await this.auctionService.isOwner(auctionId, id))
-  //     return this.gameService.terminate(auctionId);
-  //   return { message: 'You are not the owner of this auction' };
-  // }
+  @UseGuards(JwtAuthGuard)
+  @Get('terminate')
+  async terminateAuction(@Query('id') auctionId, @Query('all') all) {
+    if (all) {
+      return this.gameService.terminateAllAuctions();
+    } else if (auctionId) {
+      return await this.gameService.terminateAuction(auctionId);
+    }
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('timer/activate')
+  async activateTimer() {
+    return this.gameService.activateAutoStartAuctionTimer();
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('timer/deactivate')
+  async deactivateTimer() {
+    return this.gameService.deactivateAutoStartAuctionTimer();
+  }
 }
