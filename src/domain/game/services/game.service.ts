@@ -106,6 +106,7 @@ export class GameService {
         if (this.gameStatusService.isRunning(auctionId)) return false;
         auctionContext.loadContext(await this.load(auctionId));
         auctionContext.setSocketEventListener(this.socketfun);
+        this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
@@ -121,7 +122,7 @@ export class GameService {
       },
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const { auctionId } = auctionContext;
-        this.auctionService.update(auctionId, { status: Status.END }, {});
+        this.auctionRepository.update(auctionId, { status: Status.END });
         return true;
       },
       jobAfterBidEnd: async (auctionContext: AuctionGameContext) => {
@@ -132,6 +133,7 @@ export class GameService {
     };
   }
 
+  /*----------------------------------------------------------------------------------------------*/
   /**
    * 경매 시작
    * @param startAuctionDto
@@ -150,7 +152,6 @@ export class GameService {
       };
     }
     this.gameStatusService.setReady(auctionId);
-    console.log('경매 시작', auctionId);
     const lifecycleDto = this.createGameFunction();
     return this.auctionGameFactory.launch(auctionId, lifecycleDto);
   }
@@ -184,9 +185,15 @@ export class GameService {
       isOwner: auctionContext.isOwner(userId),
     };
   }
+
+  /*----------------------------------------------------------------------------------------------*/
+  /* auction timer */
+
+  private timer: NodeJS.Timeout | null = null;
+
   async intervalAuctionCheck() {
     await this.startAuctionTimers();
-    setInterval(async () => {
+    this.timer = setInterval(async () => {
       await this.startAuctionTimers();
     }, 600000);
   }
@@ -206,6 +213,79 @@ export class GameService {
       }
     }
   }
+  /*----------------------------------------------------------------------------------------------*/
+  /* console */
+
+  activateAutoStartAuctionTimer() {
+    if (!this.timer) {
+      this.intervalAuctionCheck();
+      return {
+        message: '경매 타이머가 활성화되었습니다',
+      };
+    }
+    return {
+      message: '경매 타이머가 이미 활성화되어 있습니다',
+    };
+  }
+  deactivateAutoStartAuctionTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+      return {
+        message: '경매 타이머가 중지되었습니다',
+      };
+    }
+    return {
+      message: '경매 타이머가 이미 중지되었습니다',
+    };
+  }
+
+  private autoRepeatAuctionTimer: NodeJS.Timeout | null = null;
+  startAutoRepeatAuctions(auctionIds: string[]) {
+    const auctions = auctionIds.map((auctionId) => {
+      this.startAuction({ auctionId });
+    });
+    Promise.all(auctions);
+    this.autoRepeatAuctionTimer = setInterval(async () => {
+      const auctions = auctionIds.map((auctionId) => {
+        this.startAuction({ auctionId });
+      });
+      Promise.all(auctions);
+    }, 300000);
+  }
+  stopAutoRepeatAuctions() {
+    if (this.autoRepeatAuctionTimer) {
+      clearInterval(this.autoRepeatAuctionTimer);
+      this.autoRepeatAuctionTimer = null;
+      return {
+        message: '자동 반복 경매가 중지되었습니다',
+      };
+    }
+    return {
+      message: '자동 반복 경매가 이미 중지되어 있습니다',
+    };
+  }
+
+  async reduceTime(auctionId: string, userId: string, time: number) {
+    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
+    return auctionContext.reduceTime(time);
+  }
+
+  async terminateAuction(auctionId: string) {
+    const context = this.gameStatusService.getRunningContext(auctionId);
+    if (!context) {
+      return {
+        message: '경매가 시작되지 않았습니다',
+      };
+    }
+    context.terminate();
+    return {
+      message: '경매가 종료되었습니다',
+    };
+  }
+
+  /*----------------------------------------------------------------------------------------------*/
+  /* auction Event */
 
   private readonly load = async (
     auctionId: string,
@@ -254,15 +334,6 @@ export class GameService {
     };
     return loadGameDataDto;
   };
-
-  async reduceTime(auctionId: string, userId: string, time: number) {
-    const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-    return auctionContext.reduceTime(time);
-  }
-  // async terminateAuction(auctionId: string) {
-  //   const auctionContext = this.gameStatusService.getRunningContext(auctionId);
-  //   return auctionContext.terminate();
-  // }
 
   private readonly socketfun = (response: ResponseDto, data: any) => {
     if (response.socketId) {

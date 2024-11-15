@@ -49,4 +49,14 @@ export class GameController {
   //     return this.gameService.terminate(auctionId);
   //   return { message: 'You are not the owner of this auction' };
   // }
+  @UseGuards(JwtAuthGuard)
+  @Get('timer/activate')
+  async activateTimer() {
+    return this.gameService.activateAutoStartAuctionTimer();
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('timer/deactivate')
+  async deactivateTimer() {
+    return this.gameService.deactivateAutoStartAuctionTimer();
+  }
 }

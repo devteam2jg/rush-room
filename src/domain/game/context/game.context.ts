@@ -146,10 +146,12 @@ export class AuctionGameContext {
     };
     return saveGameDataDto;
   }
-
-  // isTerminated(): boolean {
-  //   return this.auctionStatus == AuctionStatus.TERMINATED;
-  // }
+  terminate() {
+    this.auctionStatus = AuctionStatus.TERMINATED;
+  }
+  isTerminated(): boolean {
+    return this.auctionStatus == AuctionStatus.TERMINATED;
+  }
   skipBidItem() {
     this.currentBidItem.canBid = false;
     this.setTime(8);
@@ -269,6 +271,7 @@ export class AuctionGameContext {
           name: item.bidder ? item.bidder.name : '익명',
           profileUrl: item.bidder ? item.bidder.profileUrl : null,
         },
+        picture: item.picture[0],
       };
     });
     console.log(result);

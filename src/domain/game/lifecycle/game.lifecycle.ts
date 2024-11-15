@@ -15,7 +15,6 @@ import { LifecycleFuctionDto } from '~/src/domain/game/dto/lifecycle.dto';
 @Injectable()
 export class AuctionGameFactory {
   constructor(private readonly auctionTimeService: AuctionTimeService) {}
-
   launch(auctionId: string, lifecycle: LifecycleFuctionDto) {
     new AuctionGame(auctionId, lifecycle, this.auctionTimeService).run();
     return {
@@ -30,6 +29,11 @@ export class AuctionGame extends AuctionGameLifecycle {
   }
 
   async onBidCreated(context: AuctionGameContext) {
+    this.timerEvent = () => {
+      context.sendToClient(null, MessageType.TIME_UPDATE, {
+        time: context.getTime(),
+      });
+    };
     const bidItem: BidItem = context.setNextBidItem();
     if (!bidItem) {
       this.ternimate();
@@ -42,12 +46,6 @@ export class AuctionGame extends AuctionGameLifecycle {
       sellerId: bidItem.sellerId,
       title: bidItem.title,
     });
-
-    this.timerEvent = () => {
-      context.sendToClient(null, MessageType.TIME_UPDATE, {
-        time: context.getTime(),
-      });
-    };
     context.alertToClient({
       type: 'YELLOW',
       message: '잠시후 경매가 시작됩니다.',
@@ -73,13 +71,13 @@ export class AuctionGame extends AuctionGameLifecycle {
       const prevPrice = context.prevBidPrice;
       const currentPrice = context.currentBidItem.bidPrice;
       const subPrice = currentPrice - prevPrice;
-      const { percent } = updateDto;
+      const percent = updateDto.percent ? updateDto.percent : null;
 
       if (percent) {
         if (percent == 5 && subPrice < 1500) return;
         if (percent == 10 && subPrice < 3000) return;
         if (percent == 20 && subPrice < 6000) return;
-      } else if (currentPrice < 10000) return;
+      } else if (currentPrice <= 30000) return;
       if (!percent) {
         return;
       }
@@ -98,12 +96,14 @@ export class AuctionGame extends AuctionGameLifecycle {
         differ: currentT - newTime,
       });
     });
-    context.alertToClient({
-      type: 'YELLOW',
-      message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
-    });
-    if (context.getTime() > 30) {
-      await this.startTimer(() => context.getTime() <= 15);
+    if (context.getTime() > 15) {
+      context.alertToClient({
+        type: 'YELLOW',
+        message: '경매 Phase 1 시작 \n입찰가격에 따라 시간이 감소합니다.',
+      });
+      await this.startTimer(
+        () => context.getTime() <= 15 && context.isTerminated(),
+      );
     }
   }
 
@@ -122,7 +122,6 @@ export class AuctionGame extends AuctionGameLifecycle {
         differ: max - curtime,
       });
     });
-
     context.sendToClient(null, MessageType.NOTIFICATION, {
       type: 'RUSH_TIME',
     });
@@ -130,8 +129,9 @@ export class AuctionGame extends AuctionGameLifecycle {
       type: 'YELLOW',
       message: '경매 Phase 2 시작 \n남은 시간이 초기화 됩니다.',
     });
-
-    await this.startTimer(() => context.getTime() <= 6);
+    await this.startTimer(
+      () => context.getTime() <= 6 && context.isTerminated(),
+    );
     this.timerEvent = () => {
       context.sendToClient(null, MessageType.TIME_UPDATE, {
         time: context.getTime(),
@@ -140,31 +140,29 @@ export class AuctionGame extends AuctionGameLifecycle {
         time: context.getTime(),
       });
     };
-    await this.startTimer(() => context.getTime() <= 0);
+    await this.startTimer(
+      () => context.getTime() <= 0 && context.isTerminated(),
+    );
   }
 
   async onBidEnded(context: AuctionGameContext): Promise<boolean> {
     context.deactivateBid();
     const bidItem = context.currentBidItem;
-
     const user: AuctionUserDataDto = context.getUserDataById(bidItem.bidderId);
-    const { profileUrl } = user;
+    if (user) {
+      user.budget -= bidItem.bidPrice;
+      bidItem.buyerId = user.id;
+      bidItem.isSold = true;
+    }
     context.notifyToClient({
       type: 'BID_END',
       itemId: bidItem.itemId,
       bidPrice: bidItem.bidPrice,
       name: user ? user.name : null,
       title: bidItem.title,
-      profileUrl: profileUrl,
+      profileUrl: user ? user.profileUrl : null,
     });
-
-    if (user) {
-      user.budget -= bidItem.bidPrice;
-      bidItem.buyerId = user.id;
-      bidItem.isSold = true;
-    }
     context.resetUsersBidPrice();
-
     await this.delay(10000);
     return context.isAuctionEnded();
   }

@@ -87,7 +87,6 @@ export abstract class AuctionGameLifecycle {
   protected ternimate() {
     this.next = null;
     this.auctionContext.auctionStatus = AuctionStatus.TERMINATED;
-    console.log('Ternimated');
   }
 
   async run() {
