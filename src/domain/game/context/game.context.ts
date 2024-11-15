@@ -167,8 +167,9 @@ export class AuctionGameContext {
   }
   /** client event */
   updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    this.updateEvent(updateBidPriceDto, this);
+    const result = this.updateEvent(updateBidPriceDto, this);
     this.timeEvent(updateBidPriceDto);
+    return result;
   }
 
   reduceTime(time: number) {
