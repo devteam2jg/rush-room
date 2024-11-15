@@ -6,35 +6,88 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nest build",
+    "build": "MODE=APP nest build",
+
+    "build:was": "NODE_ENV=production MODE=WAS nest build",
+    "build:game": "NODE_ENV=production MODE=GAME nest build",
+    "build:media": "NODE_ENV=production MODE=MEDIA nest build",
+    "build:prod:was": "NODE_ENV=production MODE=WAS nest build",
+    "build:prod:game": "NODE_ENV=production MODE=GAME nest build",
+    "build:prod:media": "NODE_ENV=production MODE=MEDIA nest build",
+
+    "build:dev:was": "NODE_ENV=development MODE=WAS nest build",
+    "build:dev:game": "NODE_ENV=development MODE=GAME nest build",
+    "build:dev:media": "NODE_ENV=development MODE=MEDIA nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
+
+    "start": "NODE_ENV=production nest start",
+    "start:was": "NODE_ENV=production MODE=WAS nest start --watch",
+    "start:game": "NODE_ENV=production MODE=GAME nest start --watch",
+    "start:media": "NODE_ENV=production MODE=MEDIA nest start --watch",
+
+    "start:dev": "NODE_ENV=development nest start --watch",
+    "start:dev:was": "NODE_ENV=development MODE=WAS nest start --watch",
+    "start:dev:game": "NODE_ENV=development MODE=GAME nest start --watch",
+    "start:dev:media": "NODE_ENV=development MODE=MEDIA nest start --watch",
+
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
+    
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+
+    "prod:was": "NODE_ENV=production MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env production", 
+    "prod:bid": "NODE_ENV=production MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env production",
+    "prid:media": "NODE_ENV=production MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env production",
+
+    "dev:was": "NODE_ENV=development MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env development",  
+    "dev:bid": "NODE_ENV=development MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env development",
+    "dev:media": "NODE_ENV=development MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env development"
   },
   "dependencies": {
+    "@aws-sdk/client-mediaconvert": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.679.0",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.12.0",
+    "@nestjs-modules/ioredis": "^2.0.2",
+    "@nestjs/bull": "^10.2.2",
     "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.2.3",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/jwt": "^10.2.0",
+    "@nestjs/mapped-types": "^2.0.5",
+    "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/platform-socket.io": "^10.4.5",
     "@nestjs/swagger": "^7.4.2",
+    "@nestjs/typeorm": "^10.0.2",
+    "@nestjs/websockets": "^10.4.5",
+    "@types/multer": "^1.4.12",
+    "bull": "^4.16.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "cookie-parser": "^1.4.7",
+    "ioredis": "^5.4.1",
+    "mediasoup": "^3.14.16",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "passport-kakao": "^1.0.1",
+    "pg": "^8.13.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.0",
+    "typeorm": "^0.3.20",
+    "uuid": "^11.0.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
-    "@nestjs/testing": "^10.0.0",
+    "@nestjs/testing": "^10.4.5",
+    "@types/bull": "^4.10.4",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
     "@types/node": "^20.3.1",
@@ -61,7 +114,10 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": "./",
+    "moduleNameMapper": {
+      "^~/(.*)$": "<rootDir>/$1"
+    },
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

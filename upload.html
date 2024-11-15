@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Test</title>
+</head>
+<body>
+    <h1>File Upload Test</h1>
+    
+    <!-- Image Upload Form -->
+    <h2>Upload Image</h2>
+    <form action="http://localhost:3000/api/v1/file/image/upload" method="post" enctype="multipart/form-data">
+        <label for="image">Choose image to upload:</label>
+        <input type="file" id="image" name="image" accept="image/*" required>
+        <button type="submit">Upload Image</button>
+    </form>
+    
+    <!-- Audio Upload Form -->
+    <h2>Upload Audio</h2>
+    <form action="http://localhost:3000/api/v1/file/audio/upload" method="post" enctype="multipart/form-data">
+        <label for="audio">Choose audio to upload:</label>
+        <input type="file" id="audio" name="audio" accept="audio/*" required>
+        <button type="submit">Upload Audio</button>
+    </form>
+    
+    <!-- Video Upload Form -->
+    <h2>Upload Video</h2>
+    <form action="http://localhost:3000/api/v1/file/video/upload" method="post" enctype="multipart/form-data">
+        <label for="video">Choose audio to upload:</label>
+        <input type="file" id="audio" name="video" accept="video/*" required>
+        <button type="submit">Upload Audio</button>
+    </form>
+</body>
+</html>
