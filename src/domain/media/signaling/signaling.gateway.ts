@@ -163,7 +163,6 @@ export class SignalingGateway
       return { error: 'Transport not found' };
     }
     await transportData.transport.connect({ dtlsParameters });
-    console.log('>> transport connected');
 
     return { connected: true };
   }
@@ -270,7 +269,6 @@ export class SignalingGateway
     if (!peer) throw new Error('No such peer');
     peer.consumers.forEach((consumer) => {
       if (consumer.consumer.paused) {
-        console.log('---consumer resume---', client.id);
         consumer.consumer.resume();
       }
     });

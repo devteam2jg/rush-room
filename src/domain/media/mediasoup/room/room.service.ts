@@ -26,7 +26,6 @@ export class RoomService {
     };
     this.rooms.set(roomId, newRoom);
 
-    console.log(`>> router created for room ${roomId}`);
     return newRoom;
   }
 

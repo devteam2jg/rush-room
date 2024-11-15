@@ -12,19 +12,16 @@ export class AnonymousGuard {
     const { auctionId, bidderId: userId } = data;
     if (!auctionId) {
       client.emit('ERROR', 'Auction ID is required');
-      console.log('Auction ID is required');
       return false;
     }
     if (!userId) {
       client.emit('ERROR', 'Auction ID is required');
-      console.log('User ID is required');
       return false;
     }
     const auctionContext = this.gameStatusService.getRunningContext(auctionId);
     const userData = auctionContext.getUserData(userId);
     if (!userData) {
       client.emit('ERROR', 'User is not joined');
-      console.log('User is not joined');
       return false;
     }
     if (!auctionContext.currentBidItem.canBidAnonymous) {
@@ -34,7 +31,6 @@ export class AnonymousGuard {
           message: 'Anonymous user is not allowed',
         });
         client.emit('ERROR', 'Anonymous user is not allowed');
-        console.log('Anonymous user is not allowed');
         return false;
       }
     }

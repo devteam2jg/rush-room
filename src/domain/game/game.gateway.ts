@@ -130,14 +130,12 @@ export class GameGateway {
   ) {
     const { type } = data;
     if (!data.socketId) data.socketId = socket.id;
-    console.log('Context 요청', data);
     switch (type) {
       case 'INFO':
         return this.gameService.requestAuctionInfo(data);
       case 'MODAL':
         return this.gameService.requestLastNotifyData(data);
       case 'CAMERA':
-        console.log('카메라 요청');
         return this.gameService.requestCamera(data);
       case 'OWNER':
         return this.gameService.requestOwnerInfo(data);
