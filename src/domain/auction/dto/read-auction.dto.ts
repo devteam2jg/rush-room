@@ -95,11 +95,19 @@ export class AuctionDto extends PickType(Auction, [
     this.status = auction.status;
     this.isPrivate = auction.isPrivate;
     this.user = auction.user;
+    const items = auction.auctionItems
+      .filter((item) => !item.imageUrls.some((url) => url.endsWith('.mov')))
+      .filter((item) => !item.imageUrls.some((url) => url.endsWith('.mp4')))
+      .map((item) => ({
+        id: item.id,
+        imageUrls: item.imageUrls,
+      }));
+
     this.firstItem =
       auction.auctionItems.length > 0
         ? {
-            id: auction.auctionItems[0].id,
-            imageUrl: auction.auctionItems[0].imageUrls,
+            id: items[0].id,
+            imageUrl: items[0].imageUrls,
           }
         : null;
 
