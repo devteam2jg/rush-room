@@ -10,12 +10,9 @@ export class BidUpdateProcessor {
   @Process('updateBid')
   async updateBid(job: Job<UpdateBidPriceDto>): Promise<any> {
     try {
-      console.log('Job received:', job.data);
-
       const { auctionId } = job.data;
       const auctionContext =
         this.gameStatusService.getRunningContext(auctionId);
-      console.log('Auction Context:', auctionContext);
 
       if (!auctionContext) {
         throw new Error(`Auction context for ${auctionId} not found.`);

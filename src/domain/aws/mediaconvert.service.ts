@@ -34,7 +34,6 @@ export class MediaConvertService {
       const response = await this.mediaConvertClient.send(command);
       return response;
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException(
         `Failed to create MediaConvert job: ${error.message}`,
       );

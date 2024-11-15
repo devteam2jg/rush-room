@@ -78,7 +78,6 @@ export class GameService {
           removeOnFail: true,
         },
       );
-      console.log('Job added:', job.id);
       const result = await job.finished();
       return result;
     } catch (err) {
