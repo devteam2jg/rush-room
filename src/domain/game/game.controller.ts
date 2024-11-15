@@ -41,7 +41,6 @@ export class GameController {
       return this.gameService.skip(auctionId);
     return { message: 'You are not the owner of this auction' };
   }
-  @UseGuards(JwtAuthGuard)
   @Get('terminate')
   async terminateAuction(@Query('id') auctionId, @Query('all') all) {
     if (all) {
@@ -50,14 +49,21 @@ export class GameController {
       return await this.gameService.terminateAuction(auctionId);
     }
   }
-  @UseGuards(JwtAuthGuard)
   @Get('timer/activate')
   async activateTimer() {
     return this.gameService.activateAutoStartAuctionTimer();
   }
-  @UseGuards(JwtAuthGuard)
   @Get('timer/deactivate')
   async deactivateTimer() {
     return this.gameService.deactivateAutoStartAuctionTimer();
+  }
+  @Get('repeat/activate')
+  async startAllAuctions(@Query('id') auctionId) {
+    if (auctionId) return this.gameService.startAutoRepeatAuctions([auctionId]);
+    return { message: 'fail' };
+  }
+  @Get('repeat/deactivate')
+  async stopAllAuctions() {
+    return this.gameService.stopAutoRepeatAuctions();
   }
 }

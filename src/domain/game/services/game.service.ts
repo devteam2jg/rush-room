@@ -241,6 +241,9 @@ export class GameService {
       });
       Promise.all(auctions);
     }, 300000);
+    return {
+      message: `${auctionIds}자동 반복 경매가 시작되었습니다.`,
+    };
   }
   stopAutoRepeatAuctions() {
     if (this.autoRepeatAuctionTimer) {
