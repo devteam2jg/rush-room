@@ -349,6 +349,7 @@ export class GameService {
   };
 
   private readonly createMediaRoom = async (auctionId: string) => {
+    console.log('createMediaRoom, send job');
     try {
       const job = await this.mediaQueue.add(
         'create-room',
@@ -359,6 +360,7 @@ export class GameService {
         },
       );
       const result = await job.finished();
+      console.log('result', result);
       console.log(result);
     } catch (err) {
       throw err;
@@ -367,6 +369,7 @@ export class GameService {
 
   private readonly destroyMediaRoom = async (auctionId: string) => {
     try {
+      console.log('destroyMediaRoom, send job');
       const job = await this.mediaQueue.add(
         'destroy-room',
         { auctionId },
@@ -377,6 +380,7 @@ export class GameService {
       );
       const result = await job.finished();
       console.log(result);
+      console.log('result', result);
     } catch (err) {
       throw err;
     }
