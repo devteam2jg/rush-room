@@ -5,7 +5,9 @@ import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
 import { BullModule } from '@nestjs/bull';
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'media-queue' }),
+    BullModule.registerQueue({
+      name: 'media-queue',
+    }),
     MediasoupModule,
     SignalingModule,
   ],

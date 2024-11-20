@@ -25,6 +25,10 @@ import { AuctionService } from '~/src/domain/auction/auction.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { AuctionGameFactory } from '~/src/domain/game/lifecycle/game.lifecycle';
+import {
+  CreateRoomDto,
+  DestroyRoomDto,
+} from '~/src/domain/media/dto/media.dto';
 @Injectable()
 export class GameService {
   private readonly logger = new Logger(GameService.name, { timestamp: true });
@@ -350,15 +354,12 @@ export class GameService {
 
   private readonly createMediaRoom = async (auctionId: string) => {
     console.log('createMediaRoom, send job');
+    const data: CreateRoomDto = { auctionId };
     try {
-      const job = await this.mediaQueue.add(
-        'create-room',
-        { auctionId },
-        {
-          removeOnComplete: true,
-          removeOnFail: true,
-        },
-      );
+      const job = await this.mediaQueue.add('create-room', data, {
+        removeOnComplete: true,
+        removeOnFail: true,
+      });
       const result = await job.finished();
       console.log('result', result);
       console.log(result);
@@ -371,14 +372,11 @@ export class GameService {
   private readonly destroyMediaRoom = async (auctionId: string) => {
     try {
       console.log('destroyMediaRoom, send job');
-      const job = await this.mediaQueue.add(
-        'destroy-room',
-        { auctionId },
-        {
-          removeOnComplete: true,
-          removeOnFail: true,
-        },
-      );
+      const data: DestroyRoomDto = { auctionId };
+      const job = await this.mediaQueue.add('destroy-room', data, {
+        removeOnComplete: true,
+        removeOnFail: true,
+      });
       const result = await job.finished();
       console.log(result);
       console.log('result', result);
