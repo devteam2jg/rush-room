@@ -13,6 +13,7 @@ export class MediaProcessor {
 
   @Process('create-room')
   async createRoom(job: Job<CreateRoomDto>): Promise<any> {
+    console.log('Creating room for auction:');
     try {
       const { auctionId } = job.data;
       console.log('Creating room for auction:', auctionId);
@@ -25,9 +26,9 @@ export class MediaProcessor {
 
   @Process('destory-room')
   async destoryRoom(job: Job<DestroyRoomDto>): Promise<any> {
+    console.log('Destroying room for auction:');
     try {
       const { auctionId } = job.data;
-      console.log('Destroying room for auction:', auctionId);
       return 'Room destroyed';
     } catch (error) {
       console.error('Error processing job:', error);
