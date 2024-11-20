@@ -16,6 +16,7 @@ export class MediaProcessor {
     try {
       const { auctionId } = job.data;
       console.log('Creating room for auction:', auctionId);
+      return 'Room created';
     } catch (error) {
       console.error('Error processing job:', error);
       throw error;
@@ -27,6 +28,7 @@ export class MediaProcessor {
     try {
       const { auctionId } = job.data;
       console.log('Destroying room for auction:', auctionId);
+      return 'Room destroyed';
     } catch (error) {
       console.error('Error processing job:', error);
       throw error;
