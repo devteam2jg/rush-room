@@ -363,6 +363,7 @@ export class GameService {
       console.log('result', result);
       console.log(result);
     } catch (err) {
+      console.log(err);
       throw err;
     }
   };
@@ -382,6 +383,7 @@ export class GameService {
       console.log(result);
       console.log('result', result);
     } catch (err) {
+      console.log(err);
       throw err;
     }
   };
