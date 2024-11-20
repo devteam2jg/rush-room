@@ -7,7 +7,9 @@ import {
 
 @Processor('media-queue')
 export class MediaProcessor {
-  constructor() {}
+  constructor() {
+    console.log('MediaProcessor initialized');
+  }
 
   @Process('create-room')
   async createRoom(job: Job<CreateRoomDto>): Promise<any> {
