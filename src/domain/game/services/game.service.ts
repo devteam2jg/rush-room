@@ -39,6 +39,8 @@ export class GameService {
     private readonly auctionService: AuctionService,
     @InjectQueue('update-bid-queue')
     private readonly updateBidQueue: Queue,
+    @InjectQueue('media-queue')
+    private readonly mediaQueue: Queue,
     private readonly auctionGameFactory: AuctionGameFactory,
   ) {}
 
@@ -93,6 +95,7 @@ export class GameService {
         auctionContext.loadContext(await this.load(auctionId));
         auctionContext.setSocketEventListener(this.socketfun);
         this.auctionRepository.update(auctionId, { status: Status.PROGRESS });
+        this.createMediaRoom(auctionId);
         return true;
       },
       jobAfterRoomCreate: async (auctionContext: AuctionGameContext) => {
@@ -114,6 +117,7 @@ export class GameService {
       jobAfterRoomDestroy: async (auctionContext: AuctionGameContext) => {
         const { auctionId } = auctionContext;
         this.auctionRepository.update(auctionId, { status: Status.END });
+        this.destroyMediaRoom(auctionId);
         return true;
       },
     };
@@ -342,5 +346,39 @@ export class GameService {
   };
   private readonly saveEach = (bidItem: BidItem) => {
     this.auctionItemRepository.updateAuctionItem(bidItem);
+  };
+
+  private readonly createMediaRoom = async (auctionId: string) => {
+    try {
+      const job = await this.mediaQueue.add(
+        'create-room',
+        { auctionId },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+      const result = await job.finished();
+      console.log(result);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  private readonly destroyMediaRoom = async (auctionId: string) => {
+    try {
+      const job = await this.mediaQueue.add(
+        'destroy-room',
+        { auctionId },
+        {
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+      const result = await job.finished();
+      console.log(result);
+    } catch (err) {
+      throw err;
+    }
   };
 }

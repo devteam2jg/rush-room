@@ -1,16 +1,21 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MediasoupModule } from '~/src/domain/media/mediasoup/mediasoup.module';
-import { SignalingModule } from '~/src/domain/media/signaling/signaling.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { transportOptions } from '~/src/domain/media/mediasoup/media.config';
+import { BullModule } from '@nestjs/bull';
+import { bullqConfig } from '~/src/app/configs/bullq.config';
+import { MediaModule } from '~/src/domain/media/media.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [transportOptions],
     }),
-    MediasoupModule,
-    SignalingModule,
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: bullqConfig,
+      inject: [ConfigService],
+    }),
+    MediaModule,
   ],
 })
 export class MediaAppModule {}
