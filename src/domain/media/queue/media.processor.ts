@@ -16,7 +16,11 @@ export class MediaProcessor {
     return 'Job processed';
   }
   @Process('create-room')
-  async createRoom(job: Job<CreateRoomDto>): Promise<any> {}
+  async createRoom(job: Job<CreateRoomDto>): Promise<any> {
+    console.log('Creating room for auction:');
+    const { auctionId } = job.data;
+    return 'Room created';
+  }
 
   @Process('destory-room')
   async destoryRoom(job: Job<DestroyRoomDto>): Promise<any> {
