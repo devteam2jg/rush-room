@@ -11,19 +11,13 @@ export class MediaProcessor {
   constructor(private readonly mediaService: MediasoupService) {
     console.log('MediaProcessor initialized');
   }
-
-  @Process('create-room')
-  async createRoom(job: Job<CreateRoomDto>): Promise<any> {
-    console.log('Creating room for auction:');
-    try {
-      const { auctionId } = job.data;
-      console.log('Creating room for auction:', auctionId);
-      return 'Room created';
-    } catch (error) {
-      console.error('Error processing job:', error);
-      throw error;
-    }
+  @Process()
+  async process(job: Job<any>): Promise<any> {
+    console.log('Processing job:', job.name);
+    return 'Job processed';
   }
+  @Process('create-room')
+  async createRoom(job: Job<CreateRoomDto>): Promise<any> {}
 
   @Process('destory-room')
   async destoryRoom(job: Job<DestroyRoomDto>): Promise<any> {

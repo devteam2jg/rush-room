@@ -42,7 +42,7 @@
 
     "prod:was": "NODE_ENV=production MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env production", 
     "prod:bid": "NODE_ENV=production MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env production",
-    "prid:media": "NODE_ENV=production MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env production",
+    "prod:media": "NODE_ENV=production MODE=MEDIA nest build && pm2 start ecosystem.config.js --only rush-room-media --env production",
 
     "dev:was": "NODE_ENV=development MODE=WAS nest build && pm2 start ecosystem.config.js --only rush-room-was --env development",  
     "dev:bid": "NODE_ENV=development MODE=BID nest build && pm2 start ecosystem.config.js --only rush-room-bid --env development",
