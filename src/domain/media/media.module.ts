@@ -10,7 +10,7 @@ import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
     }),
     MediasoupModule,
     SignalingModule,
-    MediaProcessor,
   ],
+  providers: [MediaProcessor],
 })
 export class MediaModule {}
