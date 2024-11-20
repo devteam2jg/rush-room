@@ -12,7 +12,6 @@ import { BullModule } from '@nestjs/bull';
 import { BidUpdateProcessor } from '~/src/domain/game/queue/queue.processor';
 import { AuctionGameFactory } from '~/src/domain/game/lifecycle/game.lifecycle';
 import { AuctionTimeService } from '~/src/domain/game/services/game.time.service';
-import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
 
 @Module({
   imports: [
@@ -35,7 +34,6 @@ import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
     BidUpdateProcessor,
     AuctionGameFactory,
     AuctionTimeService,
-    MediaProcessor,
   ],
   exports: [GameService],
   controllers: [GameController, GameTestController],
