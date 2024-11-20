@@ -4,11 +4,10 @@ import {
   CreateRoomDto,
   DestroyRoomDto,
 } from '~/src/domain/media/dto/media.dto';
-import { MediasoupService } from '~/src/domain/media/mediasoup/mediasoup.service';
 
 @Processor('media-queue')
 export class MediaProcessor {
-  constructor(private readonly mediaService: MediasoupService) {
+  constructor() {
     console.log('MediaProcessor initialized');
   }
   @Process()
