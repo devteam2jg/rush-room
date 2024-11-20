@@ -3,7 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { transportOptions } from '~/src/domain/media/mediasoup/media.config';
 import { BullModule } from '@nestjs/bull';
 import { bullqConfig } from '~/src/app/configs/bullq.config';
-import { MediaModule } from '~/src/domain/media/media.module';
+import { MediasoupModule } from '~/src/domain/media/mediasoup/mediasoup.module';
+import { SignalingModule } from '~/src/domain/media/signaling/signaling.module';
+import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -15,7 +17,12 @@ import { MediaModule } from '~/src/domain/media/media.module';
       useFactory: bullqConfig,
       inject: [ConfigService],
     }),
-    MediaModule,
+    BullModule.registerQueue({
+      name: 'media-queue',
+    }),
+    MediasoupModule,
+    SignalingModule,
   ],
+  providers: [MediaProcessor],
 })
 export class MediaAppModule {}

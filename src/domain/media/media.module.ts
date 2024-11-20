@@ -2,15 +2,7 @@ import { Module } from '@nestjs/common';
 import { MediasoupModule } from './mediasoup/mediasoup.module';
 import { SignalingModule } from './signaling/signaling.module';
 import { MediaProcessor } from '~/src/domain/media/queue/media.processor';
-import { BullModule } from '@nestjs/bull';
 @Module({
-  imports: [
-    BullModule.registerQueue({
-      name: 'media-queue',
-    }),
-    MediasoupModule,
-    SignalingModule,
-  ],
-  providers: [MediaProcessor],
+  imports: [MediasoupModule, SignalingModule],
 })
 export class MediaModule {}
