@@ -19,15 +19,15 @@ export class GameTestController {
   }
 
   @Get('test')
-  stressTest() {
-    return this.stressTestUpdateBidQueue();
+  stressTest(@Query('id') auctionId) {
+    return this.stressTestUpdateBidQueue(auctionId);
   }
 
   /**
    * 10초 동안 초당 100개의 메시지를 Bull Queue에 보내는 함수
    * Bull Queue의 `completed` 및 `failed` 이벤트를 활용하여 처리 시간 기록
    */
-  async stressTestUpdateBidQueue(): Promise<void> {
+  async stressTestUpdateBidQueue(auctionId: string): Promise<void> {
     const duration = 10 * 1000; // 10초
     const messagesPerSecond = 100;
     const totalMessages = (duration / 1000) * messagesPerSecond;
@@ -64,7 +64,7 @@ export class GameTestController {
 
     const sendMessage = async (index: number) => {
       const updateBidPriceDto = {
-        auctionId: 'test-auction-id',
+        auctionId: auctionId,
         bidderId: `test-user-${index}`,
         bidderNickname: `test-user-${index}`,
         bidPrice: Math.floor(Math.random() * 1000) + 1, // 랜덤 입찰가
