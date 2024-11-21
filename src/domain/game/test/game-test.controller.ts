@@ -20,6 +20,7 @@ export class GameTestController {
 
   @Get('test')
   stressTest(@Query('id') auctionId) {
+    const userId = '93c43a5f-550d-4b84-939e-832fb045385f';
     return this.stressTestUpdateBidQueue(auctionId, userId);
   }
 
