@@ -100,7 +100,7 @@ export class GameTestController {
         promises.push(sendMessage(i * messagesPerSecond + j));
       }
       await Promise.all(promises);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 1초 대기
+      await new Promise((resolve) => setTimeout(resolve, 100)); // 1초 대기
     }
 
     // 모든 작업이 끝난 후 결과 출력
