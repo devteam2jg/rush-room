@@ -33,7 +33,7 @@ export class GameTestController {
     userId: string,
   ): Promise<void> {
     const duration = 10 * 1000; // 10초
-    const messagesPerSecond = 10;
+    const messagesPerSecond = 100;
     const totalMessages = (duration / 1000) * messagesPerSecond;
 
     this.logger.log(
