@@ -193,7 +193,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       return {
         status: 'fail',
         bidPrice: context.currentBidItem.bidPrice,
-        budget: user.budget - user.bidPrice,
+        budget: user ? user.budget - user.bidPrice : 0,
       };
     }
 
@@ -205,7 +205,7 @@ export class AuctionGame extends AuctionGameLifecycle {
       return {
         status: 'fail',
         bidPrice: context.currentBidItem.bidPrice,
-        budget: user.budget - user.bidPrice,
+        budget: user ? user.budget - user.bidPrice : 0,
       };
     }
     if (user.budget < bidPrice) {
@@ -214,7 +214,7 @@ export class AuctionGame extends AuctionGameLifecycle {
         message: '예산이 부족합니다.',
       });
       return {
-        budget: user.budget - user.bidPrice,
+        budget: user ? user.budget - user.bidPrice : 0,
         bidPrice: context.currentBidItem.bidPrice,
         status: 'fail',
       };
@@ -250,7 +250,7 @@ export class AuctionGame extends AuctionGameLifecycle {
     return {
       status: 'success',
       bidPrice: context.currentBidItem.bidPrice,
-      budget: user.budget - user.bidPrice,
+      budget: user ? user.budget - user.bidPrice : 0,
     };
   };
 }
