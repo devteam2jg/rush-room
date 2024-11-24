@@ -2,6 +2,8 @@ name: Bid Git Pull
 
 on:
   pull_request:
+    branches:
+      - main
     types: [closed]
 
 jobs:
@@ -29,7 +31,7 @@ jobs:
       with:
         host: ${{ secrets.EC2_HOST_BID }}
         username: ${{ secrets.EC2_USER }}
-        key_path: ./key.pem
+        key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd /home/ubuntu/rush-room
           git pull origin main
