@@ -38,15 +38,12 @@
 
 # 팀원소개 
 ### 정현우 | Back-End Developer | Product Manager
-Email. xx@gmail.com
+
+Email. smartcow.jung@gmail.com
 ### 이승현 | Back-End Developer 
 Email. xx@gmail.com
 ### 서현승 | Back-End Developer | DevOps
 Email. hab5bur9@gmail.com
-### 정재욱 | Front-End Developer 
-Email. xx@gmail.com
-### 정소연 | Front-End Developer 
-Email. xx@gmail.com
 
 # 기술 스택
 ### Language
@@ -135,8 +132,12 @@ Email. xx@gmail.com
 # 프로젝트 회고
 ## 한계점 및 개선 방안
 - webRTC Test 불완전성
-    - delay 측정의 불완전성
-    - headless browser 생성 방법
+    - delay 측정의 오차
+        - 실제 delay는 다음과 같은 값을 포함함.
+            - delay = 송신 측 encoding time + packet send to server network time + server processing time + packet send to
+              수신 network time + 수신 측 buffer time + processing time(decoding + rendering)
+            - delay에서 가장 큰 영향은 사실 network time임. 아무리 서비스를 잘 만들어도 network 품질이 떨어진다면 delay는 늘어날 수 밖에 없음
+            - 그리하여 delay의 요소 중 network time은 배제하고, 그 다음 크게 영향을 끼칠 수 있는 요소인 buffer time과 processing time만으로 delay를 추정함
 
 - 시간 줄이기 로직에서 논리적 충돌(Lock)
     - 현재 시간을 줄이는 로직과 시간이 흐르는 로직에 대해 별다른 lock을 구현하지 않고 있음.
