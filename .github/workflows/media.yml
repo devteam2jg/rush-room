@@ -36,6 +36,7 @@ jobs:
         script: |
           cd /home/${{ secrets.EC2_USER }}/rush-room
           pwd
+          nvm use 22
           /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pm2 status
           git stash
           git pull origin main
