@@ -12,11 +12,41 @@
 - 경매품의 상세 이미지와 동영상을 업로드 할 수 있어요
 ### 활발한 경매 진행을 위한 다양한 기능
 - 입찰 금액에 따라 시간이 변동되는 동적 경매시스템으로 경매 경쟁을 활발하게 만들어요
+# 아키텍처 
+![러시룸 아키텍처](https://github.com/user-attachments/assets/e37e0c49-b69f-40e9-a322-56b0a28e1551)
 
 # 시연영상
 
 [![러시룸 시연영상](http://img.youtube.com/vi/jYSYA7rW5AU/0.jpg)](https://youtu.be/jYSYA7rW5AU?t=0s) 
 이미지를 클릭시 유튜브로 이동합니다.
+
+# version 
+## 2024.10.14 ~ 2024.11.15 -> v1.0 메인기능 구현 
+- mediasoup를 사용해 sfu방식 실시간 스트리밍 기능 구현
+- passport로 소셜 로그인 전략패턴으로 구현
+- Redis와 bull(MQ)를 이용한 입찰 시스템 및 시간 감소 로직 구현
+- socket 통신 구현
+- 로그인 Guard 및 경매 Guard 구현
+- AWS File 업로드 및 영상 파일 HLS 트랜스 코딩 구현
+- 경매 서비스에 필요한 기초 CRUD 구현
+- pm2기반 모노레포 방식 도입, /src/app 디렉토리
+- pm2와 git-action을 이용한 3개 인스턴스 CI/CD 파이프라인 구축
+- ConfigModule를 이용한 환경변수 관리
+- typeorm 적용
+- class-validator, class-transformer을 이용한 유효성 검사
+- test를 위한 모듈 및 기능 개발 ( 익명 로그인 기능 )
+
+# 팀원소개 
+### 정현우 | Back-End Developer | Product Manager
+Email. xx@gmail.com
+### 이승현 | Back-End Developer 
+Email. xx@gmail.com
+### 서현승 | Back-End Developer | DevOps
+Email. hab5bur9@gmail.com
+### 정재욱 | Front-End Developer 
+Email. xx@gmail.com
+### 정소연 | Front-End Developer 
+Email. xx@gmail.com
 
 # 기술 스택
 ### Language
