@@ -215,7 +215,7 @@ export class AuctionGameContext {
       time: this.getTime(),
       bidPrice: this.currentBidItem.bidPrice,
       bidderId: this.currentBidItem.bidderId,
-      budget: user.budget,
+      budget: user ? user.budget : null,
       Anon: this.currentBidItem.canBidAnonymous,
     };
   }

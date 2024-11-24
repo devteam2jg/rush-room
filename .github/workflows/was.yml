@@ -1,0 +1,53 @@
+name: WAS git pull
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+jobs:
+  aws-git-pull:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Add SSH key
+      run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+        
+    - name: SSH into EC2 and pull latest code
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST_WAS }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # nvm 로드 및 Node.js 버전 설정
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm use 22
+
+          # Node.js 버전 확인
+          node -v
+          
+          cd /home/${{ secrets.EC2_USER }}/rush-room
+          pwd
+          nvm use 22
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pm2 status
+          git stash
+          git pull origin main
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pnpm install
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pm2 kill
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pnpm prod:was
