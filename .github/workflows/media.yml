@@ -30,7 +30,7 @@ jobs:
       with:
         host: ${{ secrets.EC2_HOST_MEDIA }}
         username: ${{ secrets.EC2_USER }}
-        key-path: ./key.pem
+        key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd /home/ubuntu/rush-room
           git pull origin main
