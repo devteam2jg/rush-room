@@ -33,12 +33,11 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
-          cd /home/ubuntu/rush-room
+          cd /home/${{ secrets.EC2_USER }}/rush-room
           pwd
-          pm2 status
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pm2 status
           git stash
-          git checkout main
           git pull origin main
-          pnpm install
-          pm2 kill
-          pnpm prod:bid
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pnpm install
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pm2 kill
+          /home/ubuntu/.nvm/versions/node/v22.11.0/bin/pnpm prod:bid
