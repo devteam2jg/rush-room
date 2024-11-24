@@ -34,6 +34,10 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
           cd /home/ubuntu/rush-room
+          pwd
+          pm2 status
+          git stash
+          git checkout main
           git pull origin main
           pnpm install
           pm2 kill
