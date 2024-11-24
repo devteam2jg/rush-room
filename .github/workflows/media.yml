@@ -2,6 +2,8 @@ name: Media Git Pull
 
 on:
   pull_request:
+    branches:
+      - main
     types: [closed]
 
 jobs:
