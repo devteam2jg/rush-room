@@ -34,6 +34,13 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
+          # nvm 로드 및 Node.js 버전 설정
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm use 22
+
+          # Node.js 버전 확인
+          node -v
           cd /home/${{ secrets.EC2_USER }}/rush-room
           pwd
           nvm use 22
