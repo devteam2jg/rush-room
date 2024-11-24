@@ -14,7 +14,12 @@
 - 입찰 금액에 따라 시간이 변동되는 동적 경매시스템으로 경매 경쟁을 활발하게 만들어요
 
 # 시연영상
+이미지를 클릭시 유튜브로 이동합니다.
 [![러시룸 시연영상](http://img.youtube.com/vi/jYSYA7rW5AU/0.jpg)](https://youtu.be/jYSYA7rW5AU?t=0s) 
+<!-- 유튜브 동영상 -->
+<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; height: auto;">
+  <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/jYSYA7rW5AU" frameborder="0" allowfullscreen></iframe>
+</div>
 
 # 기술 스택
 ### Language
