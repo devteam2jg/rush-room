@@ -39,3 +39,4 @@ jobs:
           pnpm install
           pm2 kill
           pnpm prod:was
+          
