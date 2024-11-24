@@ -1,4 +1,4 @@
-name: AWS Git Pull
+name: Media Git Pull
 
 on:
   pull_request:
