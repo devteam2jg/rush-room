@@ -41,7 +41,7 @@
 
 Email. smartcow.jung@gmail.com
 ### 이승현 | Back-End Developer 
-Email. xx@gmail.com
+Email. sen9563@gmail.com
 ### 서현승 | Back-End Developer | DevOps
 Email. hab5bur9@gmail.com
 
