@@ -64,12 +64,13 @@ Email. hab5bur9@gmail.com
 ### Streaming
 - mediasoup
 
-### AWS 
+### Distribution 
 - aws ec2 
 - aws s3 
 - aws CloudFront
 - aws MediaConvert
-
+- Nginx
+  
 # 세부 내용
 ### Backend Framework(NestJS)
 - 더 가벼운 러닝커브
