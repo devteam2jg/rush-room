@@ -91,6 +91,25 @@ Email. hab5bur9@gmail.com
             - sfu 방식의 webRTC media server 구축을 도와주는 node.js 기반 library
             - 저수준의 api를 제공. video, audio 품질, bitrate 조정, 개별 스트림 레벨 제어 등 실시간 스트리밍 품질과 관련된 다양한 요소를 직접 조절 가능
             - 상대적으로 적은 리소스 사용
+- 약 200대의 Headless Browser를 생성한 E2E Media Server 부하 테스트 진행
+  <br/>** Pupeteer를 사용해 Headless Browser를 만들며, webRTC 관련 통계치 정보를
+  제공하는 [webrtcperf](https://github.com/vpalmisano/webrtcperf) library 사용
+    - stream packet 처리는 높은 cpu 집약적 작업임
+    - 하지만 현재 Media server의 ec2 instance의 2core로 시연 시 예상 서비스 참여자 100명에게 0.5s 이내의 안정적으로 실시간 영상이 제공가능할지 확신이 없었음
+    - 이를 검증하기 위해, 아래와 같이 2대의 c7i.8xlarge(32core, 64GB) instance에서 각 100대의 Headless Browser를 생성해 부하 테스트 진행
+    - <img src="https://github.com/user-attachments/assets/80f52b52-b212-4e99-9896-734d252e5c8c" width="600"/>
+    - 그 결과 아래와 같이 chrome에서 제공하는 webrtc stats tool(webrtc-internals)을 통해 jitterBufferDelay와 processingDelay의 합이 0.5s 미만임을
+      확인함
+        - jitterBufferDelay
+            - <img src="https://github.com/user-attachments/assets/e3915c1b-dd1f-4179-8735-fcc4e8d610ee" width="350"/>
+        - processingDelay
+            - <img src="https://github.com/user-attachments/assets/471d8d8e-8336-40d0-b73a-e0b51358e4f2" width="350"/>
+    - media server의 CPU 사용량도 200대 기준 40% 대로 안정적이었음
+        - <img src="https://github.com/user-attachments/assets/44e17428-a976-4cf5-8b14-b7b004cf906d" width="300" />
+    - 반복 검증 결과 동시 접속자 100명 당 2core 기준 cpu 사용량 20% 정도를 차지. scale out or up을 적용하면 훨씬 많은 수의 동시접속자 수를 감당할 수 있을 것으로 추정
+    - 위 테스트 결과를 통해, 시연 시 참가자들을 서비스를 참여시키는 형식의 발표를 구성하기로 의사결정
+    - => 실제로 [위 발표 영상](#러시룸-시연영상)에서와 같이, 시연 당일 60명의 동시 접속자에게 안정적인 스트리밍 영상 제공. 당일 발표한 8팀 중 유일하게 참가자가 시연 중 직접 사용 가능한 서비스였음
+
 ### Passport 
 - 초기 기획은 다양한 소셜로그인 지원
     - 서버에서 사용자의 데이터를 저장할 필요가 있었기에 OAuth2.0의 REST API 방식을 사용해야함.
@@ -139,6 +158,9 @@ Email. hab5bur9@gmail.com
               수신 network time + 수신 측 buffer time + processing time(decoding + rendering)
             - delay에서 가장 큰 영향은 사실 network time임. 아무리 서비스를 잘 만들어도 network 품질이 떨어진다면 delay는 늘어날 수 밖에 없음
             - 그리하여 delay의 요소 중 network time은 배제하고, 그 다음 크게 영향을 끼칠 수 있는 요소인 buffer time과 processing time만으로 delay를 추정함
+  - 다양한 테스트 시나리오의 부재
+      - 순간 부하, 여러 경매 방 진행, 채팅 및 입찰과의 통합 시나리오 등
+  - Headless Browser와 Media server의 연결 불안정성
 
 - 시간 줄이기 로직에서 논리적 충돌(Lock)
     - 현재 시간을 줄이는 로직과 시간이 흐르는 로직에 대해 별다른 lock을 구현하지 않고 있음.
