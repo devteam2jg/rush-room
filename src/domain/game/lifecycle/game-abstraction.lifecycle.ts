@@ -102,7 +102,7 @@ export abstract class AuctionGameLifecycle {
       this.clearTimer();
       this.timer = setInterval(async () => {
         this.auctionContext.timerInterrupt();
-        this.timerEvent();
+        await this.timerEvent();
         if (await callback()) {
           this.clearTimer();
           resolve();
@@ -119,9 +119,9 @@ export abstract class AuctionGameLifecycle {
   protected startTimer2(callback: () => boolean, time?: number): Promise<void> {
     return new Promise((resolve) => {
       this.clearTimer();
-      this.timer = setInterval(() => {
+      this.timer = setInterval(async () => {
         this.auctionContext.timerInterrupt();
-        this.timerEvent();
+        await this.timerEvent();
         if (callback()) {
           this.clearTimer();
           resolve();
