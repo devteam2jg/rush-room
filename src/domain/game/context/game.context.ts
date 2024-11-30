@@ -82,6 +82,12 @@ export class AuctionGameContext {
   //   this.auctionStatus = AuctionStatus.TERMINATED;
   // }
   // -----------------------------------------------------------------------
+  async lock() {
+    await this.mutex.lock();
+  }
+  async unlock() {
+    this.mutex.unlock();
+  }
   async timerInterrupt() {
     try {
       await this.mutex.lock();
@@ -191,20 +197,14 @@ export class AuctionGameContext {
   /** client event */
   async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
     let result = null;
-    try {
-      await this.mutex.lock();
-      result = this.updateEvent(updateBidPriceDto, this);
-      this.timeEvent(updateBidPriceDto);
-    } finally {
-      this.mutex.unlock();
-    }
+    result = this.updateEvent(updateBidPriceDto, this);
+    this.timeEvent(updateBidPriceDto);
     return result;
   }
 
   async reduceTime(time: number) {
     try {
       await this.mutex.lock();
-      if (this.currentBidItem.itemSellingLimitTime <= time) return;
       this.subTime(time);
       this.sendToClient(null, MessageType.TIME_UPDATE, {
         time: this.getTime(),
