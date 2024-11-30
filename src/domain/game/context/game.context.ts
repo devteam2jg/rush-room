@@ -1,3 +1,4 @@
+import { BidMutex } from '~/src/domain/game/context/game.lock';
 import {
   InitialDataDto,
   LoadGameDataDto,
@@ -50,7 +51,7 @@ export class AuctionGameContext {
   prevSocketId: string;
 
   private readonly joinedUsers: Map<string, AuctionUserDataDto> = new Map();
-
+  private readonly mutex: BidMutex = new BidMutex();
   join(userData: AuctionUserDataDto) {
     const { id } = userData;
     if (this.joinedUsers.has(id)) return false;
@@ -81,11 +82,23 @@ export class AuctionGameContext {
   //   this.auctionStatus = AuctionStatus.TERMINATED;
   // }
   // -----------------------------------------------------------------------
-  timerInterrupt() {
-    return --this.currentBidItem.itemSellingLimitTime;
+  async timerInterrupt() {
+    try {
+      await this.mutex.lock();
+      --this.currentBidItem.itemSellingLimitTime;
+    } finally {
+      this.mutex.unlock();
+    }
   }
-  getTime(): number {
-    return this.currentBidItem.itemSellingLimitTime;
+  async getTime(): Promise<number> {
+    let time = 0;
+    try {
+      await this.mutex.lock();
+      time = this.currentBidItem.itemSellingLimitTime;
+    } finally {
+      this.mutex.unlock();
+    }
+    return time;
   }
   getUsers(): AuctionUserDataDto[] {
     return Array.from(this.joinedUsers.values());
@@ -108,10 +121,19 @@ export class AuctionGameContext {
     return this.sequence === this.bidItems.length;
   }
   subTime(time: number) {
-    this.currentBidItem.itemSellingLimitTime -= time;
+    try {
+      this.currentBidItem.itemSellingLimitTime -= time;
+    } finally {
+      this.mutex.unlock();
+    }
   }
-  setTime(time: number) {
-    this.currentBidItem.itemSellingLimitTime = time;
+  async setTime(time: number) {
+    try {
+      await this.mutex.lock();
+      this.currentBidItem.itemSellingLimitTime = time;
+    } finally {
+      this.mutex.unlock();
+    }
   }
   activateBid() {
     this.currentBidItem.canBid = true;
@@ -167,16 +189,29 @@ export class AuctionGameContext {
     return this;
   }
   /** client event */
-  updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): any {
-    const result = this.updateEvent(updateBidPriceDto, this);
-    this.timeEvent(updateBidPriceDto);
+  async updateBidPrice(updateBidPriceDto: UpdateBidPriceDto): Promise<any> {
+    let result = null;
+    try {
+      await this.mutex.lock();
+      result = this.updateEvent(updateBidPriceDto, this);
+      this.timeEvent(updateBidPriceDto);
+    } finally {
+      this.mutex.unlock();
+    }
     return result;
   }
 
-  reduceTime(time: number) {
-    if (this.currentBidItem.itemSellingLimitTime <= time) return;
-    this.subTime(time);
-    this.sendToClient(null, MessageType.TIME_UPDATE, { time: this.getTime() });
+  async reduceTime(time: number) {
+    try {
+      await this.mutex.lock();
+      if (this.currentBidItem.itemSellingLimitTime <= time) return;
+      this.subTime(time);
+      this.sendToClient(null, MessageType.TIME_UPDATE, {
+        time: this.getTime(),
+      });
+    } finally {
+      this.mutex.unlock();
+    }
   }
 
   getUserDataById(userId: string): AuctionUserDataDto {
