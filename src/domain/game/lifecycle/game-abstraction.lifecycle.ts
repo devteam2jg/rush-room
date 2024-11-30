@@ -97,13 +97,13 @@ export abstract class AuctionGameLifecycle {
   }
   private timer: NodeJS.Timeout | null = null;
   protected timerEvent: () => void;
-  protected startTimer(callback: () => boolean): Promise<void> {
+  protected startTimer(callback: () => Promise<boolean>): Promise<void> {
     return new Promise((resolve) => {
       this.clearTimer();
-      this.timer = setInterval(() => {
+      this.timer = setInterval(async () => {
         this.auctionContext.timerInterrupt();
         this.timerEvent();
-        if (callback()) {
+        if (await callback()) {
           this.clearTimer();
           resolve();
         }
