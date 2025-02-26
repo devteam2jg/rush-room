@@ -46,7 +46,7 @@ Email. sen9563@gmail.com
 Email. hab5bur9@gmail.com
 
 # 기술 스택
-### Language
+### Framework
 - Nestjs
 
 ### DB 
@@ -57,8 +57,8 @@ Email. hab5bur9@gmail.com
 - JWT
 - passport 
 
-### Bid
-- Bull(Message Queue)
+### Message Queue
+- bull queue
 - redis
 
 ### Streaming
